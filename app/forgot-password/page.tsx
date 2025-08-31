@@ -12,19 +12,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DarkVeil } from "@/components/ui/dark-veil";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { resetPassword } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd send a request to your backend to handle the password reset
-    console.log("Password reset requested for:", email);
-    setIsSubmitted(true);
+    setError("");
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await resetPassword(email);
+      
+      if (error) throw error;
+      
+      setIsSubmitted(true);
+    } catch (error: unknown) {
+      console.error("Password reset error:", error);
+      setError(error instanceof Error ? error.message : "Failed to send reset email. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -77,6 +92,13 @@ export default function ForgotPasswordPage() {
               </CardHeader>
               
               <CardContent className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg flex items-start">
+                    <AlertCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+                
                 {isSubmitted ? (
                   <motion.div 
                     initial={{ opacity: 0 }}
@@ -103,6 +125,7 @@ export default function ForgotPasswordPage() {
                         type="button"
                         onClick={() => setIsSubmitted(false)}
                         className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                        disabled={isLoading}
                       >
                         Resend Email
                       </Button>
@@ -143,21 +166,23 @@ export default function ForgotPasswordPage() {
                           placeholder="Enter your email"
                           className="pl-10 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
                           required
+                          disabled={isLoading}
                         />
                       </motion.div>
                     </div>
 
                     {/* Submit Button */}
                     <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                      whileTap={{ scale: isLoading ? 1 : 0.98 }}
                       className="pt-2"
                     >
                       <Button
                         type="submit"
-                        className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                        className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
+                        disabled={isLoading}
                       >
-                        Reset Password
+                        {isLoading ? "Sending..." : "Reset Password"}
                       </Button>
                     </motion.div>
                     
