@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Card,
   CardContent,
@@ -12,24 +13,48 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DarkVeil } from "@/components/ui/dark-veil";
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { signIn } from "@/lib/supabase";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic would go here
-    console.log("Login attempt with:", { email, password, rememberMe });
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      const { data, error } = await signIn(email, password);
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.user) {
+        // If remember me is not checked, we could set a shorter session in a real implementation
+        // For now, we'll just redirect to the dashboard
+        router.push("/");
+      }
+    } catch (error: unknown) {
+      console.error("Login error:", error);
+      setError(error instanceof Error ? error.message : "Failed to sign in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -79,6 +104,13 @@ export default function LoginPage() {
               </CardHeader>
               
               <CardContent className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg flex items-start">
+                    <AlertCircle className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
+                
                 <motion.form 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -105,6 +137,7 @@ export default function LoginPage() {
                         placeholder="Enter your email"
                         className="pl-10 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
                         required
+                        disabled={isLoading}
                       />
                     </motion.div>
                   </div>
@@ -128,12 +161,14 @@ export default function LoginPage() {
                         placeholder="Enter your password"
                         className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
                         required
+                        disabled={isLoading}
                       />
                       <button
                         type="button"
                         onClick={togglePasswordVisibility}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         aria-label={showPassword ? "Hide password" : "Show password"}
+                        disabled={isLoading}
                       >
                         {showPassword ? (
                           <EyeOff className="h-5 w-5" />
@@ -146,15 +181,18 @@ export default function LoginPage() {
 
                   {/* Remember Me & Forgot Password */}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <input
+                    <div className="flex items-center space-x-3">
+                      <Switch
                         id="remember"
-                        type="checkbox"
                         checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        className="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded"
+                        onCheckedChange={setRememberMe}
+                        disabled={isLoading}
                       />
-                      <Label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                      <Label 
+                        htmlFor="remember" 
+                        className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer"
+                        onClick={() => !isLoading && setRememberMe(!rememberMe)}
+                      >
                         Remember me
                       </Label>
                     </div>
@@ -168,14 +206,15 @@ export default function LoginPage() {
 
                   {/* Sign In Button */}
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: isLoading ? 1 : 1.02 }}
+                    whileTap={{ scale: isLoading ? 1 : 0.98 }}
                   >
                     <Button
                       type="submit"
-                      className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+                      className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
+                      disabled={isLoading}
                     >
-                      Sign In
+                      {isLoading ? "Signing In..." : "Sign In"}
                     </Button>
                   </motion.div>
                 </motion.form>
