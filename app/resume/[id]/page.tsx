@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Resume, ResumeData } from "@/types/resume";
 
-export default function ResumeViewPage({ params }: { params: { id: string } }) {
+export default function ResumeViewPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { user } = useAuth();
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Unwrap the params promise
+  const unwrappedParams = React.use(params);
 
   // Fetch the resume data from Supabase
   useEffect(() => {
@@ -51,7 +54,7 @@ export default function ResumeViewPage({ params }: { params: { id: string } }) {
           toast.error("Error fetching resume. Please try again.");
           router.push("/dashboard");
         } else {
-          const resume = data?.find((r: Resume) => r.id === parseInt(params.id));
+          const resume = data?.find((r: Resume) => r.id === parseInt(unwrappedParams.id));
           if (resume) {
             setResumeData(resume.data as ResumeData);
           } else {
@@ -71,7 +74,7 @@ export default function ResumeViewPage({ params }: { params: { id: string } }) {
     if (user) {
       fetchResume();
     }
-  }, [user, params.id, router]);
+  }, [user, unwrappedParams.id, router]);
 
   const handleDownload = () => {
     toast.success("Resume downloaded successfully!");
@@ -173,7 +176,7 @@ export default function ResumeViewPage({ params }: { params: { id: string } }) {
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 <span>Back to Dashboard</span>
               </Link>
-              <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+              <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
@@ -213,7 +216,7 @@ export default function ResumeViewPage({ params }: { params: { id: string } }) {
                   variant="outline"
                   className="bg-white/20 text-white border-white/30 hover:bg-white/30 rounded-full"
                 >
-                  <Link href={`/edit/${params.id}`}>
+                  <Link href={`/edit/${unwrappedParams.id}`}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </Link>

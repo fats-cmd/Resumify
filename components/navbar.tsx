@@ -86,30 +86,73 @@ export function Navbar() {
     }
 
     if (user) {
+      const avatarUrl = user.user_metadata?.avatar_url;
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+      
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur-sm hover:bg-white/20">
-              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-                <User className="h-4 w-4 text-white" />
+            <Button variant="ghost" className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
+              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                {avatarUrl ? (
+                  <img 
+                    src={avatarUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="h-4 w-4 text-white" />
+                )}
               </div>
               <span className="text-sm font-medium text-white">
-                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+                {fullName}
               </span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard" className="cursor-pointer">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
+          <DropdownMenuContent 
+            className="w-56 p-2 rounded-2xl border border-white/20 bg-background/80 backdrop-blur-xl shadow-xl" 
+            align="end" 
+            forceMount
+          >
+            <div className="flex flex-col space-y-1">
+              <div 
+                className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300 cursor-pointer"
+                onClick={() => router.push("/dashboard")}
+              >
+                <LayoutDashboard className="h-5 w-5 text-purple-500" />
+                <span className="font-medium">Dashboard</span>
+              </div>
+              <div 
+                className="group relative flex items-center justify-start gap-3 w-full p-4 rounded-xl bg-red-500/10 backdrop-blur-sm border border-red-500/20 hover:bg-red-500/20 transition-all duration-300 ease-out shadow-lg hover:shadow-xl text-red-600 hover:text-red-600 cursor-pointer"
+                onClick={handleSignOut}
+              >
+                {/* Background gradient overlay */}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 via-red-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 rounded-xl overflow-hidden">
+                  <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out" />
+                </div>
+                
+                {/* Content */}
+                <div className="relative z-10 flex items-center gap-3 w-full">
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Log out</span>
+                </div>
+                
+                {/* Arrow indicator */}
+                <div className="relative z-10 ml-auto">
+                  <svg 
+                    className="w-4 h-4 text-red-600/60 group-hover:text-red-600/80 group-hover:translate-x-1 transition-all duration-300" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -117,13 +160,13 @@ export function Navbar() {
 
     return (
       <>
-        <Button variant="ghost" asChild className="rounded-full gap-2 text-white hover:bg-white/20">
+        <Button variant="ghost" asChild className="rounded-full gap-2 text-white hover:bg-white/20 transition-all duration-300">
           <Link href="/login">
             <LogIn className="h-4 w-4" />
             Log in
           </Link>
         </Button>
-        <Button asChild className="rounded-full gap-2 bg-white text-black hover:bg-gray-100">
+        <Button asChild className="rounded-full gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <Link href="/signup">
             <UserPlus className="h-4 w-4" />
             Sign up
@@ -146,21 +189,33 @@ export function Navbar() {
     }
 
     if (user) {
+      const avatarUrl = user.user_metadata?.avatar_url;
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+      
       return (
         <div className="flex flex-col space-y-3">
           <div className="flex items-center gap-2 p-3 rounded-lg bg-white/10 backdrop-blur-sm">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
-              <User className="h-4 w-4 text-white" />
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+              {avatarUrl ? (
+                <img 
+                  src={avatarUrl} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="h-4 w-4 text-white" />
+              )}
             </div>
             <span className="font-medium text-white">
-              {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+              {fullName}
             </span>
           </div>
           <MobileCardNav 
             href="/dashboard"
             onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300"
           >
-            <LayoutDashboard className="h-5 w-5" />
+            <LayoutDashboard className="h-5 w-5 text-purple-500" />
             <span className="font-medium">Dashboard</span>
           </MobileCardNav>
           <div 
@@ -205,17 +260,18 @@ export function Navbar() {
         <MobileCardNav 
           href="/login"
           onClick={() => setMobileMenuOpen(false)}
+          className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300"
         >
           <LogIn className="h-5 w-5" />
           <span className="font-medium">Log in</span>
         </MobileCardNav>
         <MobileCardNav 
           href="/signup"
-          className="bg-white/90 text-black hover:bg-white hover:text-black border-white/30"
+          className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-purple-600/20 to-blue-600/20 hover:from-purple-600/30 hover:to-blue-600/30 border border-purple-500/30 transition-all duration-300"
           onClick={() => setMobileMenuOpen(false)}
         >
-          <UserPlus className="h-5 w-5" />
-          <span className="font-medium">Sign up</span>
+          <UserPlus className="h-5 w-5 text-purple-400" />
+          <span className="font-medium text-purple-400">Sign up</span>
         </MobileCardNav>
       </>
     );
