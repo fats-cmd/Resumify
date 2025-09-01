@@ -48,7 +48,7 @@ export default function LoginPage() {
       if (data && data.user) {
         // If remember me is not checked, we could set a shorter session in a real implementation
         // For now, we'll just redirect to the dashboard
-        router.push("/");
+        router.push("/dashboard");
       }
     } catch (error: unknown) {
       console.error("Login error:", error);
