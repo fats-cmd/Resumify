@@ -24,6 +24,7 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
 - **Tailwind CSS**: Utility-first CSS framework for rapid styling
 - **Component Architecture**: Reusable UI components with shadcn/ui
 - **Accessibility**: WCAG compliant design and interactions
+- **Profile Images**: User profile image upload and display
 
 ## 🏗️ Tech Stack
 
@@ -34,6 +35,9 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
 - **Icons**: Lucide React
 - **Fonts**: Geist Sans & Geist Mono
 - **Animations**: CSS transforms and transitions
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Storage**: Supabase Storage
 
 ## 📁 Project Structure
 
@@ -165,6 +169,14 @@ Animation durations and effects can be adjusted in the component files:
 - Hover transitions: `duration-500`
 - Text animations: `duration-0.8`
 - Transform effects: `transform hover:scale-105`
+
+## 🗄️ Database Setup
+
+For database configuration, see [README_DATABASE.md](README_DATABASE.md)
+
+## 📦 Storage Setup
+
+For profile image storage configuration, see [README_STORAGE.md](README_STORAGE.md)
 
 ## 📈 Performance
 

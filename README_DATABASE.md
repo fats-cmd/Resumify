@@ -67,3 +67,7 @@ The policies ensure that users can only:
 - Delete their own resumes
 
 This provides security and ensures users can only access their own data.
+
+## Storage Setup
+
+For profile image storage configuration, see [README_STORAGE.md](README_STORAGE.md)

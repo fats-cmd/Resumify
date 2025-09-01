@@ -420,7 +420,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center">
                             <Clock className="h-4 w-4 mr-1" />
-                            {Math.floor(Math.random() * 30) + 1} days ago
+                            Created {formatDateDifference(resume.created_at)}
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -447,6 +447,7 @@ export default function DashboardPage() {
                         </div>
                       </CardContent>
                     </Card>
+
                   </motion.div>
                 ))
               ) : (
@@ -494,3 +495,37 @@ export default function DashboardPage() {
     </ProtectedPage>
   );
 }
+
+// Add this helper function before the component definition
+const formatDateDifference = (dateString: string): string => {
+  // Handle invalid date strings
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Unknown time';
+  }
+  
+  const now = new Date();
+  const diffTime = now.getTime() - date.getTime();
+  
+  // Handle future dates
+  if (diffTime < 0) {
+    return date.toLocaleDateString();
+  }
+  
+  const diffSeconds = Math.floor(diffTime / 1000);
+  const diffMinutes = Math.floor(diffTime / (1000 * 60));
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffSeconds < 60) {
+    return 'Just now';
+  } else if (diffMinutes < 60) {
+    return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  } else if (diffDays < 30) {
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+};
