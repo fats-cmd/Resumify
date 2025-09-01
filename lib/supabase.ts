@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { ResumeData, Resume } from '@/types/resume';
+import { handleAuthError } from '@/lib/auth-utils';
 
 // These environment variables need to be set in your .env.local file
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -13,62 +14,119 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Authentication helper functions
 export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-  
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error('Sign up error:', error);
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error('Sign in error:', error);
+    // Handle auth errors
+    if (error instanceof Error) {
+      handleAuthError(error);
+    }
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function signOut() {
-  const { error } = await supabase.auth.signOut();
-  return { error };
+  try {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  } catch (error) {
+    console.error('Sign out error:', error);
+    return { error: error as Error };
+  }
 }
 
 export async function resetPassword(email: string) {
-  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-  
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function updatePassword(password: string) {
-  const { data, error } = await supabase.auth.updateUser({
-    password,
-  });
-  
-  return { data, error };
+  try {
+    const { data, error } = await supabase.auth.updateUser({
+      password,
+    });
+    
+    return { data, error };
+  } catch (error) {
+    console.error('Update password error:', error);
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function getUserSession() {
-  const { data, error } = await supabase.auth.getSession();
-  return { session: data.session, error };
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    return { session: data.session, error };
+  } catch (error) {
+    console.error('Get user session error:', error);
+    // Handle auth errors
+    if (error instanceof Error) {
+      handleAuthError(error);
+    }
+    return { session: null, error: error as Error };
+  }
 }
 
 export async function getUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  return { user, error };
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    return { user, error };
+  } catch (error) {
+    console.error('Get user error:', error);
+    // Handle auth errors
+    if (error instanceof Error) {
+      handleAuthError(error);
+    }
+    return { user: null, error: error as Error };
+  }
 }
 
-export async function updateProfile({ full_name }: { full_name: string }) {
-  const { data: { user }, error } = await supabase.auth.updateUser({
-    data: {
-      full_name,
-    },
-  });
-  
-  return { user, error };
+export async function updateProfile({ full_name, avatar_url }: { full_name: string; avatar_url?: string | null }) {
+  try {
+    const updateData: { full_name: string; avatar_url?: string | null } = { full_name };
+    
+    // Only include avatar_url in the update if it's explicitly provided
+    if (avatar_url !== undefined) {
+      updateData.avatar_url = avatar_url;
+    }
+    
+    const { data: { user }, error } = await supabase.auth.updateUser({
+      data: updateData,
+    });
+    
+    return { user, error };
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return { user: null, error: error as Error };
+  }
 }
 
 // Add storage functions for profile image handling
@@ -158,7 +216,7 @@ export async function uploadProfileImage(file: File, userId: string) {
     return { publicUrl, user: userData.user, error: null };
   } catch (error) {
     console.error('Error uploading profile image:', error);
-    return { publicUrl: null, user: null, error };
+    return { publicUrl: null, user: null, error: error as Error };
   }
 }
 
@@ -172,55 +230,75 @@ export async function getProfileImageUrl(userId: string) {
     return { publicUrl, error: null };
   } catch (error) {
     console.error('Error getting profile image URL:', error);
-    return { publicUrl: null, error };
+    return { publicUrl: null, error: error as Error };
   }
 }
 
 // Resume helper functions
 export async function saveResume(userId: string, resumeData: ResumeData) {
-  const { data, error } = await supabase
-    .from('resumes')
-    .insert([
-      {
-        user_id: userId,
-        title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
-        data: resumeData,
-      }
-    ])
-    .select();
+  try {
+    const { data, error } = await supabase
+      .from('resumes')
+      .insert([
+        {
+          user_id: userId,
+          title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
+          data: resumeData,
+        }
+      ])
+      .select();
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('Save resume error:', error);
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function getResumes(userId: string) {
-  const { data, error } = await supabase
-    .from('resumes')
-    .select('*')
-    .eq('user_id', userId)
-    .order('updated_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('resumes')
+      .select('*')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false });
 
-  return { data: data as Resume[] | null, error };
+    return { data: data as Resume[] | null, error };
+  } catch (error) {
+    console.error('Get resumes error:', error);
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function updateResume(resumeId: number, resumeData: ResumeData) {
-  const { data, error } = await supabase
-    .from('resumes')
-    .update({
-      title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
-      data: resumeData,
-      // Note: updated_at will be automatically set by the database due to DEFAULT NOW()
-    })
-    .eq('id', resumeId)
-    .select();
+  try {
+    const { data, error } = await supabase
+      .from('resumes')
+      .update({
+        title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
+        data: resumeData,
+        // Note: updated_at will be automatically set by the database due to DEFAULT NOW()
+      })
+      .eq('id', resumeId)
+      .select();
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('Update resume error:', error);
+    return { data: null, error: error as Error };
+  }
 }
 
 export async function deleteResume(resumeId: number) {
-  const { data, error } = await supabase
-    .from('resumes')
-    .delete()
-    .eq('id', resumeId);
+  try {
+    const { data, error } = await supabase
+      .from('resumes')
+      .delete()
+      .eq('id', resumeId);
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('Delete resume error:', error);
+    return { data: null, error: error as Error };
+  }
 }

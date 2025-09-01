@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { getUserSession, supabase } from '@/lib/supabase';
+import { handleAuthError } from '@/lib/auth-utils';
 
 interface AuthContextType {
   user: User | null;
@@ -25,13 +26,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const initAuth = async () => {
       try {
         const { session, error } = await getUserSession();
-        if (error) throw error;
+        
+        if (error) {
+          // Handle refresh token errors specifically
+          if (error.message.includes('Invalid Refresh Token') || error.message.includes('Refresh Token Not Found')) {
+            console.warn('Refresh token invalid or not found. User needs to sign in again.');
+            // Clear any existing session data
+            setUser(null);
+          } else {
+            throw error;
+          }
+        }
         
         if (session?.user) {
           setUser(session.user);
         }
       } catch (error) {
         console.error('Error checking auth session:', error);
+        // Handle auth errors
+        if (error instanceof Error) {
+          handleAuthError(error);
+        }
+        // In case of any error, ensure user is set to null
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -41,9 +58,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
+      async (event, session) => {
+        console.log('Auth state changed:', event);
+        
+        // Handle auth errors
+        if (event === 'SIGNED_OUT' || !session) {
+          setUser(null);
+        } else if (session?.user) {
+          setUser(session.user);
+        }
+        
+        // Ensure loading is false after auth state changes
+        if (loading) {
+          setLoading(false);
+        }
       }
     );
 
@@ -51,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [loading]);
 
   return (
     <AuthContext.Provider value={{ user, loading }}>

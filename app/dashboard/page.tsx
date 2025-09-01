@@ -26,7 +26,8 @@ import {
   Star,
   LogOut,
   Home,
-  Settings
+  Settings,
+  User
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Resume } from "@/types/resume";
@@ -191,6 +192,42 @@ export default function DashboardPage() {
     }
   };
 
+  // Get user's profile image or generate initials
+  const getUserAvatar = () => {
+    if (!user) return null;
+    
+    // Check if user has an avatar URL
+    const avatarUrl = user.user_metadata?.avatar_url;
+    if (avatarUrl) {
+      return (
+        <img 
+          src={avatarUrl} 
+          alt="Profile" 
+          className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+        />
+      );
+    }
+    
+    // Generate initials from user's name or email
+    const fullName = user.user_metadata?.full_name;
+    const email = user.email || '';
+    let initials = '';
+    
+    if (fullName) {
+      const names = fullName.split(' ');
+      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
+    } else if (email) {
+      const emailParts = email.split('@');
+      initials = emailParts[0].charAt(0);
+    }
+    
+    return (
+      <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-sm font-medium">
+        {initials.toUpperCase()}
+      </div>
+    );
+  };
+
   return (
     <ProtectedPage>
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
@@ -203,11 +240,14 @@ export default function DashboardPage() {
                   Resumify
                 </span>
               </Link>
-              <div>
+              <div className="flex items-center space-x-3">
                 {loading ? (
                   <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
                 ) : (
-                  <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+                  <>
+                    {getUserAvatar()}
+                    <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+                  </>
                 )}
               </div>
             </div>
