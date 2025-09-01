@@ -8,9 +8,21 @@ import { ThemeToggle } from "./theme-toggle"
 import { useScrollDirection } from "@/hooks/useScrollDirection"
 import { MobileCardNav } from "./ui/mobile-card-nav"
 import { BarcodeMenuIcon } from "./ui/barcode-menu-icon"
-import { LogIn, UserPlus } from "lucide-react"
+import { LogIn, UserPlus, User, LayoutDashboard, LogOut } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { signOut } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const scrollDirection = useScrollDirection()
@@ -34,6 +46,15 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
   
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+      router.push("/")
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
+  }
+
   // Only apply transform if we've mounted (client-side)
   const navClass = cn(
     "fixed z-50 navbar-gradient backdrop-blur-md flex items-center justify-between shadow-sm dark:shadow-lg navbar-glow",
@@ -52,6 +73,154 @@ export function Navbar() {
     !mounted && 'top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl mx-auto rounded-full px-4 sm:px-6 py-3 translate-y-0'
   );
 
+  // Desktop auth buttons component
+  const DesktopAuthButtons = () => {
+    // Show loading state during auth check or when not mounted
+    if (loading || !mounted) {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        </div>
+      );
+    }
+
+    if (user) {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur-sm hover:bg-white/20">
+              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <User className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-medium text-white">
+                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+              </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard" className="cursor-pointer">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    }
+
+    return (
+      <>
+        <Button variant="ghost" asChild className="rounded-full gap-2 text-white hover:bg-white/20">
+          <Link href="/login">
+            <LogIn className="h-4 w-4" />
+            Log in
+          </Link>
+        </Button>
+        <Button asChild className="rounded-full gap-2 bg-white text-black hover:bg-gray-100">
+          <Link href="/signup">
+            <UserPlus className="h-4 w-4" />
+            Sign up
+          </Link>
+        </Button>
+      </>
+    );
+  };
+
+  // Mobile auth buttons component
+  const MobileAuthButtons = () => {
+    // Show loading state during auth check or when not mounted
+    if (loading || !mounted) {
+      return (
+        <div className="flex items-center gap-2 p-3">
+          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        </div>
+      );
+    }
+
+    if (user) {
+      return (
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-white/10 backdrop-blur-sm">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <User className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-medium text-white">
+              {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+            </span>
+          </div>
+          <MobileCardNav 
+            href="/dashboard"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span className="font-medium">Dashboard</span>
+          </MobileCardNav>
+          <div 
+            className="group relative flex items-center justify-start gap-3 w-full p-4 rounded-xl bg-red-500/10 backdrop-blur-sm border border-red-500/20 hover:bg-red-500/20 transition-all duration-300 ease-out shadow-lg hover:shadow-xl text-red-600 hover:text-red-600 cursor-pointer"
+            onClick={() => {
+              handleSignOut();
+              setMobileMenuOpen(false);
+            }}
+          >
+            {/* Background gradient overlay */}
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 via-red-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            {/* Shimmer effect */}
+            <div className="absolute inset-0 rounded-xl overflow-hidden">
+              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:translate-x-full transition-transform duration-700 ease-out" />
+            </div>
+            
+            {/* Content */}
+            <div className="relative z-10 flex items-center gap-3 w-full">
+              <LogOut className="h-5 w-5" />
+              <span className="font-medium">Log out</span>
+            </div>
+            
+            {/* Arrow indicator */}
+            <div className="relative z-10 ml-auto">
+              <svg 
+                className="w-4 h-4 text-red-600/60 group-hover:text-red-600/80 group-hover:translate-x-1 transition-all duration-300" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <MobileCardNav 
+          href="/login"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <LogIn className="h-5 w-5" />
+          <span className="font-medium">Log in</span>
+        </MobileCardNav>
+        <MobileCardNav 
+          href="/signup"
+          className="bg-white/90 text-black hover:bg-white hover:text-black border-white/30"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <UserPlus className="h-5 w-5" />
+          <span className="font-medium">Sign up</span>
+        </MobileCardNav>
+      </>
+    );
+  };
+
   if (!mounted) {
     // Return a simplified version for server-side rendering
     return (
@@ -63,18 +232,10 @@ export function Navbar() {
         </Link>
         <div className="hidden sm:flex items-center gap-4">
           <ThemeToggle />
-          <Button variant="ghost" asChild className="rounded-full gap-2 text-white hover:bg-white/20">
-            <Link href="/login">
-              <LogIn className="h-4 w-4" />
-              Log in
-            </Link>
-          </Button>
-          <Button asChild className="rounded-full gap-2 bg-white text-black hover:bg-gray-100">
-            <Link href="/signup">
-              <UserPlus className="h-4 w-4" />
-              Sign up
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+            <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+          </div>
         </div>
         <div className="sm:hidden flex items-center gap-2">
           <ThemeToggle />
@@ -98,18 +259,7 @@ export function Navbar() {
         {/* Desktop Menu */}
         <div className="hidden sm:flex items-center gap-4">
           <ThemeToggle />
-          <Button variant="ghost" asChild className="rounded-full gap-2 text-white hover:bg-white/20">
-            <Link href="/login">
-              <LogIn className="h-4 w-4" />
-              Log in
-            </Link>
-          </Button>
-          <Button asChild className="rounded-full gap-2 bg-white text-black hover:bg-gray-100">
-            <Link href="/signup">
-              <UserPlus className="h-4 w-4" />
-              Sign up
-            </Link>
-          </Button>
+          <DesktopAuthButtons />
         </div>
 
         {/* Mobile Menu Button */}
@@ -135,21 +285,7 @@ export function Navbar() {
           />
           <div className="fixed top-20 left-4 right-4 bg-black/20 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl">
             <div className="flex flex-col space-y-3">
-              <MobileCardNav 
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <LogIn className="h-5 w-5" />
-                <span className="font-medium">Log in</span>
-              </MobileCardNav>
-              <MobileCardNav 
-                href="/signup"
-                className="bg-white/90 text-black hover:bg-white hover:text-black border-white/30"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <UserPlus className="h-5 w-5" />
-                <span className="font-medium">Sign up</span>
-              </MobileCardNav>
+              <MobileAuthButtons />
             </div>
           </div>
         </div>

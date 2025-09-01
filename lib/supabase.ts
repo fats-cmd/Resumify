@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { ResumeData, Resume } from '@/types/resume';
 
 // These environment variables need to be set in your .env.local file
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -58,4 +59,55 @@ export async function getUserSession() {
 export async function getUser() {
   const { data: { user }, error } = await supabase.auth.getUser();
   return { user, error };
+}
+
+// Resume helper functions
+export async function saveResume(userId: string, resumeData: ResumeData) {
+  const { data, error } = await supabase
+    .from('resumes')
+    .insert([
+      {
+        user_id: userId,
+        title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
+        data: resumeData,
+        created_at: new Date(),
+        updated_at: new Date(),
+      }
+    ])
+    .select();
+
+  return { data, error };
+}
+
+export async function getResumes(userId: string) {
+  const { data, error } = await supabase
+    .from('resumes')
+    .select('*')
+    .eq('user_id', userId)
+    .order('updated_at', { ascending: false });
+
+  return { data: data as Resume[] | null, error };
+}
+
+export async function updateResume(resumeId: number, resumeData: ResumeData) {
+  const { data, error } = await supabase
+    .from('resumes')
+    .update({
+      title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
+      data: resumeData,
+      updated_at: new Date(),
+    })
+    .eq('id', resumeId)
+    .select();
+
+  return { data, error };
+}
+
+export async function deleteResume(resumeId: number) {
+  const { data, error } = await supabase
+    .from('resumes')
+    .delete()
+    .eq('id', resumeId);
+
+  return { data, error };
 }

@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
     
     try {
-      const { data, error } = await resetPassword(email);
+      const { error } = await resetPassword(email);
       
       if (error) throw error;
       

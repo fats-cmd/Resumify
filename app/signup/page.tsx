@@ -1,5 +1,6 @@
 "use client";
 
+import Head from "next/head";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,12 +16,12 @@ import { DarkVeil } from "@/components/ui/dark-veil";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
+
 import { signUp } from "@/lib/supabase";
 import { Switch } from "@/components/ui/switch";
+import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 
 export default function SignupPage() {
-  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -32,6 +33,7 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -73,7 +75,7 @@ export default function SignupPage() {
     setIsLoading(true);
     
     try {
-      const { data, error } = await signUp(email, password);
+      const { error } = await signUp(email, password);
       
       if (error) throw error;
       
@@ -94,6 +96,11 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Head>
+        <title>Sign Up</title>
+        <meta name="description" content="Create your free Resumify account to start building professional resumes. Join thousands of job seekers who have landed their dream jobs with our easy-to-use resume builder." />
+      </Head>
+      
       {/* Back to home button */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
@@ -231,6 +238,8 @@ export default function SignupPage() {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          onFocus={() => setIsPasswordFocused(true)}
+                          onBlur={() => setIsPasswordFocused(false)}
                           placeholder="Create a password"
                           className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
                           required
@@ -250,6 +259,9 @@ export default function SignupPage() {
                           )}
                         </button>
                       </motion.div>
+                      {isPasswordFocused && password.length > 0 && (
+                        <PasswordStrengthMeter password={password} className="mt-2" />
+                      )}
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         Must be at least 8 characters with uppercase, lowercase, and numbers
                       </p>
