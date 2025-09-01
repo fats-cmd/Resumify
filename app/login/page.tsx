@@ -1,5 +1,6 @@
 "use client";
 
+import Head from "next/head";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,11 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Head>
+        <title>Sign In</title>
+        <meta name="description" content="Sign in to your Resumify account to access your resumes and profile settings. Secure login with email and password." />
+      </Head>
+      
       {/* Back to home button */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
