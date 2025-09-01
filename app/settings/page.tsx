@@ -46,6 +46,7 @@ export default function SettingsPage() {
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showRemoveImageDialog, setShowRemoveImageDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Password change state
@@ -101,6 +102,7 @@ export default function SettingsPage() {
       // Update user profile
       const { error } = await updateProfile({
         full_name: fullName,
+        avatar_url: avatarUrl // Pass the current avatar URL
       });
       
       if (error) {
@@ -164,6 +166,31 @@ export default function SettingsPage() {
     }
   };
 
+  const removeProfileImage = async () => {
+    if (!user) return;
+    
+    try {
+      // Update user profile to remove avatar URL by setting it to null
+      const { error } = await updateProfile({
+        full_name: fullName,
+        avatar_url: null // This will remove the avatar URL from user metadata
+      });
+      
+      if (error) {
+        console.error("Error removing profile image:", error);
+        toast.error("Error removing profile image. Please try again.");
+      } else {
+        setAvatarUrl(null);
+        toast.success("Profile image removed successfully!");
+      }
+    } catch (err) {
+      console.error("Error removing profile image:", err);
+      toast.error("Error removing profile image. Please try again.");
+    } finally {
+      setShowRemoveImageDialog(false);
+    }
+  };
+
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -198,20 +225,24 @@ export default function SettingsPage() {
     
     try {
       // Note: Supabase doesn't have a direct "change password" function that requires current password
-      // For security, users should sign out and use the "Forgot Password" flow
-      // However, we can update the password directly if we have the current session
+      // We'll update the user's password directly
       const { error } = await updatePassword(newPassword);
       
       if (error) {
         console.error("Error changing password:", error);
-        toast.error("Error changing password. Please try again.");
+        // Handle specific error messages
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Current password is incorrect.");
+        } else {
+          toast.error("Error changing password. Please try again.");
+        }
       } else {
         toast.success("Password changed successfully!");
-        // Close modal and reset form
-        setShowChangePasswordModal(false);
+        // Reset form
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        setShowChangePasswordModal(false);
       }
     } catch (err) {
       console.error("Error changing password:", err);
@@ -237,105 +268,34 @@ export default function SettingsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <ProtectedPage>
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="flex items-center justify-between w-full mb-8">
-                <div className="h-8 w-32 bg-white/30 rounded animate-pulse"></div>
-                <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
-                  <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
-                </div>
-                <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-            <div className="space-y-6">
-              {/* Profile Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  </div>
-                  <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </CardContent>
-              </Card>
-
-              {/* Preferences Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-2">
-                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      </div>
-                      <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-2">
-                        <div className="h-5 w-40 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      </div>
-                      <div className="h-6 w-12 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </ProtectedPage>
-    );
-  }
-
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-background">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/dashboard" className="font-bold text-2xl sm:text-3xl flex items-center text-white">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                <span>Back to Dashboard</span>
+              <Link href="/dashboard" className="font-bold text-2xl sm:text-3xl flex items-center">
+                <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
+                  Resumify
+                </span>
               </Link>
-              <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+              <div className="flex items-center space-x-3">
+                <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+              </div>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-white">Settings</h1>
                 <p className="text-white/80 mt-2">
-                  Manage your account preferences and settings
+                  Manage your account preferences and profile
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-32">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
           <div className="space-y-6">
             {/* Profile Section */}
             <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
@@ -365,28 +325,41 @@ export default function SettingsPage() {
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
-                      className="absolute bottom-0 right-0 rounded-full p-2 bg-white dark:bg-gray-800 border-2 border-white dark:border-gray-800 shadow-md"
+                      size="icon"
                       onClick={triggerFileInput}
-                      disabled={uploading}
+                      className="absolute -bottom-2 -right-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                      aria-label="Upload profile image"
                     >
-                      {uploading ? (
-                        <div className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                      ) : (
-                        <Camera className="h-4 w-4" />
-                      )}
+                      <Camera className="h-4 w-4" />
                     </Button>
+                    {avatarUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowRemoveImageDialog(true)}
+                        className="absolute -bottom-2 -left-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                        aria-label="Remove profile image"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Click the camera icon to upload a new profile image
-                  </p>
-                  <Input
+                  <input
                     type="file"
                     ref={fileInputRef}
-                    className="hidden"
                     onChange={handleImageUpload}
                     accept="image/*"
+                    className="hidden"
                   />
+                  <p className="text-sm text-muted-foreground mt-4 text-center">
+                    {avatarUrl 
+                      ? "Click the camera icon to change your profile image" 
+                      : "Click the camera icon to upload a profile image"}
+                  </p>
+                  {uploading && (
+                    <p className="text-sm text-purple-600 mt-2">Uploading...</p>
+                  )}
                 </div>
                 
                 <form onSubmit={handleSave} className="space-y-4">
@@ -397,37 +370,54 @@ export default function SettingsPage() {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Enter your full name"
+                      disabled={loading || saving}
                     />
                   </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="pl-10"
-                        disabled
-                      />
-                    </div>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      disabled={true} // Email cannot be changed directly
+                    />
                     <p className="text-sm text-muted-foreground">
-                      Email address cannot be changed at this time
+                      Email cannot be changed. Contact support if you need to update your email address.
                     </p>
                   </div>
-                  <Button type="submit" disabled={saving}>
-                    {saving ? (
-                      <>
-                        <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      "Save Changes"
-                    )}
+                  
+                  <Button type="submit" disabled={loading || saving} className="w-full">
+                    {saving ? "Saving..." : "Save Changes"}
                   </Button>
                 </form>
+              </CardContent>
+            </Card>
+
+            {/* Security Section */}
+            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-purple-500" />
+                  Security
+                </CardTitle>
+                <CardDescription>
+                  Manage your password and security settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button 
+                    onClick={() => setShowChangePasswordModal(true)}
+                    variant="outline" 
+                    className="w-full justify-start"
+                  >
+                    <Lock className="h-4 w-4 mr-2" />
+                    Change Password
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -435,18 +425,18 @@ export default function SettingsPage() {
             <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Palette className="h-5 w-5 mr-2 text-indigo-500" />
+                  <Bell className="h-5 w-5 mr-2 text-purple-500" />
                   Preferences
                 </CardTitle>
                 <CardDescription>
-                  Customize your Resumify experience
+                  Customize your notification and communication preferences
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium">Notifications</h3>
+                      <Label>Notifications</Label>
                       <p className="text-sm text-muted-foreground">
                         Receive notifications about your resumes and account activity
                       </p>
@@ -457,15 +447,16 @@ export default function SettingsPage() {
                       onCheckedChange={setNotifications}
                     />
                   </div>
+                  
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-medium">Marketing Emails</h3>
+                      <Label>Marketing Emails</Label>
                       <p className="text-sm text-muted-foreground">
-                        Receive occasional product updates and marketing emails
+                        Receive emails about new features and product updates
                       </p>
                     </div>
                     <Switch
-                      id="marketing"
+                      id="marketing-emails"
                       checked={marketingEmails}
                       onCheckedChange={setMarketingEmails}
                     />
@@ -474,178 +465,233 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Security Section */}
+            {/* Theme Section */}
             <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Shield className="h-5 w-5 mr-2 text-red-500" />
-                  Security
+                  <Palette className="h-5 w-5 mr-2 text-purple-500" />
+                  Appearance
                 </CardTitle>
                 <CardDescription>
-                  Manage your account security settings
+                  Customize the look and feel of the application
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button 
-                    variant="outline" 
-                    className="rounded-full"
-                    onClick={() => setShowChangePasswordModal(true)}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Theme</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Select your preferred color scheme
+                    </p>
+                  </div>
+                  <ThemeToggle />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Logout Section */}
+            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+              <CardContent className="pt-6">
+                <Button 
+                  onClick={handleLogout}
+                  variant="outline" 
+                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log out
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+        
+        {/* Remove Image Confirmation Dialog */}
+        {showRemoveImageDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <X className="h-5 w-5 mr-2 text-red-500" />
+                  Remove Profile Image
+                </CardTitle>
+                <CardDescription>
+                  Are you sure you want to remove your profile image?
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-6">
+                  This will remove your current profile image and revert to showing your initials.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowRemoveImageDialog(false)}
+                    className="flex-1"
                   >
-                    Change Password
+                    Cancel
                   </Button>
-                  <Button variant="outline" className="rounded-full">
-                    Two-Factor Authentication
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={removeProfileImage}
+                    className="flex-1"
+                  >
+                    Remove Image
                   </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
-      
-      {/* Change Password Modal */}
-      {showChangePasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-card rounded-2xl shadow-xl w-full max-w-md border border-border">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h3 className="text-lg font-semibold">Change Password</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowChangePasswordModal(false)}
-                className="rounded-full p-2"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <form onSubmit={handleChangePassword}>
-              <div className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
-                      className="pl-10 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showCurrentPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+        )}
+        
+        {/* Change Password Modal */}
+        {showChangePasswordModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Lock className="h-5 w-5 mr-2 text-purple-500" />
+                  Change Password
+                </CardTitle>
+                <CardDescription>
+                  Enter your current password and a new password
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="currentPassword"
+                        type={showCurrentPassword ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter your current password"
+                        disabled={changingPassword}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                      >
+                        {showCurrentPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                      className="pl-10 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showNewPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="newPassword"
+                        type={showNewPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter your new password"
+                        disabled={changingPassword}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        aria-label={showNewPassword ? "Hide password" : "Show password"}
+                      >
+                        {showNewPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                    <PasswordStrengthMeter password={newPassword} />
                   </div>
-                  <PasswordStrengthMeter password={newPassword} />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                      className="pl-10 pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </button>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm your new password"
+                        disabled={changingPassword}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-end gap-3 p-6 border-t border-border">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowChangePasswordModal(false)}
-                  disabled={changingPassword}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={changingPassword}>
-                  {changingPassword ? (
-                    <>
-                      <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                      Changing...
-                    </>
-                  ) : (
-                    "Change Password"
-                  )}
-                </Button>
-              </div>
-            </form>
+                  
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowChangePasswordModal(false);
+                        // Reset form when closing
+                        setCurrentPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      }}
+                      disabled={changingPassword}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={changingPassword}
+                      className="flex-1"
+                    >
+                      {changingPassword ? "Changing..." : "Change Password"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </div>
+        )}
+        
+        {/* Dock Component */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
+          <Dock>
+            <DockItem title="Home" onClick={() => router.push("/")}>
+              <Home className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
+              <LayoutDashboard className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Create Resume" onClick={() => router.push("/create")}>
+              <Plus className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Settings" onClick={() => router.push("/settings")}>
+              <Settings className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Logout" onClick={() => handleLogout()}>
+              <LogOut className="h-6 w-6 text-foreground" />
+            </DockItem>
+          </Dock>
         </div>
-      )}
-      
-      {/* Dock Component */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        <Dock>
-          <DockItem title="Home" onClick={() => router.push("/")}>  
-            <Home className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-            <LayoutDashboard className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-            <Plus className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Settings" onClick={() => router.push("/settings")}>
-            <Settings className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Logout" onClick={() => handleLogout()}>
-            <LogOut className="h-6 w-6 text-foreground" />
-          </DockItem>
-        </Dock>
       </div>
     </ProtectedPage>
   );

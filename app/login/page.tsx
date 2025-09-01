@@ -43,7 +43,13 @@ export default function LoginPage() {
       const { data, error } = await signIn(email, password);
       
       if (error) {
-        throw error;
+        // Handle specific Supabase auth errors
+        if (error.message.includes('Invalid Refresh Token') || error.message.includes('Refresh Token Not Found')) {
+          setError("Your session has expired. Please sign in again.");
+        } else {
+          setError(error.message || "Failed to sign in. Please check your credentials.");
+        }
+        return;
       }
       
       if (data && data.user) {
