@@ -59,7 +59,12 @@ export default function LoginPage() {
       }
     } catch (error: unknown) {
       console.error("Login error:", error);
-      setError(error instanceof Error ? error.message : "Failed to sign in. Please check your credentials.");
+      // Handle refresh token errors specifically
+      if (error instanceof Error && (error.message.includes('Invalid Refresh Token') || error.message.includes('Refresh Token Not Found'))) {
+        setError("Your session has expired. Please sign in again.");
+      } else {
+        setError(error instanceof Error ? error.message : "Failed to sign in. Please check your credentials.");
+      }
     } finally {
       setIsLoading(false);
     }

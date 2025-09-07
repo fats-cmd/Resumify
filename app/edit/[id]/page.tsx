@@ -31,8 +31,10 @@ import {
   LayoutDashboard, 
   LogOut,
   Home,
-  Settings
+  Settings,
+  Sparkles
 } from "lucide-react";
+import { generateProfessionalSummary, generateWorkExperienceDescriptions, generateSkillsSuggestions } from "@/lib/gemini";
 
 export default function EditResumePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -45,7 +47,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const unwrappedParams = React.use(params);
   
   // State for form data
-  const [resumeData, setResumeData] = useState({
+  const [resumeData, setResumeData] = useState<ResumeData>({
     personalInfo: {
       firstName: "",
       lastName: "",
@@ -129,7 +131,15 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     setResumeData({
       ...resumeData,
       personalInfo: {
-        ...resumeData.personalInfo,
+        ...(resumeData.personalInfo || {
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          location: "",
+          headline: "",
+          summary: ""
+        }),
         [name]: value
       }
     });
@@ -139,7 +149,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const handleWorkExperienceChange = (id: number, field: string, value: string | boolean) => {
     setResumeData({
       ...resumeData,
-      workExperience: resumeData.workExperience.map(exp => 
+      workExperience: (resumeData.workExperience || []).map(exp => 
         exp.id === id ? { ...exp, [field]: value } : exp
       )
     });
@@ -150,7 +160,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     setResumeData({
       ...resumeData,
       workExperience: [
-        ...resumeData.workExperience,
+        ...(resumeData.workExperience || []),
         {
           id: Date.now(),
           company: "",
@@ -166,10 +176,11 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
 
   // Remove work experience
   const removeWorkExperience = (id: number) => {
-    if (resumeData.workExperience.length > 1) {
+    const currentWorkExperience = resumeData.workExperience || [];
+    if (currentWorkExperience.length > 1) {
       setResumeData({
         ...resumeData,
-        workExperience: resumeData.workExperience.filter(exp => exp.id !== id)
+        workExperience: currentWorkExperience.filter(exp => exp.id !== id)
       });
     }
   };
@@ -178,7 +189,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const handleEducationChange = (id: number, field: string, value: string) => {
     setResumeData({
       ...resumeData,
-      education: resumeData.education.map(edu => 
+      education: (resumeData.education || []).map(edu => 
         edu.id === id ? { ...edu, [field]: value } : edu
       )
     });
@@ -189,7 +200,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     setResumeData({
       ...resumeData,
       education: [
-        ...resumeData.education,
+        ...(resumeData.education || []),
         {
           id: Date.now(),
           institution: "",
@@ -205,17 +216,19 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
 
   // Remove education
   const removeEducation = (id: number) => {
-    if (resumeData.education.length > 1) {
+    const currentEducation = resumeData.education || [];
+    if (currentEducation.length > 1) {
       setResumeData({
         ...resumeData,
-        education: resumeData.education.filter(edu => edu.id !== id)
+        education: currentEducation.filter(edu => edu.id !== id)
       });
     }
   };
 
   // Handle skills changes
   const handleSkillsChange = (index: number, value: string) => {
-    const newSkills = [...resumeData.skills];
+    const currentSkills = resumeData.skills || [""];
+    const newSkills = [...currentSkills];
     newSkills[index] = value;
     setResumeData({
       ...resumeData,
@@ -227,14 +240,15 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const addSkill = () => {
     setResumeData({
       ...resumeData,
-      skills: [...resumeData.skills, ""]
+      skills: [...(resumeData.skills || []), ""]
     });
   };
 
   // Remove skill
   const removeSkill = (index: number) => {
-    if (resumeData.skills.length > 1) {
-      const newSkills = [...resumeData.skills];
+    const currentSkills = resumeData.skills || [""];
+    if (currentSkills.length > 1) {
+      const newSkills = [...currentSkills];
       newSkills.splice(index, 1);
       setResumeData({
         ...resumeData,
@@ -289,6 +303,82 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Error signing out. Please try again.");
+    }
+  };
+
+  // AI Helper Functions
+  const generateSummaryWithAI = async () => {
+    console.log("Generating summary with AI..."); // Debug log
+    try {
+      const summary = await generateProfessionalSummary(resumeData.personalInfo);
+      console.log("Generated summary:", summary); // Debug log
+      if (summary) {
+        setResumeData({
+          ...resumeData,
+          personalInfo: {
+            ...(resumeData.personalInfo || {
+              firstName: "",
+              lastName: "",
+              email: "",
+              phone: "",
+              location: "",
+              headline: "",
+              summary: ""
+            }),
+            summary: summary
+          }
+        });
+        toast.success("Professional summary generated successfully!");
+      } else {
+        toast.error("Failed to generate summary. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error generating summary:", error);
+      toast.error("Error generating summary. Please try again.");
+    }
+  };
+
+  const generateExperienceWithAI = async (id: number) => {
+    console.log("Generating experience with AI for ID:", id); // Debug log
+    try {
+      const workExperience = resumeData.workExperience || [];
+      const experience = workExperience.find(exp => exp.id === id);
+      if (experience) {
+        const descriptions = await generateWorkExperienceDescriptions([experience]);
+        console.log("Generated experience descriptions:", descriptions); // Debug log
+        if (descriptions && descriptions.length > 0) {
+          handleWorkExperienceChange(id, "description", descriptions[0]);
+          toast.success("Work experience description enhanced successfully!");
+        } else {
+          toast.error("Failed to enhance work experience. Please try again.");
+        }
+      }
+    } catch (error) {
+      console.error("Error enhancing work experience:", error);
+      toast.error("Error enhancing work experience. Please try again.");
+    }
+  };
+
+  const generateSkillsWithAI = async () => {
+    console.log("Generating skills with AI..."); // Debug log
+    try {
+      const skills = await generateSkillsSuggestions(
+        resumeData.workExperience || [], 
+        resumeData.education || []
+      );
+      console.log("Generated skills:", skills); // Debug log
+      if (skills && skills.length > 0) {
+        setResumeData({
+          ...resumeData,
+          skills: skills
+        });
+        toast.success("Skills suggestions generated successfully!");
+      } else {
+        toast.error("Failed to generate skills. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error generating skills:", error);
+      toast.error("Error generating skills. Please try again.");
     }
   };
 
@@ -527,7 +617,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                           <Input
                             id="firstName"
                             name="firstName"
-                            value={resumeData.personalInfo.firstName}
+                            value={resumeData.personalInfo?.firstName || ""}
                             onChange={handlePersonalInfoChange}
                             placeholder="John"
                           />
@@ -537,7 +627,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                           <Input
                             id="lastName"
                             name="lastName"
-                            value={resumeData.personalInfo.lastName}
+                            value={resumeData.personalInfo?.lastName || ""}
                             onChange={handlePersonalInfoChange}
                             placeholder="Doe"
                           />
@@ -549,7 +639,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                         <Input
                           id="headline"
                           name="headline"
-                          value={resumeData.personalInfo.headline}
+                          value={resumeData.personalInfo?.headline || ""}
                           onChange={handlePersonalInfoChange}
                           placeholder="Software Engineer, Product Manager, etc."
                         />
@@ -563,7 +653,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                             <Input
                               id="email"
                               name="email"
-                              value={resumeData.personalInfo.email}
+                              value={resumeData.personalInfo?.email || ""}
                               onChange={handlePersonalInfoChange}
                               placeholder="john.doe@example.com"
                               className="pl-10"
@@ -577,7 +667,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                             <Input
                               id="phone"
                               name="phone"
-                              value={resumeData.personalInfo.phone}
+                              value={resumeData.personalInfo?.phone || ""}
                               onChange={handlePersonalInfoChange}
                               placeholder="(123) 456-7890"
                               className="pl-10"
@@ -593,7 +683,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                           <Input
                             id="location"
                             name="location"
-                            value={resumeData.personalInfo.location}
+                            value={resumeData.personalInfo?.location || ""}
                             onChange={handlePersonalInfoChange}
                             placeholder="City, Country"
                             className="pl-10"
@@ -602,11 +692,23 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="summary">Professional Summary</Label>
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="summary">Professional Summary</Label>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={generateSummaryWithAI}
+                            className="rounded-full text-xs"
+                          >
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Generate with AI
+                          </Button>
+                        </div>
                         <Textarea
                           id="summary"
                           name="summary"
-                          value={resumeData.personalInfo.summary}
+                          value={resumeData.personalInfo?.summary || ""}
                           onChange={handlePersonalInfoChange}
                           placeholder="A brief summary of your professional background, skills, and career goals..."
                           rows={4}
@@ -629,11 +731,11 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {resumeData.workExperience.map((exp, index) => (
+                      {(resumeData.workExperience || []).map((exp, index) => (
                         <div key={exp.id} className="space-y-4 p-4 border border-border rounded-xl">
                           <div className="flex justify-between items-center">
                             <h3 className="font-medium">Experience #{index + 1}</h3>
-                            {resumeData.workExperience.length > 1 && (
+                            {(resumeData.workExperience || []).length > 1 && (
                               <Button
                                 type="button"
                                 variant="outline"
@@ -701,7 +803,19 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                           </div>
                           
                           <div className="space-y-2">
-                            <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                            <div className="flex justify-between items-center">
+                              <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => generateExperienceWithAI(exp.id)}
+                                className="rounded-full text-xs"
+                              >
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Enhance with AI
+                              </Button>
+                            </div>
                             <Textarea
                               id={`description-${exp.id}`}
                               value={exp.description}
@@ -739,11 +853,11 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      {resumeData.education.map((edu, index) => (
+                      {(resumeData.education || []).map((edu, index) => (
                         <div key={edu.id} className="space-y-4 p-4 border border-border rounded-xl">
                           <div className="flex justify-between items-center">
                             <h3 className="font-medium">Education #{index + 1}</h3>
-                            {resumeData.education.length > 1 && (
+                            {(resumeData.education || []).length > 1 && (
                               <Button
                                 type="button"
                                 variant="outline"
@@ -847,14 +961,26 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {resumeData.skills.map((skill, index) => (
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={generateSkillsWithAI}
+                          className="rounded-full text-xs"
+                        >
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          Generate with AI
+                        </Button>
+                      </div>
+                      {(resumeData.skills || []).map((skill, index) => (
                         <div key={index} className="flex gap-2">
                           <Input
                             value={skill}
                             onChange={(e) => handleSkillsChange(index, e.target.value)}
                             placeholder="e.g. JavaScript, Project Management, etc."
                           />
-                          {resumeData.skills.length > 1 && (
+                          {(resumeData.skills || []).length > 1 && (
                             <Button
                               type="button"
                               variant="outline"

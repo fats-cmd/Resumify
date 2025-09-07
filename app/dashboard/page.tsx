@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "@/components/auth-provider";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Dock, DockItem } from "@/components/ui/dock";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getResumes, deleteResume, signOut } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,8 +34,7 @@ import {
   Star,
   LogOut,
   Home,
-  Settings,
-  User
+  Settings
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Resume } from "@/types/resume";
@@ -97,6 +104,7 @@ export default function DashboardPage() {
   });
   const [loading, setLoading] = useState(true);
   const [resumesLoading, setResumesLoading] = useState(true);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Fetch resumes and stats
   useEffect(() => {
@@ -144,6 +152,8 @@ export default function DashboardPage() {
     };
 
     if (user) {
+      // Reset avatar error state when user changes
+      setAvatarError(false);
       fetchResumes();
     }
   }, [user]);
@@ -196,14 +206,26 @@ export default function DashboardPage() {
   const getUserAvatar = () => {
     if (!user) return null;
     
-    // Check if user has an avatar URL
+    // Check if user has an avatar URL (uploaded image or custom avatar)
     const avatarUrl = user.user_metadata?.avatar_url;
-    if (avatarUrl) {
+    const customAvatar = user.user_metadata?.custom_image_avatar;
+    
+    // Add cache-busting parameter to avatar URL
+    const cacheBustedAvatarUrl = avatarUrl ? `${avatarUrl}?t=${Date.now()}` : null;
+    const displayAvatar = cacheBustedAvatarUrl || customAvatar;
+    
+    if (displayAvatar && !avatarError) {
+      // Extract the base URL without cache-busting parameter for the Image component
+      const [baseUrl] = displayAvatar.split('?t=');
       return (
-        <img 
-          src={avatarUrl} 
+        <Image 
+          src={baseUrl} 
           alt="Profile" 
-          className="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+          width={32}
+          height={32}
+          className="rounded-full object-cover border-2 border-white/20"
+          priority
+          onError={() => setAvatarError(true)}
         />
       );
     }
@@ -245,8 +267,38 @@ export default function DashboardPage() {
                   <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
                 ) : (
                   <>
-                    {getUserAvatar()}
                     <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
+                          {getUserAvatar()}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                        <div className="flex items-center px-2 py-2">
+                          <div className="mr-2">
+                            {getUserAvatar()}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {user?.user_metadata?.full_name || 'User'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {user?.email}
+                            </span>
+                          </div>
+                        </div>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                          <Settings className="mr-2 h-4 w-4" />
+                          <span>Settings</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                          <LogOut className="mr-2 h-4 w-4" />
+                          <span>Log out</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 )}
               </div>

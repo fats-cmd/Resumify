@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Button } from "./ui/button"
 import { ThemeToggle } from "./theme-toggle"
@@ -13,50 +14,48 @@ import { useAuth } from "@/components/auth-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { signOut } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
 
 export function Navbar() {
-  const { user, loading } = useAuth()
-  const router = useRouter()
-  const [mounted, setMounted] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const scrollDirection = useScrollDirection()
-  const [scrolled, setScrolled] = useState(false)
-  const [scrollY, setScrollY] = useState(0)
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const scrollDirection = useScrollDirection();
+  const [scrolled, setScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    setMounted(true)
+    setMounted(true);
     
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      setScrolled(currentScrollY > 10)
-      setScrollY(currentScrollY)
-    }
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 10);
+      setScrollY(currentScrollY);
+    };
     
     // Only add event listener on client side
-    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true });
     // Initial check
-    handleScroll()
+    handleScroll();
     
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   const handleSignOut = async () => {
     try {
-      await signOut()
-      router.push("/")
+      await signOut();
+      router.push("/");
     } catch (error) {
-      console.error("Error signing out:", error)
+      console.error("Error signing out:", error);
     }
   }
 
-  // Only apply transform if we've mounted (client-side)
-  const navClass = cn(
+  // Memoize the navbar class to prevent unnecessary recalculations
+  const navClass = useMemo(() => cn(
     "fixed z-50 navbar-gradient backdrop-blur-md flex items-center justify-between shadow-sm dark:shadow-lg navbar-glow",
     "transition-all duration-500 ease-out",
     "transform-gpu will-change-transform",
@@ -71,7 +70,22 @@ export function Navbar() {
       "translate-y-0",
     scrolled && 'shadow-sm dark:shadow-md',
     !mounted && 'top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl mx-auto rounded-full px-4 sm:px-6 py-3 translate-y-0'
-  );
+  ), [scrollY, scrollDirection, mounted, scrolled]);
+
+  // Memoize user data to prevent re-renders
+  const userData = useMemo(() => {
+    if (!user) return null;
+    const avatarUrl = user.user_metadata?.avatar_url;
+    const customAvatar = user.user_metadata?.custom_image_avatar;
+    
+    // Add cache-busting parameter to avatar URL
+    const cacheBustedAvatarUrl = avatarUrl ? `${avatarUrl}?t=${Date.now()}` : null;
+    
+    return {
+      avatarUrl: cacheBustedAvatarUrl || customAvatar || null,
+      fullName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+    };
+  }, [user]);
 
   // Desktop auth buttons component
   const DesktopAuthButtons = () => {
@@ -85,27 +99,27 @@ export function Navbar() {
       );
     }
 
-    if (user) {
-      const avatarUrl = user.user_metadata?.avatar_url;
-      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-      
+    if (userData) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 backdrop-blur-sm hover:bg-white/20 transition-all duration-300">
               <div className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                {avatarUrl ? (
-                  <img 
-                    src={avatarUrl} 
+                {userData.avatarUrl ? (
+                  <Image 
+                    src={userData.avatarUrl} 
                     alt="Profile" 
+                    width={32}
+                    height={32}
                     className="w-full h-full object-cover"
+                    priority
                   />
                 ) : (
                   <User className="h-4 w-4 text-white" />
                 )}
               </div>
               <span className="text-sm font-medium text-white">
-                {fullName}
+                {userData.fullName}
               </span>
             </Button>
           </DropdownMenuTrigger>
@@ -188,26 +202,26 @@ export function Navbar() {
       );
     }
 
-    if (user) {
-      const avatarUrl = user.user_metadata?.avatar_url;
-      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-      
+    if (userData) {
       return (
         <div className="flex flex-col space-y-3">
           <div className="flex items-center gap-2 p-3 rounded-lg bg-white/10 backdrop-blur-sm">
             <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-              {avatarUrl ? (
-                <img 
-                  src={avatarUrl} 
+              {userData.avatarUrl ? (
+                <Image 
+                  src={userData.avatarUrl} 
                   alt="Profile" 
+                  width={32}
+                  height={32}
                   className="w-full h-full object-cover"
+                  priority
                 />
               ) : (
                 <User className="h-4 w-4 text-white" />
               )}
             </div>
             <span className="font-medium text-white">
-              {fullName}
+              {userData.fullName}
             </span>
           </div>
           <MobileCardNav 

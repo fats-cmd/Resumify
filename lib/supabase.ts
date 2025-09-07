@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SignUpWithPasswordCredentials } from '@supabase/supabase-js';
 import { ResumeData, Resume } from '@/types/resume';
 import { handleAuthError } from '@/lib/auth-utils';
 
@@ -13,12 +13,32 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Authentication helper functions
-export async function signUp(email: string, password: string) {
+export async function signUp(email: string, password: string, fullName?: string) {
   try {
+    // If fullName is provided, include it in the user metadata
+    const options: SignUpWithPasswordCredentials['options'] = fullName ? {
+      data: {
+        full_name: fullName,
+      },
+    } : undefined;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options,
     });
+    
+    // Check if this might be a case of an existing user
+    // When Confirm email is enabled, Supabase returns an obfuscated user object
+    // for existing confirmed users for security reasons
+    if (data && data.user && !data.user.identities?.length && !data.user.confirmed_at) {
+      // This indicates the user might already exist
+      // We'll return a custom error message to handle this case
+      return { 
+        data: null, 
+        error: new Error('This email is already registered. Please use a different email or try logging in instead.') 
+      };
+    }
     
     return { data, error };
   } catch (error) {
@@ -109,13 +129,18 @@ export async function getUser() {
   }
 }
 
-export async function updateProfile({ full_name, avatar_url }: { full_name: string; avatar_url?: string | null }) {
+export async function updateProfile({ full_name, avatar_url, custom_image_avatar }: { full_name: string; avatar_url?: string | null; custom_image_avatar?: string | null }) {
   try {
-    const updateData: { full_name: string; avatar_url?: string | null } = { full_name };
+    const updateData: { full_name: string; avatar_url?: string | null; custom_image_avatar?: string | null } = { full_name };
     
     // Only include avatar_url in the update if it's explicitly provided
     if (avatar_url !== undefined) {
       updateData.avatar_url = avatar_url;
+    }
+    
+    // Only include custom_image_avatar in the update if it's explicitly provided
+    if (custom_image_avatar !== undefined) {
+      updateData.custom_image_avatar = custom_image_avatar;
     }
     
     const { data: { user }, error } = await supabase.auth.updateUser({
@@ -186,7 +211,7 @@ export async function uploadProfileImage(file: File, userId: string) {
     const fileExt = 'jpg'; // We're converting to JPEG
     const fileName = `${userId}/profile.${fileExt}`;
     
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('profile-images')
       .upload(fileName, optimizedFile, {
         upsert: true,
@@ -227,7 +252,10 @@ export async function getProfileImageUrl(userId: string) {
       .from('profile-images')
       .getPublicUrl(fileName);
     
-    return { publicUrl, error: null };
+    // Add cache-busting parameter
+    const cacheBustedUrl = publicUrl ? `${publicUrl}?t=${Date.now()}` : publicUrl;
+    
+    return { publicUrl: cacheBustedUrl, error: null };
   } catch (error) {
     console.error('Error getting profile image URL:', error);
     return { publicUrl: null, error: error as Error };
@@ -235,20 +263,30 @@ export async function getProfileImageUrl(userId: string) {
 }
 
 // Resume helper functions
-export async function saveResume(userId: string, resumeData: ResumeData) {
+export async function saveResume({ title, data, status }: { title: string; data: ResumeData; status: string }) {
   try {
-    const { data, error } = await supabase
+    if (!supabase.auth.getUser()) {
+      return { data: null, error: new Error('User not authenticated') };
+    }
+    
+    const { data: user, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return { data: null, error: userError || new Error('User not found') };
+    }
+
+    const { data: savedResume, error } = await supabase
       .from('resumes')
       .insert([
         {
-          user_id: userId,
-          title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
-          data: resumeData,
+          user_id: user.user.id,
+          title: title,
+          data: data,
+          status: status
         }
       ])
       .select();
 
-    return { data, error };
+    return { data: savedResume, error };
   } catch (error) {
     console.error('Save resume error:', error);
     return { data: null, error: error as Error };
@@ -275,7 +313,7 @@ export async function updateResume(resumeId: number, resumeData: ResumeData) {
     const { data, error } = await supabase
       .from('resumes')
       .update({
-        title: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName} Resume`,
+        title: `${resumeData.personalInfo?.firstName} ${resumeData.personalInfo?.lastName} Resume`,
         data: resumeData,
         // Note: updated_at will be automatically set by the database due to DEFAULT NOW()
       })

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,23 +18,46 @@ import { toast } from 'react-toastify';
 import { getPasswordStrength, PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 import { 
   User, 
-  Mail, 
   Shield, 
+  Palette, 
   Bell, 
-  Palette,
-  ArrowLeft,
-  LayoutDashboard, 
-  LogOut,
-  Home,
-  Plus,
-  Settings,
+  LogOut, 
   Camera,
-  Upload,
+  Lock,
   Eye,
   EyeOff,
-  Lock,
-  X
+  X,
+  Home,
+  LayoutDashboard,
+  Plus,
+  Settings,
+  Upload
 } from "lucide-react";
+
+// Custom avatar images
+const customAvatarImages = [
+  { id: 'avatar1', src: '/avatar/uifaces-cartoon-avatar.jpg', name: 'Nova' },
+  { id: 'avatar2', src: '/avatar/uifaces-cartoon-avatar(1).jpg', name: 'Axel' },
+  { id: 'avatar3', src: '/avatar/uifaces-cartoon-avatar(2).jpg', name: 'Kai' },
+  { id: 'avatar4', src: '/avatar/uifaces-cartoon-avatar(3).jpg', name: 'Quinn' },
+  { id: 'avatar5', src: '/avatar/uifaces-cartoon-avatar(4).jpg', name: 'Leo' },
+  { id: 'avatar6', src: '/avatar/uifaces-cartoon-avatar(5).jpg', name: 'Cora' },
+  { id: 'avatar7', src: '/avatar/uifaces-cartoon-avatar(6).jpg', name: 'Morgan' },
+  { id: 'avatar8', src: '/avatar/uifaces-cartoon-avatar(7).jpg', name: 'Jett' },
+  { id: 'avatar9', src: '/avatar/uifaces-cartoon-avatar(8).jpg', name: 'Rory' },
+  { id: 'avatar10', src: '/avatar/uifaces-cartoon-avatar(9).jpg', name: 'Lyra' },
+  { id: 'avatar11', src: '/avatar/uifaces-cartoon-avatar(10).jpg', name: 'Juno' },
+  { id: 'avatar12', src: '/avatar/uifaces-cartoon-avatar(11).jpg', name: 'Zara' },
+  { id: 'avatar13', src: '/avatar/uifaces-cartoon-avatar(12).jpg', name: 'Anya' },
+  { id: 'avatar14', src: '/avatar/uifaces-cartoon-avatar(13).jpg', name: 'Iris' },
+  { id: 'avatar15', src: '/avatar/uifaces-cartoon-avatar(14).jpg', name: 'Eden' },
+  { id: 'avatar16', src: '/avatar/uifaces-cartoon-avatar(15).jpg', name: 'Freya' },
+  { id: 'avatar17', src: '/avatar/uifaces-cartoon-avatar(16).jpg', name: 'Kaia' },
+  { id: 'avatar18', src: '/avatar/uifaces-cartoon-avatar(17).jpg', name: 'Blair' },
+  { id: 'avatar19', src: '/avatar/uifaces-cartoon-avatar(18).jpg', name: 'Briar' },
+  { id: 'avatar20', src: '/avatar/uifaces-cartoon-avatar(19).jpg', name: 'Cleo' },
+  { id: 'avatar21', src: '/avatar/uifaces-cartoon-avatar(20).jpg', name: 'Orion' },
+];
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -47,6 +71,10 @@ export default function SettingsPage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showRemoveImageDialog, setShowRemoveImageDialog] = useState(false);
+  const [showAvatarSelection, setShowAvatarSelection] = useState(false);
+  const [selectedCustomAvatar, setSelectedCustomAvatar] = useState<string | null>(null);
+  const [visibleAvatars, setVisibleAvatars] = useState(7); // Show 7 avatars initially
+  const [loadingAvatars, setLoadingAvatars] = useState(false); // For skeleton loading
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Password change state
@@ -65,6 +93,9 @@ export default function SettingsPage() {
       if (!user) return;
       
       try {
+        // Record start time to ensure minimum loading duration
+        const startTime = Date.now();
+        
         const { user: userData, error } = await getUser();
         
         if (error) {
@@ -74,6 +105,22 @@ export default function SettingsPage() {
           setFullName(userData.user_metadata?.full_name || "");
           setEmail(userData.email || "");
           setAvatarUrl(userData.user_metadata?.avatar_url || null);
+          
+          // Check if user has selected a custom image avatar
+          const customImageAvatar = userData.user_metadata?.custom_image_avatar;
+          if (customImageAvatar) {
+            setSelectedCustomAvatar(customImageAvatar);
+          } else {
+            setSelectedCustomAvatar(null);
+          }
+        }
+        
+        // Ensure skeleton shows for at least 800ms for better UX
+        const elapsed = Date.now() - startTime;
+        const minLoadingTime = 800;
+        
+        if (elapsed < minLoadingTime) {
+          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
         }
       } catch (err) {
         console.error("Error fetching user:", err);
@@ -100,10 +147,25 @@ export default function SettingsPage() {
     
     try {
       // Update user profile
-      const { error } = await updateProfile({
+      const updateData: { 
+        full_name: string; 
+        avatar_url?: string | null;
+        custom_image_avatar?: string | null;
+      } = {
         full_name: fullName,
-        avatar_url: avatarUrl // Pass the current avatar URL
-      });
+      };
+      
+      // Include avatar_url only if it exists
+      if (avatarUrl) {
+        updateData.avatar_url = avatarUrl;
+      }
+      
+      // Include custom_image_avatar only if it exists
+      if (selectedCustomAvatar) {
+        updateData.custom_image_avatar = selectedCustomAvatar;
+      }
+      
+      const { error } = await updateProfile(updateData);
       
       if (error) {
         console.error("Error updating profile:", error);
@@ -145,8 +207,32 @@ export default function SettingsPage() {
         console.error("Error uploading profile image:", error);
         toast.error("Error uploading profile image. Please try again.");
       } else {
-        setAvatarUrl(publicUrl);
-        toast.success("Profile image updated successfully!");
+        // Add cache-busting parameter to force browser to load new image
+        const cacheBustedUrl = publicUrl ? `${publicUrl}?t=${Date.now()}` : null;
+        
+        // Refresh user data to get the updated avatar URL
+        const { user: updatedUser, error: fetchError } = await getUser();
+        
+        if (fetchError) {
+          console.error("Error fetching updated user data:", fetchError);
+          toast.error("Profile image uploaded but failed to refresh data.");
+        } else if (updatedUser) {
+          // Update the state with the fresh data from the server
+          // Add cache-busting parameter to force browser to load new image
+          const userAvatarUrl = updatedUser.user_metadata?.avatar_url;
+          const cacheBustedUserUrl = userAvatarUrl ? `${userAvatarUrl}?t=${Date.now()}` : null;
+          
+          setAvatarUrl(cacheBustedUserUrl || cacheBustedUrl);
+          // Clear custom avatar selection when uploading an image
+          setSelectedCustomAvatar(null);
+          toast.success("Profile image updated successfully!");
+        } else {
+          // Fallback to using the publicUrl we got from uploadProfileImage
+          setAvatarUrl(cacheBustedUrl);
+          // Clear custom avatar selection when uploading an image
+          setSelectedCustomAvatar(null);
+          toast.success("Profile image updated successfully!");
+        }
       }
     } catch (err) {
       console.error("Error uploading profile image:", err);
@@ -173,7 +259,8 @@ export default function SettingsPage() {
       // Update user profile to remove avatar URL by setting it to null
       const { error } = await updateProfile({
         full_name: fullName,
-        avatar_url: null // This will remove the avatar URL from user metadata
+        avatar_url: null, // This will remove the avatar URL from user metadata
+        custom_image_avatar: null // Also remove custom image avatar selection
       });
       
       if (error) {
@@ -181,6 +268,7 @@ export default function SettingsPage() {
         toast.error("Error removing profile image. Please try again.");
       } else {
         setAvatarUrl(null);
+        setSelectedCustomAvatar(null);
         toast.success("Profile image removed successfully!");
       }
     } catch (err) {
@@ -188,6 +276,33 @@ export default function SettingsPage() {
       toast.error("Error removing profile image. Please try again.");
     } finally {
       setShowRemoveImageDialog(false);
+    }
+  };
+
+  // Handle selecting a custom image avatar
+  const handleSelectCustomImageAvatar = async (avatarSrc: string) => {
+    if (!user) return;
+    
+    try {
+      // Update user profile with selected custom image avatar
+      const { error } = await updateProfile({
+        full_name: fullName,
+        custom_image_avatar: avatarSrc,
+        avatar_url: null // Remove any uploaded image
+      });
+      
+      if (error) {
+        console.error("Error updating profile:", error);
+        toast.error("Error updating profile. Please try again.");
+      } else {
+        setSelectedCustomAvatar(avatarSrc);
+        setAvatarUrl(null); // Clear any uploaded image
+        setShowAvatarSelection(false);
+        toast.success("Avatar updated successfully!");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      toast.error("Error updating profile. Please try again.");
     }
   };
 
@@ -268,6 +383,65 @@ export default function SettingsPage() {
     }
   };
 
+  // Get the initials from user's name or email
+  const getUserInitials = () => {
+    if (!user) return "U";
+    
+    const fullName = user.user_metadata?.full_name;
+    const email = user.email || '';
+    let initials = '';
+    
+    if (fullName) {
+      const names = fullName.split(' ');
+      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
+    } else if (email) {
+      const emailParts = email.split('@');
+      initials = emailParts[0].charAt(0);
+    }
+    
+    return initials.toUpperCase();
+  };
+
+  // Render the appropriate avatar based on user selection
+  const renderAvatar = () => {
+    // If user has uploaded an image, show it
+    if (avatarUrl) {
+      // Extract the base URL and cache-busting parameter
+      const [baseUrl] = avatarUrl.split('?t=');
+      return (
+        <Image 
+          src={baseUrl} 
+          alt="Profile" 
+          width={96}
+          height={96}
+          className="w-full h-full object-cover"
+          priority
+        />
+      );
+    }
+    
+    // If user has selected a custom image avatar, show it
+    if (selectedCustomAvatar) {
+      return (
+        <Image 
+          src={selectedCustomAvatar} 
+          alt="Custom Avatar" 
+          width={96}
+          height={96}
+          className="w-full h-full object-cover"
+          priority
+        />
+      );
+    }
+    
+    // Default to user initials
+    return (
+      <span className="text-white text-2xl font-bold">
+        {getUserInitials()}
+      </span>
+    );
+  };
+
   return (
     <ProtectedPage>
       <div className="min-h-screen bg-background">
@@ -296,401 +470,584 @@ export default function SettingsPage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-          <div className="space-y-6">
-            {/* Profile Section */}
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="h-5 w-5 mr-2 text-purple-500" />
-                  Profile Information
-                </CardTitle>
-                <CardDescription>
-                  Update your personal details and contact information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                      {avatarUrl ? (
-                        <img 
-                          src={avatarUrl} 
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-12 w-12 text-white" />
-                      )}
+          {loading ? (
+            // Skeleton Loading UI
+            <div className="space-y-6">
+              {/* Profile Section Skeleton */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center">
+                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                    <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/40 animate-pulse" />
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={triggerFileInput}
-                      className="absolute -bottom-2 -right-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                      aria-label="Upload profile image"
-                    >
-                      <Camera className="h-4 w-4" />
-                    </Button>
-                    {avatarUrl && (
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-6" />
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-4 w-72 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                    
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Security Section Skeleton */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center">
+                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                </CardContent>
+              </Card>
+
+              {/* Preferences Section Skeleton */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center">
+                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                    <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Theme Section Skeleton */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center">
+                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                    <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      <div className="h-3 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </div>
+                    <div className="h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Logout Section Skeleton */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardContent className="pt-6">
+                  <div className="h-10 w-full bg-red-100 dark:bg-red-900/30 rounded animate-pulse" />
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Profile Section */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <User className="h-5 w-5 mr-2 text-purple-500" />
+                    Profile Information
+                  </CardTitle>
+                  <CardDescription>
+                    Update your personal details and contact information
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                        {renderAvatar()}
+                      </div>
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
-                        onClick={() => setShowRemoveImageDialog(true)}
-                        className="absolute -bottom-2 -left-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                        aria-label="Remove profile image"
+                        onClick={() => setShowAvatarSelection(!showAvatarSelection)}
+                        className="absolute -bottom-2 -right-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                        aria-label="Choose avatar"
                       >
-                        <X className="h-4 w-4" />
+                        <Camera className="h-4 w-4" />
                       </Button>
+                      {(avatarUrl || selectedCustomAvatar) && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setShowRemoveImageDialog(true)}
+                          className="absolute -bottom-2 -left-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                          aria-label="Remove profile image"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Avatar Selection Panel */}
+                    {showAvatarSelection && (
+                      <div className="mt-4 w-full">
+                        <p className="text-sm text-muted-foreground mb-3 text-center">
+                          Choose an avatar or upload your own image
+                        </p>
+                        
+                        {/* Custom image avatars */}
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-96 overflow-y-auto p-2">
+                          {/* Upload Image Option at the top */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="h-20 flex flex-col items-center justify-center rounded-xl"
+                            onClick={triggerFileInput}
+                          >
+                            <Upload className="h-6 w-6" />
+                            <span className="text-xs mt-1">Upload</span>
+                          </Button>
+                          
+                          {loadingAvatars
+                            ? // Skeleton loading for avatars
+                              Array.from({ length: visibleAvatars }).map((_, index) => (
+                                <div 
+                                  key={index} 
+                                  className="h-20 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse"
+                                />
+                              ))
+                            : // Actual avatars
+                              customAvatarImages.slice(0, visibleAvatars).map((avatar) => (
+                                <Button
+                                  key={avatar.id}
+                                  type="button"
+                                  variant={selectedCustomAvatar === avatar.src ? "default" : "outline"}
+                                  className={`h-20 flex flex-col items-center justify-center rounded-xl p-1 ${
+                                    selectedCustomAvatar === avatar.src 
+                                      ? "ring-2 ring-purple-500" 
+                                      : ""
+                                  }`}
+                                  onClick={() => handleSelectCustomImageAvatar(avatar.src)}
+                                >
+                                  <div className="w-12 h-12 rounded-full overflow-hidden">
+                                    <Image 
+                                      src={avatar.src} 
+                                      alt={avatar.name} 
+                                      width={48}
+                                      height={48}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <span className="text-xs mt-1 truncate w-full px-1">{avatar.name}</span>
+                                </Button>
+                              ))
+                          }
+                        </div>
+                        
+                        {/* Load More Button */}
+                        {visibleAvatars < customAvatarImages.length && !loadingAvatars && (
+                          <div className="flex justify-center mt-4">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setLoadingAvatars(true);
+                                // Simulate loading delay for better UX
+                                setTimeout(() => {
+                                  setVisibleAvatars(prev => Math.min(prev + 7, customAvatarImages.length));
+                                  setLoadingAvatars(false);
+                                }, 300);
+                              }}
+                            >
+                              Load More
+                            </Button>
+                          </div>
+                        )}
+                        
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+                      </div>
+                    )}
+                    
+                    <p className="text-sm text-muted-foreground mt-4 text-center">
+                      {avatarUrl || selectedCustomAvatar
+                        ? "Click the camera icon to change your avatar or upload an image"
+                        : "Click the camera icon to choose an avatar or upload an image"}
+                    </p>
+                    {uploading && (
+                      <p className="text-sm text-purple-600 mt-2">Uploading...</p>
                     )}
                   </div>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <p className="text-sm text-muted-foreground mt-4 text-center">
-                    {avatarUrl 
-                      ? "Click the camera icon to change your profile image" 
-                      : "Click the camera icon to upload a profile image"}
-                  </p>
-                  {uploading && (
-                    <p className="text-sm text-purple-600 mt-2">Uploading...</p>
-                  )}
-                </div>
-                
-                <form onSubmit={handleSave} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name</Label>
-                    <Input
-                      id="fullName"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Enter your full name"
-                      disabled={loading || saving}
-                    />
-                  </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      disabled={true} // Email cannot be changed directly
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Email cannot be changed. Contact support if you need to update your email address.
-                    </p>
-                  </div>
-                  
-                  <Button type="submit" disabled={loading || saving} className="w-full">
-                    {saving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+                  <form onSubmit={handleSave} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <Input
+                        id="fullName"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Enter your full name"
+                        disabled={loading || saving}
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        disabled={true} // Email cannot be changed directly
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Email cannot be changed. Contact support if you need to update your email address.
+                      </p>
+                    </div>
+                    
+                    <Button type="submit" disabled={loading || saving} className="w-full">
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
 
-            {/* Security Section */}
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Shield className="h-5 w-5 mr-2 text-purple-500" />
-                  Security
-                </CardTitle>
-                <CardDescription>
-                  Manage your password and security settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              {/* Security Section */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-purple-500" />
+                    Security
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your password and security settings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button 
+                      onClick={() => setShowChangePasswordModal(true)}
+                      variant="outline" 
+                      className="w-full justify-start"
+                    >
+                      <Lock className="h-4 w-4 mr-2" />
+                      Change Password
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Preferences Section */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Bell className="h-5 w-5 mr-2 text-purple-500" />
+                    Preferences
+                  </CardTitle>
+                  <CardDescription>
+                    Customize your notification and communication preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Notifications</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive notifications about your resumes and account activity
+                        </p>
+                      </div>
+                      <Switch
+                        id="notifications"
+                        checked={notifications}
+                        onCheckedChange={setNotifications}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Marketing Emails</Label>
+                        <p className="text-sm text-muted-foreground">
+                          Receive emails about new features and product updates
+                        </p>
+                      </div>
+                      <Switch
+                        id="marketing-emails"
+                        checked={marketingEmails}
+                        onCheckedChange={setMarketingEmails}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Theme Section */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Palette className="h-5 w-5 mr-2 text-purple-500" />
+                    Appearance
+                  </CardTitle>
+                  <CardDescription>
+                    Customize the look and feel of the application
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Theme</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Select your preferred color scheme
+                      </p>
+                    </div>
+                    <ThemeToggle />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Logout Section */}
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <CardContent className="pt-6">
                   <Button 
-                    onClick={() => setShowChangePasswordModal(true)}
+                    onClick={handleLogout}
                     variant="outline" 
-                    className="w-full justify-start"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50"
                   >
-                    <Lock className="h-4 w-4 mr-2" />
-                    Change Password
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log out
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Preferences Section */}
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Bell className="h-5 w-5 mr-2 text-purple-500" />
-                  Preferences
-                </CardTitle>
-                <CardDescription>
-                  Customize your notification and communication preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Notifications</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive notifications about your resumes and account activity
-                      </p>
-                    </div>
-                    <Switch
-                      id="notifications"
-                      checked={notifications}
-                      onCheckedChange={setNotifications}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Marketing Emails</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Receive emails about new features and product updates
-                      </p>
-                    </div>
-                    <Switch
-                      id="marketing-emails"
-                      checked={marketingEmails}
-                      onCheckedChange={setMarketingEmails}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Theme Section */}
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Palette className="h-5 w-5 mr-2 text-purple-500" />
-                  Appearance
-                </CardTitle>
-                <CardDescription>
-                  Customize the look and feel of the application
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Theme</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Select your preferred color scheme
-                    </p>
-                  </div>
-                  <ThemeToggle />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Logout Section */}
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-              <CardContent className="pt-6">
-                <Button 
-                  onClick={handleLogout}
-                  variant="outline" 
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Log out
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-        
-        {/* Remove Image Confirmation Dialog */}
-        {showRemoveImageDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <X className="h-5 w-5 mr-2 text-red-500" />
-                  Remove Profile Image
-                </CardTitle>
-                <CardDescription>
-                  Are you sure you want to remove your profile image?
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-6">
-                  This will remove your current profile image and revert to showing your initials.
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowRemoveImageDialog(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={removeProfileImage}
-                    className="flex-1"
-                  >
-                    Remove Image
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {/* Change Password Modal */}
-        {showChangePasswordModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Lock className="h-5 w-5 mr-2 text-purple-500" />
-                  Change Password
-                </CardTitle>
-                <CardDescription>
-                  Enter your current password and a new password
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="currentPassword">Current Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="currentPassword"
-                        type={showCurrentPassword ? "text" : "password"}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="Enter your current password"
-                        disabled={changingPassword}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        aria-label={showCurrentPassword ? "Hide password" : "Show password"}
-                      >
-                        {showCurrentPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="newPassword">New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Enter your new password"
-                        disabled={changingPassword}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        aria-label={showNewPassword ? "Hide password" : "Show password"}
-                      >
-                        {showNewPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                    <PasswordStrengthMeter password={newPassword} />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm your new password"
-                        disabled={changingPassword}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                        aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3 pt-4">
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* Remove Image Confirmation Dialog */}
+          {showRemoveImageDialog && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <X className="h-5 w-5 mr-2 text-red-500" />
+                    Remove Profile Image
+                  </CardTitle>
+                  <CardDescription>
+                    Are you sure you want to remove your profile image?
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-6">
+                    This will remove your current profile image and revert to showing your initials.
+                  </p>
+                  <div className="flex gap-3">
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => {
-                        setShowChangePasswordModal(false);
-                        // Reset form when closing
-                        setCurrentPassword("");
-                        setNewPassword("");
-                        setConfirmPassword("");
-                      }}
-                      disabled={changingPassword}
+                      onClick={() => setShowRemoveImageDialog(false)}
                       className="flex-1"
                     >
                       Cancel
                     </Button>
                     <Button
-                      type="submit"
-                      disabled={changingPassword}
+                      type="button"
+                      variant="destructive"
+                      onClick={removeProfileImage}
                       className="flex-1"
                     >
-                      {changingPassword ? "Changing..." : "Change Password"}
+                      Remove Image
                     </Button>
                   </div>
-                </form>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* Change Password Modal */}
+          {showChangePasswordModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+              <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Lock className="h-5 w-5 mr-2 text-purple-500" />
+                    Change Password
+                  </CardTitle>
+                  <CardDescription>
+                    Enter your current password and a new password
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">Current Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="currentPassword"
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Enter your current password"
+                          disabled={changingPassword}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                        >
+                          {showCurrentPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="newPassword">New Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="newPassword"
+                          type={showNewPassword ? "text" : "password"}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter your new password"
+                          disabled={changingPassword}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          aria-label={showNewPassword ? "Hide password" : "Show password"}
+                        >
+                          {showNewPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                      <PasswordStrengthMeter password={newPassword} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                      <div className="relative">
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm your new password"
+                          disabled={changingPassword}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowChangePasswordModal(false);
+                          // Reset form when closing
+                          setCurrentPassword("");
+                          setNewPassword("");
+                          setConfirmPassword("");
+                        }}
+                        disabled={changingPassword}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={changingPassword}
+                        className="flex-1"
+                      >
+                        {changingPassword ? "Changing..." : "Change Password"}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          
+          {/* Dock Component */}
+          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
+            <Dock>
+              <DockItem title="Home" onClick={() => router.push("/")}>
+                <Home className="h-6 w-6 text-foreground" />
+              </DockItem>
+              <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
+                <LayoutDashboard className="h-6 w-6 text-foreground" />
+              </DockItem>
+              <DockItem title="Create Resume" onClick={() => router.push("/create")}>
+                <Plus className="h-6 w-6 text-foreground" />
+              </DockItem>
+              <DockItem title="Settings" onClick={() => router.push("/settings")}>
+                <Settings className="h-6 w-6 text-foreground" />
+              </DockItem>
+              <DockItem title="Logout" onClick={() => handleLogout()}>
+                <LogOut className="h-6 w-6 text-foreground" />
+              </DockItem>
+            </Dock>
           </div>
-        )}
-        
-        {/* Dock Component */}
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
-          <Dock>
-            <DockItem title="Home" onClick={() => router.push("/")}>
-              <Home className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-              <LayoutDashboard className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-              <Plus className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Settings" onClick={() => router.push("/settings")}>
-              <Settings className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Logout" onClick={() => handleLogout()}>
-              <LogOut className="h-6 w-6 text-foreground" />
-            </DockItem>
-          </Dock>
         </div>
       </div>
     </ProtectedPage>
