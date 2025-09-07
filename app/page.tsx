@@ -74,7 +74,7 @@ export default function Home() {
               <div className="text-center lg:text-left space-y-6">
                 <Badge
                   variant="outline"
-                  className="text-sm font-medium py-1.5 backdrop-blur-md shadow-lg transition-all duration-300 bg-white/10 border-white/20 text-white hover:bg-white/15 hover:border-white/30 dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/15 dark:hover:border-white/30"
+                  className="text-sm font-medium mt-9 sm:mt-0 py-1.5 px-3 sm:px-4 backdrop-blur-md shadow-lg transition-all duration-300 bg-white/10 border-white/20 text-white hover:bg-white/15 hover:border-white/30 dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/15 dark:hover:border-white/30"
                 >
                   🚀 The Future of Resume Building
                 </Badge>

@@ -181,10 +181,10 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-white">
-                  {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}&apos;s Resume
+                  {resumeData.personalInfo?.firstName} {resumeData.personalInfo?.lastName}&apos;s Resume
                 </h1>
                 <p className="text-white/80 mt-2">
-                  {resumeData.personalInfo.headline}
+                  {resumeData.personalInfo?.headline}
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 items-center">
@@ -232,36 +232,36 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
               {/* Personal Info */}
               <div className="mb-8">
                 <h1 className="text-3xl font-bold text-foreground">
-                  {resumeData.personalInfo.firstName} {resumeData.personalInfo.lastName}
+                  {resumeData.personalInfo?.firstName} {resumeData.personalInfo?.lastName}
                 </h1>
                 <p className="text-lg text-muted-foreground mt-1">
-                  {resumeData.personalInfo.headline}
+                  {resumeData.personalInfo?.headline}
                 </p>
                 
                 <div className="flex flex-wrap gap-4 mt-4">
                   <div className="flex items-center text-muted-foreground">
                     <Mail className="h-4 w-4 mr-2" />
-                    <span>{resumeData.personalInfo.email}</span>
+                    <span>{resumeData.personalInfo?.email}</span>
                   </div>
                   <div className="flex items-center text-muted-foreground">
                     <Phone className="h-4 w-4 mr-2" />
-                    <span>{resumeData.personalInfo.phone}</span>
+                    <span>{resumeData.personalInfo?.phone}</span>
                   </div>
                   <div className="flex items-center text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-2" />
-                    <span>{resumeData.personalInfo.location}</span>
+                    <span>{resumeData.personalInfo?.location}</span>
                   </div>
                 </div>
                 
                 <div className="mt-6">
                   <p className="text-foreground">
-                    {resumeData.personalInfo.summary}
+                    {resumeData.personalInfo?.summary}
                   </p>
                 </div>
               </div>
 
               {/* Work Experience */}
-              {resumeData.workExperience.length > 0 && (
+              {resumeData.workExperience && resumeData.workExperience.length > 0 && (
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
                     <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
@@ -289,7 +289,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
               )}
 
               {/* Education */}
-              {resumeData.education.length > 0 && (
+              {resumeData.education && resumeData.education.length > 0 && (
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
                     <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
@@ -318,7 +318,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
               )}
 
               {/* Skills */}
-              {resumeData.skills.length > 0 && (
+              {resumeData.skills && resumeData.skills.length > 0 && (
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
                     <FileText className="h-5 w-5 mr-2 text-indigo-500" />

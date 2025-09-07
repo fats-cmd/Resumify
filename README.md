@@ -18,13 +18,24 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
 - **Mobile Optimized**: Responsive design with mobile-specific optimizations
 - **Fast Performance**: Built with Next.js 15 and optimized for speed
 
+### 🤖 AI-Powered Content Generation
+- **Professional Summaries**: AI-generated professional summaries based on user information
+- **Work Experience Enhancement**: AI-powered enhancement of work experience descriptions
+- **Skills Suggestions**: AI-generated relevant skills based on work experience and education
+- **Content Optimization**: AI assistance to make resumes more impactful and ATS-friendly
+
 ### 🛠️ Technical Features
 - **Server-Side Rendering**: Fast initial page loads with SSR
 - **TypeScript**: Full type safety throughout the application
 - **Tailwind CSS**: Utility-first CSS framework for rapid styling
 - **Component Architecture**: Reusable UI components with shadcn/ui
-- **Accessibility**: WCAG compliant design and interactions
-- **Profile Images**: User profile image upload and display
+- **Icons**: Lucide React
+- **Fonts**: Geist Sans & Geist Mono
+- **Animations**: CSS transforms and transitions
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Storage**: Supabase Storage
+- **AI Integration**: Gemini AI for content generation
 
 ## 🏗️ Tech Stack
 
@@ -38,6 +49,7 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
 - **Authentication**: Supabase Auth
 - **Database**: Supabase PostgreSQL
 - **Storage**: Supabase Storage
+- **AI**: Google Gemini AI
 
 ## 📁 Project Structure
 
@@ -57,6 +69,9 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
 │   │   └── parallax-hero.tsx
 │   ├── navbar.tsx          # Navigation component
 │   └── theme-provider.tsx  # Theme context provider
+├── lib/
+│   ├── supabase.ts         # Supabase client and helper functions
+│   └── gemini.ts           # Gemini AI integration for content generation
 └── README.md
 ```
 
@@ -103,7 +118,17 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
    pnpm install
    ```
 
-3. **Run the development server**
+3. **Set up environment variables**
+   Create a `.env.local` file based on `.env.example`:
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Then edit `.env.local` and add your:
+   - Supabase credentials
+   - Gemini AI API key (get it from https://aistudio.google.com/)
+
+4. **Run the development server**
    ```bash
    npm run dev
    # or
@@ -112,8 +137,31 @@ A modern, intuitive resume builder application built with Next.js 15 that helps 
    pnpm dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🤖 AI Features
+
+Resumify now includes AI-powered content generation using Google Gemini AI to help users create more impactful resumes:
+
+### Professional Summary Generation
+- Automatically generates a professional summary based on user's personal information
+- Creates concise, value-driven summaries that highlight key qualifications
+
+### Work Experience Enhancement
+- Improves work experience descriptions to be more impactful
+- Uses action verbs and quantifies results where possible
+- Converts basic job descriptions into compelling narratives
+
+### Skills Suggestions
+- Provides relevant skill suggestions based on work experience and education
+- Helps users identify technical and soft skills they may have overlooked
+
+### How to Use AI Features
+1. Complete your resume information in the create/edit forms
+2. Click the "Generate with AI" button next to sections that support AI enhancement
+3. Review and edit the AI-generated content as needed
+4. Save your updated resume
 
 ## 📱 Responsive Design
 
@@ -198,13 +246,3 @@ For profile image storage configuration, see [README_STORAGE.md](README_STORAGE.
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
-
-- **Next.js Team** for the amazing framework
-- **Tailwind CSS** for the utility-first approach
-- **shadcn/ui** for the beautiful component library
-- **Lucide** for the icon set
-- **Vercel** for hosting and deployment platform
-
----
-
-**Built with ❤️ using Next.js 15 and modern web technologies**

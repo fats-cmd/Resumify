@@ -6,7 +6,6 @@ type ScrollDirection = 'up' | 'down' | null;
 
 export function useScrollDirection() {
   const [scrollDirection, setScrollDirection] = useState<ScrollDirection>(null);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -20,8 +19,8 @@ export function useScrollDirection() {
     const updateScrollDirection = () => {
       const scrollY = window.scrollY;
       
-      // Only update if we've scrolled more than 5px to avoid jittery behavior
-      if (Math.abs(scrollY - lastY) < 5) {
+      // Only update if we've scrolled more than 10px to avoid jittery behavior
+      if (Math.abs(scrollY - lastY) < 10) {
         ticking = false;
         return;
       }
@@ -32,19 +31,17 @@ export function useScrollDirection() {
           setScrollDirection('up');
         }
         lastY = scrollY;
-        setLastScrollY(lastY);
         ticking = false;
         return;
       }
       
       const direction = scrollY > lastY ? 'down' : 'up';
       
-      if (direction !== scrollDirection) {
+      if (direction !== scrollDirection && scrollY > 100) {
         setScrollDirection(direction);
       }
       
       lastY = scrollY > 0 ? scrollY : 0;
-      setLastScrollY(lastY);
       ticking = false;
     };
 

@@ -42,7 +42,7 @@ export function handleAuthError(error: Error): boolean {
     // Sign out the user to clear any invalid session data
     supabase.auth.signOut();
     
-    // Redirect to login page (this would be handled by the components)
+    // Return true to indicate the error was handled
     return true;
   }
   

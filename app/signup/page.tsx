@@ -2,6 +2,7 @@
 
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ import { PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
 import RedirectIfAuthenticated from "@/components/redirect-if-authenticated";
 
 export default function SignupPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -34,7 +36,6 @@ export default function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -76,20 +77,34 @@ export default function SignupPage() {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(email, password);
+      // Pass the full name to the signUp function
+      const { data, error } = await signUp(email, password, fullName);
       
       if (error) throw error;
       
-      // Store additional user metadata in a Supabase profile table
-      // This would be done once the user verifies their email
-      
-      setSuccessMessage("Registration successful! Please check your email to verify your account.");
-      
-      // In a real app, you might redirect to a confirmation page
-      // For now, we'll just show a success message
+      // Check if we got a user back (successful signup)
+      if (data && data.user) {
+        // Store additional user metadata in a Supabase profile table
+        // This would be done once the user verifies their email
+        
+        setSuccessMessage("Registration successful! Please check your email for the verification code.");
+        
+        // Redirect to OTP verification page after a short delay
+        setTimeout(() => {
+          router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+        }, 2000);
+      } else {
+        // This shouldn't happen, but just in case
+        throw new Error("Registration failed. Please try again.");
+      }
     } catch (error: unknown) {
       console.error("Sign up error:", error);
-      setError(error instanceof Error ? error.message : "Failed to create account. Please try again.");
+      // Check if the error is related to email already being taken
+      if (error instanceof Error) {
+        setError(error.message || "Failed to create account. Please try again.");
+      } else {
+        setError("Failed to create account. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -158,13 +173,6 @@ export default function SignupPage() {
                   {successMessage && (
                     <div className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 p-3 rounded-lg">
                       <p>{successMessage}</p>
-                      <p className="text-sm mt-2">
-                        You can now{" "}
-                        <Link href="/login" className="font-medium underline">
-                          sign in
-                        </Link>{" "}
-                        once you&apos;ve verified your email.
-                      </p>
                     </div>
                   )}
                   
@@ -240,8 +248,6 @@ export default function SignupPage() {
                             type={showPassword ? "text" : "password"}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            onFocus={() => setIsPasswordFocused(true)}
-                            onBlur={() => setIsPasswordFocused(false)}
                             placeholder="Create a password"
                             className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
                             required
@@ -263,7 +269,6 @@ export default function SignupPage() {
                         </motion.div>
                         <PasswordStrengthMeter 
                           password={password} 
-                          isVisible={isPasswordFocused && password.length > 0} 
                         />
                       </div>
 
@@ -316,18 +321,18 @@ export default function SignupPage() {
                               className="rounded-full"
                             />
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                             <Label 
                               htmlFor="terms" 
                               className="cursor-pointer"
                               onClick={() => !isLoading && setAgreeTerms(!agreeTerms)}
                             >
                               I agree to the{" "}
-                              <Link href="/terms" className="text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
+                              <Link href="/terms" className="text-[10px] sm:text-xs md:text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                                 Terms of Service
                               </Link>{" "}
                               and{" "}
-                              <Link href="/privacy" className="text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
+                              <Link href="/privacy" className="text-[10px] sm:text-xs md:text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                                 Privacy Policy
                               </Link>
                             </Label>
@@ -344,7 +349,7 @@ export default function SignupPage() {
                               className="rounded-full"
                             />
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-300">
+                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                             <Label 
                               htmlFor="marketing" 
                               className="cursor-pointer"
