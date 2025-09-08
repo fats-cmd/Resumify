@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +35,7 @@ import {
   Settings,
   Sparkles
 } from "lucide-react";
-import { generateProfessionalSummary, generateWorkExperienceDescriptions, generateSkillsSuggestions } from "@/lib/gemini";
+
 
 export default function EditResumePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -42,6 +43,10 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const [activeSection, setActiveSection] = useState("personal");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // State for image upload
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   
   // Unwrap the params promise
   const unwrappedParams = React.use(params);
@@ -108,6 +113,10 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
           const resume = data?.find((r: Resume) => r.id === parseInt(unwrappedParams.id));
           if (resume) {
             setResumeData(resume.data as ResumeData);
+            // Set image preview if resume has an image
+            if (resume.data.basics?.image) {
+              setImagePreview(resume.data.basics.image);
+            }
           } else {
             router.push("/dashboard");
           }
@@ -124,6 +133,51 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       fetchResume();
     }
   }, [user, unwrappedParams.id, router]);
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Image upload triggered"); // Debug log
+    const file = e.target.files?.[0];
+    console.log("File selected:", file); // Debug log
+    if (!file) {
+      console.log("No file selected"); // Debug log
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        console.log("File read completed"); // Debug log
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // In a real implementation, you would upload to Supabase storage here
+      // For now, we'll just use the preview URL
+      // You can implement the actual upload using the existing uploadProfileImage function
+      console.log("File selected for upload:", file.name);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Error uploading image. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Remove image
+  const removeImage = () => {
+    setImagePreview(null);
+    // Reset file input
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
+  // Debug effect to log image preview changes
+  useEffect(() => {
+    console.log("Image preview updated:", imagePreview);
+  }, [imagePreview]);
 
   // Handle input changes for personal info
   const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -268,8 +322,25 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     setSaving(true);
     
     try {
+      // Add image to resume data if available
+      const resumeDataWithImage = {
+        ...resumeData,
+        basics: {
+          ...(resumeData.basics || {}),
+          name: `${resumeData.personalInfo?.firstName} ${resumeData.personalInfo?.lastName}`.trim(),
+          label: resumeData.personalInfo?.headline || "",
+          email: resumeData.personalInfo?.email || "",
+          phone: resumeData.personalInfo?.phone || "",
+          summary: resumeData.personalInfo?.summary || "",
+          location: resumeData.personalInfo?.location ? {
+            address: resumeData.personalInfo.location,
+          } : undefined,
+          image: imagePreview || undefined
+        }
+      };
+      
       // Update the resume data in Supabase
-      const { data, error } = await updateResume(parseInt(unwrappedParams.id), resumeData);
+      const { data, error } = await updateResume(parseInt(unwrappedParams.id), resumeDataWithImage);
       
       if (error) {
         console.error("Error updating resume:", error);
@@ -310,9 +381,22 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const generateSummaryWithAI = async () => {
     console.log("Generating summary with AI..."); // Debug log
     try {
-      const summary = await generateProfessionalSummary(resumeData.personalInfo);
-      console.log("Generated summary:", summary); // Debug log
-      if (summary) {
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "generateSummary",
+          data: {
+            personalInfo: resumeData.personalInfo
+          }
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.result) {
         setResumeData({
           ...resumeData,
           personalInfo: {
@@ -325,12 +409,12 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
               headline: "",
               summary: ""
             }),
-            summary: summary
+            summary: result.result
           }
         });
         toast.success("Professional summary generated successfully!");
       } else {
-        toast.error("Failed to generate summary. Please try again.");
+        toast.error(result.error || "Failed to generate summary. Please try again.");
       }
     } catch (error) {
       console.error("Error generating summary:", error);
@@ -341,17 +425,29 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const generateExperienceWithAI = async (id: number) => {
     console.log("Generating experience with AI for ID:", id); // Debug log
     try {
-      const workExperience = resumeData.workExperience || [];
-      const experience = workExperience.find(exp => exp.id === id);
-      if (experience) {
-        const descriptions = await generateWorkExperienceDescriptions([experience]);
-        console.log("Generated experience descriptions:", descriptions); // Debug log
-        if (descriptions && descriptions.length > 0) {
-          handleWorkExperienceChange(id, "description", descriptions[0]);
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "generateExperience",
+          data: {
+            workExperience: resumeData.workExperience
+          }
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.result) {
+        const experience = (resumeData.workExperience || []).find(exp => exp.id === id);
+        if (experience) {
+          handleWorkExperienceChange(id, "description", result.result[0]);
           toast.success("Work experience description enhanced successfully!");
-        } else {
-          toast.error("Failed to enhance work experience. Please try again.");
         }
+      } else {
+        toast.error(result.error || "Failed to enhance work experience. Please try again.");
       }
     } catch (error) {
       console.error("Error enhancing work experience:", error);
@@ -362,19 +458,30 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   const generateSkillsWithAI = async () => {
     console.log("Generating skills with AI..."); // Debug log
     try {
-      const skills = await generateSkillsSuggestions(
-        resumeData.workExperience || [], 
-        resumeData.education || []
-      );
-      console.log("Generated skills:", skills); // Debug log
-      if (skills && skills.length > 0) {
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "generateSkills",
+          data: {
+            workExperience: resumeData.workExperience,
+            education: resumeData.education
+          }
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.result) {
         setResumeData({
           ...resumeData,
-          skills: skills
+          skills: result.result
         });
         toast.success("Skills suggestions generated successfully!");
       } else {
-        toast.error("Failed to generate skills. Please try again.");
+        toast.error(result.error || "Failed to generate skills. Please try again.");
       }
     } catch (error) {
       console.error("Error generating skills:", error);
@@ -451,7 +558,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      <div className="h-4 w-332 bg-gray-200 dark:bg-gray-700 rounded"></div>
                       <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
                     </div>
                     
@@ -611,6 +718,59 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
+                      {/* Image Upload Section */}
+                      <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg">
+                        <Label htmlFor="image-upload">Profile Image</Label>
+                        <div className="flex items-center space-x-4">
+                          {/* Image Preview */}
+                          {imagePreview ? (
+                            <div className="relative">
+                              <div className="w-16 h-16 rounded-full object-cover border-2 border-gray-300 overflow-hidden">
+                                <Image 
+                                  src={imagePreview} 
+                                  alt="Preview" 
+                                  width={64}
+                                  height={64}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={removeImage}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                aria-label="Remove image"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                              <User className="h-6 w-6 text-gray-500" />
+                            </div>
+                          )}
+                          
+                          {/* Upload Button */}
+                          <div>
+                            <label htmlFor="image-upload" className="cursor-pointer">
+                              <div className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                                {isUploading ? "Uploading..." : "Upload Image"}
+                              </div>
+                              <input
+                                id="image-upload"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="hidden"
+                                disabled={isUploading}
+                              />
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1">
+                              JPG, PNG, or GIF (max 5MB)
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="firstName">First Name</Label>
