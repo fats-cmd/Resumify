@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { generateProfessionalSummary } from '@/lib/gemini';
+import { generateProfessionalSummary } from '@/lib/groq';
 
 export default function TestAIPage() {
   const [result, setResult] = useState<string>('');

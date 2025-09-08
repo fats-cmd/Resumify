@@ -2,8 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-
+import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { 
   Card,
@@ -159,6 +158,15 @@ const CreateResumeContent = () => {
     skills: [""]
   });
 
+  // State for image upload
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Debug effect to log image preview changes
+  useEffect(() => {
+    console.log("Image preview updated:", imagePreview);
+  }, [imagePreview]);
+
   // Simulate loading
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -185,6 +193,46 @@ const CreateResumeContent = () => {
         [name]: value
       }
     });
+  };
+
+  // Handle image upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("Image upload triggered"); // Debug log
+    const file = e.target.files?.[0];
+    console.log("File selected:", file); // Debug log
+    if (!file) {
+      console.log("No file selected"); // Debug log
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        console.log("File read completed"); // Debug log
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // In a real implementation, you would upload to Supabase storage here
+      // For now, we'll just use the preview URL
+      // You can implement the actual upload using the existing uploadProfileImage function
+      console.log("File selected for upload:", file.name);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Error uploading image. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Remove image
+  const removeImage = () => {
+    setImagePreview(null);
+    // Reset file input
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
   };
 
   // Handle work experience changes
@@ -306,6 +354,22 @@ const CreateResumeContent = () => {
       return;
     }
     
+    // Add image to resume data if available
+    const resumeDataWithImage = {
+      ...resumeData,
+      basics: {
+        name: `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName}`.trim(),
+        label: resumeData.personalInfo.headline,
+        email: resumeData.personalInfo.email,
+        phone: resumeData.personalInfo.phone,
+        summary: resumeData.personalInfo.summary,
+        location: resumeData.personalInfo.location ? {
+          address: resumeData.personalInfo.location,
+        } : undefined,
+        image: imagePreview || undefined
+      }
+    };
+    
     // Save resume
     try {
       setSaving(true);
@@ -314,7 +378,7 @@ const CreateResumeContent = () => {
       
       const { data, error } = await saveResume({
         title: resumeTitle,
-        data: resumeData,
+        data: resumeDataWithImage,
         status: "Draft"
       });
       
@@ -614,6 +678,59 @@ const CreateResumeContent = () => {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-6">
+                        {/* Image Upload Section */}
+                        <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg bg-blue-50">
+                          <Label htmlFor="image-upload" className="font-bold text-blue-700">Profile Image (New Feature)</Label>
+                          <div className="flex items-center space-x-4">
+                            {/* Image Preview */}
+                            {imagePreview ? (
+                              <div className="relative">
+                                <div className="w-16 h-16 rounded-full object-cover border-2 border-gray-300 overflow-hidden">
+                                  <Image 
+                                    src={imagePreview} 
+                                    alt="Preview" 
+                                    width={64}
+                                    height={64}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={removeImage}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                  aria-label="Remove image"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                <User className="h-6 w-6 text-gray-500" />
+                              </div>
+                            )}
+                            
+                            {/* Upload Button */}
+                            <div>
+                              <label htmlFor="image-upload" className="cursor-pointer">
+                                <div className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                                  {isUploading ? "Uploading..." : "Upload Image"}
+                                </div>
+                                <input
+                                  id="image-upload"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  className="hidden"
+                                  disabled={isUploading}
+                                />
+                              </label>
+                              <p className="text-xs text-gray-500 mt-1">
+                                JPG, PNG, or GIF (max 5MB)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div className="space-y-2">
                             <Label htmlFor="firstName">First Name</Label>
