@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
     root: process.cwd()
   },
   images: {
-    domains: ['pbqbujrfmriptnywnkzl.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'pbqbujrfmriptnywnkzl.supabase.co',
+        port: '',
+      },
+    ],
   },
 };
 

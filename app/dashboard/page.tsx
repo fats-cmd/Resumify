@@ -127,6 +127,17 @@ export default function DashboardPage() {
         
         if (error) {
           console.error("Error fetching resumes:", error);
+          // Provide more detailed error information
+          if (error.message) {
+            console.error("Error message:", error.message);
+          }
+          if (error.name) {
+            console.error("Error name:", error.name);
+          }
+          if (error.stack) {
+            console.error("Error stack:", error.stack);
+          }
+          toast.error("Failed to load resumes. Please try again later.");
         } else {
           setResumes(data || []);
           
@@ -145,6 +156,15 @@ export default function DashboardPage() {
         }
       } catch (err) {
         console.error("Error fetching resumes:", err);
+        // Provide more detailed error information for caught exceptions
+        if (err instanceof Error) {
+          console.error("Caught error details:", {
+            message: err.message,
+            name: err.name,
+            stack: err.stack
+          });
+        }
+        toast.error("Failed to load resumes. Please try again later.");
       } finally {
         setResumesLoading(false);
         setLoading(false);
