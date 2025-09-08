@@ -21,6 +21,7 @@
     "framer-motion": "^12.23.12",
     "groq-sdk": "^0.32.0",
     "gsap": "^3.13.0",
+    "html2pdf.js": "^0.12.0",
     "lucide-react": "^0.542.0",
     "motion": "^12.23.12",
     "next": "15.5.2",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/html2pdf.js": "^0.10.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

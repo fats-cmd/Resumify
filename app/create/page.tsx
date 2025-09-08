@@ -679,8 +679,8 @@ const CreateResumeContent = () => {
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Image Upload Section */}
-                        <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg bg-blue-50">
-                          <Label htmlFor="image-upload" className="font-bold text-blue-700">Profile Image (New Feature)</Label>
+                        <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg bg-blue-50 dark:bg-gray-900">
+                          <Label htmlFor="image-upload" className="font-bold dark:text-blue-50">Profile Image</Label>
                           <div className="flex items-center space-x-4">
                             {/* Image Preview */}
                             {imagePreview ? (
@@ -704,7 +704,7 @@ const CreateResumeContent = () => {
                                 </button>
                               </div>
                             ) : (
-                              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                                 <User className="h-6 w-6 text-gray-500" />
                               </div>
                             )}
@@ -712,7 +712,7 @@ const CreateResumeContent = () => {
                             {/* Upload Button */}
                             <div>
                               <label htmlFor="image-upload" className="cursor-pointer">
-                                <div className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                                <div className="px-4 py-2 dark:bg-gray-800 bg-gray-200 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
                                   {isUploading ? "Uploading..." : "Upload Image"}
                                 </div>
                                 <input

@@ -108,6 +108,17 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
         
         if (error) {
           console.error("Error fetching resume:", error);
+          // Provide more detailed error information
+          if (error.message) {
+            console.error("Error message:", error.message);
+          }
+          if (error.name) {
+            console.error("Error name:", error.name);
+          }
+          if (error.stack) {
+            console.error("Error stack:", error.stack);
+          }
+          toast.error("Failed to load resume. Please try again later.");
           router.push("/dashboard");
         } else {
           const resume = data?.find((r: Resume) => r.id === parseInt(unwrappedParams.id));
@@ -118,11 +129,21 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
               setImagePreview(resume.data.basics.image);
             }
           } else {
+            toast.error("Resume not found.");
             router.push("/dashboard");
           }
         }
       } catch (err) {
         console.error("Error fetching resume:", err);
+        // Provide more detailed error information for caught exceptions
+        if (err instanceof Error) {
+          console.error("Caught error details:", {
+            message: err.message,
+            name: err.name,
+            stack: err.stack
+          });
+        }
+        toast.error("Failed to load resume. Please try again later.");
         router.push("/dashboard");
       } finally {
         setLoading(false);
@@ -1177,7 +1198,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                   >
                     Cancel
                   </Button>
-                  <div className="space-x-3">
+                  <div className="space-x-33">
                     <Button
                       type="button"
                       variant="outline"

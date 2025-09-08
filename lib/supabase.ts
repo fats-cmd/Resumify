@@ -304,6 +304,14 @@ export async function getResumes(userId: string) {
     return { data: data as Resume[] | null, error };
   } catch (error) {
     console.error('Get resumes error:', error);
+    // Provide more detailed error information
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+    }
     return { data: null, error: error as Error };
   }
 }

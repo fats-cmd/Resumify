@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +28,8 @@ import {
   LogOut,
   Home,
   Settings,
-  Plus
+  Plus,
+  User
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Resume, ResumeData } from "@/types/resume";
@@ -37,6 +39,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
   const { user } = useAuth();
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
+  const resumeRef = useRef<HTMLDivElement>(null);
   
   // Unwrap the params promise
   const unwrappedParams = React.use(params);
@@ -51,7 +54,17 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         
         if (error) {
           console.error("Error fetching resume:", error);
-          toast.error("Error fetching resume. Please try again.");
+          // Provide more detailed error information
+          if (error.message) {
+            console.error("Error message:", error.message);
+          }
+          if (error.name) {
+            console.error("Error name:", error.name);
+          }
+          if (error.stack) {
+            console.error("Error stack:", error.stack);
+          }
+          toast.error("Failed to load resume. Please try again later.");
           router.push("/dashboard");
         } else {
           const resume = data?.find((r: Resume) => r.id === parseInt(unwrappedParams.id));
@@ -64,7 +77,15 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         }
       } catch (err) {
         console.error("Error fetching resume:", err);
-        toast.error("Error fetching resume. Please try again.");
+        // Provide more detailed error information for caught exceptions
+        if (err instanceof Error) {
+          console.error("Caught error details:", {
+            message: err.message,
+            name: err.name,
+            stack: err.stack
+          });
+        }
+        toast.error("Failed to load resume. Please try again later.");
         router.push("/dashboard");
       } finally {
         setLoading(false);
@@ -76,9 +97,183 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
     }
   }, [user, unwrappedParams.id, router]);
 
-  const handleDownload = () => {
-    toast.success("Resume downloaded successfully!");
-    // In a real app, this would trigger a PDF download
+  const handleDownload = async () => {
+    if (!resumeRef.current) {
+      toast.error("Resume content not available for download");
+      return;
+    }
+
+    try {
+      // Dynamically import html2pdf to avoid SSR issues
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      const element = resumeRef.current;
+      
+      // Sanitize filename to remove invalid characters
+      const firstName = resumeData?.personalInfo?.firstName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
+      const lastName = resumeData?.personalInfo?.lastName?.replace(/[^a-zA-Z0-9]/g, '_') || 'User';
+      const filename = `${firstName}_${lastName}_Resume.pdf`;
+      
+      const options = {
+        margin: [10, 5, 10, 5],
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true,
+          logging: true,
+          // Handle modern CSS colors that cause issues
+          backgroundColor: '#ffffff',
+          removeContainer: true
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Add error handling for color parsing issues
+      const worker = html2pdf().set(options).from(element);
+      
+      // Try to generate PDF
+      await worker.save();
+      toast.success("Resume downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      
+      // Check if it's a color parsing error
+      if (error instanceof Error && (error.message.includes('lab') || error.message.includes('color') || error.message.includes('CSS'))) {
+        toast.error("Having trouble with modern CSS colors. Trying alternative method...");
+        
+        try {
+          // Try with simplified options and CSS cleanup
+          const html2pdf = (await import('html2pdf.js')).default;
+          
+          // Temporarily modify styles to avoid color parsing issues
+          const element = resumeRef.current;
+          if (element) {
+            // Add temporary styles to override problematic CSS
+            const originalStyles = element.style.cssText;
+            element.style.cssText += '; color: #000000 !important; background-color: #ffffff !important;';
+            
+            // Sanitize filename to remove invalid characters
+            const firstName = resumeData?.personalInfo?.firstName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
+            const lastName = resumeData?.personalInfo?.lastName?.replace(/[^a-zA-Z0-9]/g, '_') || 'User';
+            const filename = `${firstName}_${lastName}_Resume.pdf`;
+            
+            const simplifiedOptions = {
+              margin: [10, 5, 10, 5],
+              filename: filename,
+              image: { type: 'jpeg', quality: 0.95 },
+              html2canvas: { 
+                scale: 1.5,
+                useCORS: false,
+                backgroundColor: '#ffffff',
+                logging: false
+              },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            await html2pdf().set(simplifiedOptions).from(element).save();
+            
+            // Restore original styles
+            element.style.cssText = originalStyles;
+            
+            toast.success("Resume downloaded successfully!");
+          }
+        } catch (simplifiedError) {
+          console.error("Simplified PDF generation also failed:", simplifiedError);
+          
+          // Final fallback: Create a simplified HTML version
+          try {
+            const firstName = resumeData?.personalInfo?.firstName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
+            const lastName = resumeData?.personalInfo?.lastName?.replace(/[^a-zA-Z0-9]/g, '_') || 'User';
+            const filename = `${firstName}_${lastName}_Resume.pdf`;
+            
+            // Create a simple HTML version
+            const simpleHtml = `
+              <html>
+                <head>
+                  <title>${firstName} ${lastName} - Resume</title>
+                  <style>
+                    body { font-family: Arial, sans-serif; color: #000; background: #fff; }
+                    h1 { color: #000; }
+                    h2 { color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+                    h3 { color: #000; }
+                    p { color: #000; }
+                    .section { margin-bottom: 20px; }
+                    .contact-info { margin: 10px 0; }
+                    .experience-item, .education-item { margin-bottom: 15px; }
+                  </style>
+                </head>
+                <body>
+                  <h1>${firstName} ${lastName}</h1>
+                  <p>${resumeData?.personalInfo?.headline || ''}</p>
+                  
+                  <div class="contact-info">
+                    <p>Email: ${resumeData?.personalInfo?.email || ''}</p>
+                    <p>Phone: ${resumeData?.personalInfo?.phone || ''}</p>
+                    <p>Location: ${resumeData?.personalInfo?.location || ''}</p>
+                  </div>
+                  
+                  ${resumeData?.personalInfo?.summary ? `
+                  <div class="section">
+                    <h2>Summary</h2>
+                    <p>${resumeData.personalInfo.summary}</p>
+                  </div>` : ''}
+                  
+                  ${resumeData?.workExperience && resumeData.workExperience.length > 0 ? `
+                  <div class="section">
+                    <h2>Work Experience</h2>
+                    ${resumeData.workExperience.map(exp => `
+                      <div class="experience-item">
+                        <h3>${exp.position}</h3>
+                        <p><strong>${exp.company}</strong> | ${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
+                        <p>${exp.description}</p>
+                      </div>
+                    `).join('')}
+                  </div>` : ''}
+                  
+                  ${resumeData?.education && resumeData.education.length > 0 ? `
+                  <div class="section">
+                    <h2>Education</h2>
+                    ${resumeData.education.map(edu => `
+                      <div class="education-item">
+                        <h3>${edu.degree}</h3>
+                        <p><strong>${edu.institution}</strong> | ${edu.field}</p>
+                        <p>${edu.startDate} - ${edu.endDate}</p>
+                        <p>${edu.description}</p>
+                      </div>
+                    `).join('')}
+                  </div>` : ''}
+                  
+                  ${resumeData?.skills && resumeData.skills.length > 0 ? `
+                  <div class="section">
+                    <h2>Skills</h2>
+                    <p>${resumeData.skills.join(', ')}</p>
+                  </div>` : ''}
+                </body>
+              </html>
+            `;
+            
+            // Create blob and download
+            const blob = new Blob([simpleHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename.replace('.pdf', '.html');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            toast.success("Resume downloaded as HTML. You can open it in a browser and print to PDF.");
+          } catch (finalError) {
+            console.error("All PDF generation methods failed:", finalError);
+            toast.error("Failed to download resume. Please try printing instead (Ctrl+P).");
+          }
+        }
+      } else {
+        toast.error("Failed to download resume. Please try again.");
+      }
+    }
   };
 
   const handlePrint = () => {
@@ -167,6 +362,21 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
 
   return (
     <ProtectedPage>
+      <style jsx global>{`
+        .pdf-content, .pdf-content * {
+          color: #000000 !important;
+          background-color: #ffffff !important;
+        }
+        .pdf-content h1, .pdf-content h2, .pdf-content h3, .pdf-content h4, .pdf-content h5, .pdf-content h6 {
+          color: #000000 !important;
+        }
+        .pdf-content p, .pdf-content span, .pdf-content div {
+          color: #000000 !important;
+        }
+        .pdf-content .text-muted-foreground {
+          color: #333333 !important;
+        }
+      `}</style>
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
@@ -227,114 +437,145 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         </div>
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-          <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-            <CardContent className="p-8">
-              {/* Personal Info */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold text-foreground">
-                  {resumeData.personalInfo?.firstName} {resumeData.personalInfo?.lastName}
-                </h1>
-                <p className="text-lg text-muted-foreground mt-1">
-                  {resumeData.personalInfo?.headline}
-                </p>
-                
-                <div className="flex flex-wrap gap-4 mt-4">
-                  <div className="flex items-center text-muted-foreground">
-                    <Mail className="h-4 w-4 mr-2" />
-                    <span>{resumeData.personalInfo?.email}</span>
-                  </div>
-                  <div className="flex items-center text-muted-foreground">
-                    <Phone className="h-4 w-4 mr-2" />
-                    <span>{resumeData.personalInfo?.phone}</span>
-                  </div>
-                  <div className="flex items-center text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    <span>{resumeData.personalInfo?.location}</span>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <p className="text-foreground">
-                    {resumeData.personalInfo?.summary}
-                  </p>
-                </div>
-              </div>
-
-              {/* Work Experience */}
-              {resumeData.workExperience && resumeData.workExperience.length > 0 && (
+          {/* Resume Content - This is what will be converted to PDF */}
+          <div ref={resumeRef} style={{ backgroundColor: '#ffffff' }} className="pdf-content">
+            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+              <CardContent className="p-8" style={{ color: '#000000' }}>
+                {/* Personal Info */}
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                    <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
-                    Work Experience
-                  </h2>
-                  <div className="space-y-6">
-                    {resumeData.workExperience.map((exp) => (
-                      <div key={exp.id} className="border-l-2 border-blue-500 pl-4 py-1">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                          <div>
-                            <h3 className="text-xl font-semibold text-foreground">{exp.position}</h3>
-                            <p className="text-lg text-muted-foreground">{exp.company}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+                    {/* Profile Image */}
+                    {resumeData?.basics?.image ? (
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                          <Image 
+                            src={resumeData.basics.image} 
+                            alt={`${resumeData.personalInfo?.firstName} ${resumeData.personalInfo?.lastName}`}
+                            width={96}
+                            height={96}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
+                          <User className="h-12 w-12 text-gray-400" />
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground" style={{ color: '#000000' }}>
+                        {resumeData?.personalInfo?.firstName} {resumeData?.personalInfo?.lastName}
+                      </h1>
+                      <p className="text-lg text-muted-foreground mt-1" style={{ color: '#333333' }}>
+                        {resumeData?.personalInfo?.headline}
+                      </p>
+                      
+                      <div className="flex flex-wrap gap-4 mt-4">
+                        <div className="flex items-center text-muted-foreground">
+                          <Mail className="h-4 w-4 mr-2" />
+                          <span style={{ color: '#000000' }}>{resumeData?.personalInfo?.email}</span>
+                        </div>
+                        <div className="flex items-center text-muted-foreground">
+                          <Phone className="h-4 w-4 mr-2" />
+                          <span style={{ color: '#000000' }}>{resumeData?.personalInfo?.phone}</span>
+                        </div>
+                        <div className="flex items-center text-muted-foreground">
+                          <MapPin className="h-4 w-4 mr-2" />
+                          <span style={{ color: '#000000' }}>{resumeData?.personalInfo?.location}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Full Width Summary */}
+                  {resumeData?.personalInfo?.summary && (
+                    <div className="mt-6">
+                      <p className="text-foreground" style={{ color: '#000000' }}>
+                        {resumeData.personalInfo.summary}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Work Experience */}
+                {resumeData?.workExperience && resumeData.workExperience.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center" style={{ color: '#000000' }}>
+                      <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
+                      Work Experience
+                    </h2>
+                    <div className="space-y-6">
+                      {resumeData.workExperience.map((exp) => (
+                        <div key={exp.id} className="border-l-2 border-blue-500 pl-4 py-1">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-foreground">{exp.position}</h3>
+                              <p className="text-lg text-muted-foreground" style={{ color: '#333333' }}>{exp.company}</p>
+                            </div>
+                            <p className="text-muted-foreground mt-1 sm:mt-0" style={{ color: '#333333' }}>
+                              {exp.startDate} - {exp.current ? "Present" : exp.endDate}
+                            </p>
                           </div>
-                          <p className="text-muted-foreground mt-1 sm:mt-0">
-                            {exp.startDate} - {exp.current ? "Present" : exp.endDate}
+                          <p className="text-foreground mt-2" style={{ color: '#000000' }}>
+                            {exp.description}
                           </p>
                         </div>
-                        <p className="text-foreground mt-2">
-                          {exp.description}
-                        </p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Education */}
-              {resumeData.education && resumeData.education.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                    <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
-                    Education
-                  </h2>
-                  <div className="space-y-6">
-                    {resumeData.education.map((edu) => (
-                      <div key={edu.id} className="border-l-2 border-green-500 pl-4 py-1">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                          <div>
-                            <h3 className="text-xl font-semibold text-foreground">{edu.degree}</h3>
-                            <p className="text-lg text-muted-foreground">{edu.institution}</p>
-                            <p className="text-muted-foreground">{edu.field}</p>
+                {/* Education */}
+                {resumeData?.education && resumeData.education.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center" style={{ color: '#000000' }}>
+                      <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
+                      Education
+                    </h2>
+                    <div className="space-y-6">
+                      {resumeData.education.map((edu) => (
+                        <div key={edu.id} className="border-l-2 border-green-500 pl-4 py-1">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                            <div>
+                              <h3 className="text-xl font-semibold text-foreground">{edu.degree}</h3>
+                              <p className="text-lg text-muted-foreground" style={{ color: '#333333' }}>{edu.institution}</p>
+                              <p className="text-muted-foreground" style={{ color: '#333333' }}>{edu.field}</p>
+                            </div>
+                            <p className="text-muted-foreground mt-1 sm:mt-0" style={{ color: '#333333' }}>
+                              {edu.startDate} - {edu.endDate}
+                            </p>
                           </div>
-                          <p className="text-muted-foreground mt-1 sm:mt-0">
-                            {edu.startDate} - {edu.endDate}
+                          <p className="text-foreground mt-2" style={{ color: '#000000' }}>
+                            {edu.description}
                           </p>
                         </div>
-                        <p className="text-foreground mt-2">
-                          {edu.description}
-                        </p>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Skills */}
-              {resumeData.skills && resumeData.skills.length > 0 && (
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                    <FileText className="h-5 w-5 mr-2 text-indigo-500" />
-                    Skills
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {resumeData.skills.map((skill: string, index: number) => (
-                      <Badge key={index} variant="secondary" className="rounded-full px-3 py-1">
-                        {skill}
-                      </Badge>
-                    ))}
+                {/* Skills */}
+                {resumeData?.skills && resumeData.skills.length > 0 && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center" style={{ color: '#000000' }}>
+                      <FileText className="h-5 w-5 mr-2 text-indigo-500" />
+                      Skills
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {resumeData.skills.map((skill: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="rounded-full px-3 py-1">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
       
