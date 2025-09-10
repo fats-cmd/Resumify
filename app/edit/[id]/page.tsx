@@ -649,7 +649,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
         }
         
         // Clean up each skill to remove any remaining introductory text or markdown
-        skills = skills.map(skill => {
+        skills = skills.map((skill: string | unknown) => {
           if (typeof skill === 'string') {
             // Remove common introductory phrases
             return skill
@@ -661,7 +661,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
               .trim();
           }
           return skill;
-        }).filter(skill => typeof skill === 'string' && skill.length > 0);
+        }).filter((skill: string | unknown) => typeof skill === 'string' && skill.length > 0) as string[];
         
         setResumeData({
           ...resumeData,
@@ -1414,7 +1414,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                   >
                     Cancel
                   </Button>
-                  <div className="space-x-33">
+                  <div className="flex gap-3">
                     <Button
                       type="button"
                       variant="outline"

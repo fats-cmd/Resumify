@@ -98,180 +98,243 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
   }, [user, unwrappedParams.id, router]);
 
   const handleDownload = async () => {
-    if (!resumeRef.current) {
-      toast.error("Resume content not available for download");
+    if (!resumeData) {
+      toast.error("Resume data not available for download");
       return;
     }
 
     try {
-      // Dynamically import html2pdf to avoid SSR issues
-      const html2pdf = (await import('html2pdf.js')).default;
+      // Show loading toast
+      toast.info("Preparing PDF for download...");
       
-      const element = resumeRef.current;
+      // Create a completely isolated HTML document for printing
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.top = '-9999px';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '210mm';
+      iframe.style.minHeight = '297mm';
+      document.body.appendChild(iframe);
       
-      // Sanitize filename to remove invalid characters
-      const firstName = resumeData?.personalInfo?.firstName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
-      const lastName = resumeData?.personalInfo?.lastName?.replace(/[^a-zA-Z0-9]/g, '_') || 'User';
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        throw new Error("Could not access iframe document");
+      }
+      
+      // Write a completely clean HTML document with print-optimized styles
+      iframeDoc.open();
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Resume</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              font-size: 12pt;
+              line-height: 1.4;
+              color: #000000;
+              background-color: #ffffff;
+              margin: 0;
+              padding: 20px;
+              width: 210mm;
+              min-height: 297mm;
+            }
+            h1, h2, h3, h4, h5, h6 {
+              color: #000000;
+              margin: 0 0 10px 0;
+            }
+            h1 {
+              font-size: 28px;
+              margin: 0 0 10px 0;
+            }
+            h2 {
+              font-size: 20px;
+              border-bottom: 1px solid #000000;
+              padding-bottom: 5px;
+              margin: 0 0 15px 0;
+            }
+            h3 {
+              font-size: 16px;
+              margin: 0 0 5px 0;
+            }
+            p {
+              color: #000000;
+              margin: 0 0 10px 0;
+            }
+            .section {
+              margin-bottom: 30px;
+            }
+            .contact-info {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+            .experience-item, .education-item {
+              margin-bottom: 20px;
+            }
+            .flex-between {
+              display: flex;
+              justify-content: space-between;
+              flex-wrap: wrap;
+            }
+            .text-muted {
+              color: #333333;
+            }
+            
+            /* Print-specific styles */
+            @media print {
+              @page {
+                margin: 0;
+                size: A4;
+              }
+              body {
+                margin: 0;
+                padding: 20px;
+                background-color: #ffffff;
+                color: #000000;
+              }
+            }
+          </style>
+        </head>
+        <body>
+        </body>
+        </html>
+      `);
+      iframeDoc.close();
+      
+      // Build the resume content in the iframe
+      let html = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1>
+            ${resumeData.personalInfo?.firstName || ''} ${resumeData.personalInfo?.lastName || ''}
+          </h1>
+          ${resumeData.personalInfo?.headline ? 
+            `<p class="text-muted">${resumeData.personalInfo.headline}</p>` : ''}
+        </div>
+      `;
+      
+      // Contact information
+      const contactInfo = [];
+      if (resumeData.personalInfo?.email) contactInfo.push(`Email: ${resumeData.personalInfo.email}`);
+      if (resumeData.personalInfo?.phone) contactInfo.push(`Phone: ${resumeData.personalInfo.phone}`);
+      if (resumeData.personalInfo?.location) contactInfo.push(`Location: ${resumeData.personalInfo.location}`);
+      
+      if (contactInfo.length > 0) {
+        html += `
+          <div class="contact-info">
+            <p>${contactInfo.join(' | ')}</p>
+          </div>
+        `;
+      }
+      
+      // Summary
+      if (resumeData.personalInfo?.summary) {
+        html += `
+          <div class="section">
+            <h2>Summary</h2>
+            <p>${resumeData.personalInfo.summary}</p>
+          </div>
+        `;
+      }
+      
+      // Work Experience
+      if (resumeData.workExperience && resumeData.workExperience.length > 0) {
+        html += `
+          <div class="section">
+            <h2>Work Experience</h2>
+        `;
+        
+        resumeData.workExperience.forEach(exp => {
+          html += `
+            <div class="experience-item">
+              <div class="flex-between">
+                <h3>${exp.position}</h3>
+                <p class="text-muted">${exp.startDate} - ${exp.current ? "Present" : exp.endDate}</p>
+              </div>
+              <p class="text-muted">${exp.company}</p>
+              <p>${exp.description}</p>
+            </div>
+          `;
+        });
+        
+        html += `</div>`;
+      }
+      
+      // Education
+      if (resumeData.education && resumeData.education.length > 0) {
+        html += `
+          <div class="section">
+            <h2>Education</h2>
+        `;
+        
+        resumeData.education.forEach(edu => {
+          html += `
+            <div class="education-item">
+              <div class="flex-between">
+                <h3>${edu.degree}</h3>
+                <p class="text-muted">${edu.startDate} - ${edu.endDate}</p>
+              </div>
+              <p class="text-muted">${edu.institution}</p>
+              <p class="text-muted">${edu.field}</p>
+              <p>${edu.description}</p>
+            </div>
+          `;
+        });
+        
+        html += `</div>`;
+      }
+      
+      // Skills
+      if (resumeData.skills && resumeData.skills.length > 0) {
+        html += `
+          <div class="section">
+            <h2>Skills</h2>
+            <p>${resumeData.skills.join(', ')}</p>
+          </div>
+        `;
+      }
+      
+      // Add the content to the iframe
+      iframeDoc.body.innerHTML = html;
+      
+      // Sanitize filename for the print dialog
+      const firstName = (resumeData.personalInfo?.firstName || 'Unknown').replace(/[^a-zA-Z0-9]/g, '_');
+      const lastName = (resumeData.personalInfo?.lastName || 'User').replace(/[^a-zA-Z0-9]/g, '_');
       const filename = `${firstName}_${lastName}_Resume.pdf`;
       
-      const options = {
-        margin: [10, 5, 10, 5],
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2, 
-          useCORS: true,
-          logging: true,
-          // Handle modern CSS colors that cause issues
-          backgroundColor: '#ffffff',
-          removeContainer: true
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      // Add error handling for color parsing issues
-      const worker = html2pdf().set(options).from(element);
+      // Set the document title for the print dialog
+      iframeDoc.title = filename;
       
-      // Try to generate PDF
-      await worker.save();
-      toast.success("Resume downloaded successfully!");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
+      // Small delay to ensure content is rendered
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Check if it's a color parsing error
-      if (error instanceof Error && (error.message.includes('lab') || error.message.includes('color') || error.message.includes('CSS'))) {
-        toast.error("Having trouble with modern CSS colors. Trying alternative method...");
-        
-        try {
-          // Try with simplified options and CSS cleanup
-          const html2pdf = (await import('html2pdf.js')).default;
-          
-          // Temporarily modify styles to avoid color parsing issues
-          const element = resumeRef.current;
-          if (element) {
-            // Add temporary styles to override problematic CSS
-            const originalStyles = element.style.cssText;
-            element.style.cssText += '; color: #000000 !important; background-color: #ffffff !important;';
-            
-            // Sanitize filename to remove invalid characters
-            const firstName = resumeData?.personalInfo?.firstName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
-            const lastName = resumeData?.personalInfo?.lastName?.replace(/[^a-zA-Z0-9]/g, '_') || 'User';
-            const filename = `${firstName}_${lastName}_Resume.pdf`;
-            
-            const simplifiedOptions = {
-              margin: [10, 5, 10, 5],
-              filename: filename,
-              image: { type: 'jpeg', quality: 0.95 },
-              html2canvas: { 
-                scale: 1.5,
-                useCORS: false,
-                backgroundColor: '#ffffff',
-                logging: false
-              },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            await html2pdf().set(simplifiedOptions).from(element).save();
-            
-            // Restore original styles
-            element.style.cssText = originalStyles;
-            
-            toast.success("Resume downloaded successfully!");
-          }
-        } catch (simplifiedError) {
-          console.error("Simplified PDF generation also failed:", simplifiedError);
-          
-          // Final fallback: Create a simplified HTML version
-          try {
-            const firstName = resumeData?.personalInfo?.firstName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
-            const lastName = resumeData?.personalInfo?.lastName?.replace(/[^a-zA-Z0-9]/g, '_') || 'User';
-            const filename = `${firstName}_${lastName}_Resume.pdf`;
-            
-            // Create a simple HTML version
-            const simpleHtml = `
-              <html>
-                <head>
-                  <title>${firstName} ${lastName} - Resume</title>
-                  <style>
-                    body { font-family: Arial, sans-serif; color: #000000; background: #ffffff; }
-                    h1 { color: #000; }
-                    h2 { color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
-                    h3 { color: #000; }
-                    p { color: #000; }
-                    .section { margin-bottom: 20px; }
-                    .contact-info { margin: 10px 0; }
-                    .experience-item, .education-item { margin-bottom: 15px; }
-                  </style>
-                </head>
-                <body>
-                  <h1>${firstName} ${lastName}</h1>
-                  <p>${resumeData?.personalInfo?.headline || ''}</p>
-                  
-                  <div class="contact-info">
-                    <p>Email: ${resumeData?.personalInfo?.email || ''}</p>
-                    <p>Phone: ${resumeData?.personalInfo?.phone || ''}</p>
-                    <p>Location: ${resumeData?.personalInfo?.location || ''}</p>
-                  </div>
-                  
-                  ${resumeData?.personalInfo?.summary ? `
-                  <div class="section">
-                    <h2>Summary</h2>
-                    <p>${resumeData.personalInfo.summary}</p>
-                  </div>` : ''}
-                  
-                  ${resumeData?.workExperience && resumeData.workExperience.length > 0 ? `
-                  <div class="section">
-                    <h2>Work Experience</h2>
-                    ${resumeData.workExperience.map(exp => `
-                      <div class="experience-item">
-                        <h3>${exp.position}</h3>
-                        <p><strong>${exp.company}</strong> | ${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</p>
-                        <p>${exp.description}</p>
-                      </div>
-                    `).join('')}
-                  </div>` : ''}
-                  
-                  ${resumeData?.education && resumeData.education.length > 0 ? `
-                  <div class="section">
-                    <h2>Education</h2>
-                    ${resumeData.education.map(edu => `
-                      <div class="education-item">
-                        <h3>${edu.degree}</h3>
-                        <p><strong>${edu.institution}</strong> | ${edu.field}</p>
-                        <p>${edu.startDate} - ${edu.endDate}</p>
-                        <p>${edu.description}</p>
-                      </div>
-                    `).join('')}
-                  </div>` : ''}
-                  
-                  ${resumeData?.skills && resumeData.skills.length > 0 ? `
-                  <div class="section">
-                    <h2>Skills</h2>
-                    <p>${resumeData.skills.join(', ')}</p>
-                  </div>` : ''}
-                </body>
-              </html>
-            `;
-            
-            // Create blob and download
-            const blob = new Blob([simpleHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename.replace('.pdf', '.html');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            toast.success("Resume downloaded as HTML. You can open it in a browser and print to PDF.");
-          } catch (finalError) {
-            console.error("All PDF generation methods failed:", finalError);
-            toast.error("Failed to download resume. Please try printing instead (Ctrl+P).");
-          }
+      // Focus the iframe and trigger print
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      
+      // Clean up after a delay to allow printing
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          document.body.removeChild(iframe);
         }
+        toast.dismiss();
+        toast.success("Resume PDF download started. Check your browser's print dialog.");
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Error preparing PDF:", error);
+      toast.dismiss();
+      
+      // Clean up in case of error
+      const iframe = document.querySelector('iframe[style*="position: absolute; top: -9999px;"]');
+      if (iframe && iframe.parentNode) {
+        document.body.removeChild(iframe);
+      }
+      
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
       } else {
-        toast.error("Failed to download resume. Please try again.");
+        toast.error("Failed to prepare resume for download. Please try again.");
       }
     }
   };
@@ -303,6 +366,15 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         }
         .no-print, .no-print * {
           display: none !important;
+        }
+        /* Hide browser default headers/footers */
+        @page {
+          margin: 0;
+        }
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: #ffffff !important;
         }
       }
     `;
@@ -424,7 +496,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
           color: #000000 !important;
         }
         .pdf-content .text-muted-foreground {
-          color: #333333 !important;
+          color: #666666 !important;
         }
         
         @media print {
@@ -432,6 +504,8 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
             background-color: #ffffff !important;
             margin: 0;
             padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
           .pdf-content {
             box-shadow: none !important;
@@ -442,10 +516,10 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
             max-width: 100% !important;
           }
           .pdf-content .rounded-2xl {
-            border-radius: 0 !important;
+            border-radius: 1rem !important;
           }
           .pdf-content .shadow-lg {
-            box-shadow: none !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
           }
           .pdf-content .p-8 {
             padding: 2rem !important;
@@ -454,7 +528,11 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
             display: none !important;
           }
           .pdf-content .absolute {
-            position: static !important;
+            position: absolute !important;
+          }
+          /* Prevent browser from adding headers/footers */
+          @page {
+            margin: 0;
           }
         }
       `}</style>
@@ -463,10 +541,15 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/dashboard" className="font-bold text-2xl sm:text-3xl flex items-center text-white">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                <span>Back to Dashboard</span>
-              </Link>
+              <Button 
+                asChild
+                className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
+              >
+                <Link href="/dashboard" className="flex items-center">
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <span>Back to Dashboard</span>
+                </Link>
+              </Button>
               <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
@@ -519,20 +602,20 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
           {/* Resume Content - This is what will be converted to PDF */}
-          <div ref={resumeRef} style={{ backgroundColor: '#ffffff' }} className="pdf-content">
+          <div ref={resumeRef} className="pdf-content" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
             <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden relative" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
               {/* Quick Edit Button */}
               <Button 
                 asChild
                 size="sm"
-                className="absolute top-4 right-4 bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full h-10 w-10 p-0"
+                className="absolute top-4 right-4 bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full h-10 w-10 p-0 no-print"
               >
                 <Link href={`/edit/${unwrappedParams.id}`}>
                   <Edit className="h-5 w-5" />
                 </Link>
               </Button>
               
-              <CardContent className="p-8" style={{ color: '#000000' }}>
+              <CardContent className="p-8" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
                 {/* Personal Info */}
                 <div className="mb-8">
                   <div className="flex flex-col sm:flex-row sm:items-start gap-6">
@@ -558,25 +641,25 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                     )}
                     
                     <div>
-                      <h1 className="text-3xl font-bold text-foreground" style={{ color: '#000000' }}>
+                      <h1 className="text-3xl font-bold text-foreground">
                         {resumeData?.personalInfo?.firstName} {resumeData?.personalInfo?.lastName}
                       </h1>
-                      <p className="text-lg text-muted-foreground mt-1" style={{ color: '#333333' }}>
+                      <p className="text-lg text-muted-foreground mt-1">
                         {resumeData?.personalInfo?.headline}
                       </p>
                       
                       <div className="flex flex-wrap gap-4 mt-4">
                         <div className="flex items-center text-muted-foreground">
                           <Mail className="h-4 w-4 mr-2" />
-                          <span style={{ color: '#000000' }}>{resumeData?.personalInfo?.email}</span>
+                          <span>{resumeData?.personalInfo?.email}</span>
                         </div>
                         <div className="flex items-center text-muted-foreground">
                           <Phone className="h-4 w-4 mr-2" />
-                          <span style={{ color: '#000000' }}>{resumeData?.personalInfo?.phone}</span>
+                          <span>{resumeData?.personalInfo?.phone}</span>
                         </div>
                         <div className="flex items-center text-muted-foreground">
                           <MapPin className="h-4 w-4 mr-2" />
-                          <span style={{ color: '#000000' }}>{resumeData?.personalInfo?.location}</span>
+                          <span>{resumeData?.personalInfo?.location}</span>
                         </div>
                       </div>
                     </div>
@@ -587,7 +670,6 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                     <div className="mt-6">
                       <div 
                         className="text-foreground prose prose-sm max-w-none" 
-                        style={{ color: '#000000' }}
                         dangerouslySetInnerHTML={{ __html: resumeData.personalInfo.summary }}
                       />
                     </div>
@@ -597,7 +679,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                 {/* Work Experience */}
                 {resumeData?.workExperience && resumeData.workExperience.length > 0 && (
                   <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center" style={{ color: '#000000' }}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
                       <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
                       Work Experience
                     </h2>
@@ -607,15 +689,14 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                             <div>
                               <h3 className="text-xl font-semibold text-foreground">{exp.position}</h3>
-                              <p className="text-lg text-muted-foreground" style={{ color: '#333333' }}>{exp.company}</p>
+                              <p className="text-lg text-muted-foreground">{exp.company}</p>
                             </div>
-                            <p className="text-muted-foreground mt-1 sm:mt-0" style={{ color: '#333333' }}>
+                            <p className="text-muted-foreground mt-1 sm:mt-0">
                               {exp.startDate} - {exp.current ? "Present" : exp.endDate}
                             </p>
                           </div>
                           <div 
                             className="text-foreground mt-2 prose prose-sm max-w-none" 
-                            style={{ color: '#000000' }}
                             dangerouslySetInnerHTML={{ __html: exp.description }}
                           />
                         </div>
@@ -627,7 +708,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                 {/* Education */}
                 {resumeData?.education && resumeData.education.length > 0 && (
                   <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center" style={{ color: '#000000' }}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
                       <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
                       Education
                     </h2>
@@ -637,16 +718,15 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                             <div>
                               <h3 className="text-xl font-semibold text-foreground">{edu.degree}</h3>
-                              <p className="text-lg text-muted-foreground" style={{ color: '#333333' }}>{edu.institution}</p>
-                              <p className="text-muted-foreground" style={{ color: '#333333' }}>{edu.field}</p>
+                              <p className="text-lg text-muted-foreground">{edu.institution}</p>
+                              <p className="text-muted-foreground">{edu.field}</p>
                             </div>
-                            <p className="text-muted-foreground mt-1 sm:mt-0" style={{ color: '#333333' }}>
+                            <p className="text-muted-foreground mt-1 sm:mt-0">
                               {edu.startDate} - {edu.endDate}
                             </p>
                           </div>
                           <div 
                             className="text-foreground mt-2 prose prose-sm max-w-none" 
-                            style={{ color: '#000000' }}
                             dangerouslySetInnerHTML={{ __html: edu.description }}
                           />
                         </div>
@@ -658,7 +738,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                 {/* Skills */}
                 {resumeData?.skills && resumeData.skills.length > 0 && (
                   <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center" style={{ color: '#000000' }}>
+                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
                       <FileText className="h-5 w-5 mr-2 text-indigo-500" />
                       Skills
                     </h2>
