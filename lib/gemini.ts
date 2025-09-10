@@ -225,6 +225,7 @@ export async function generateWorkExperienceDescriptions(workExperience: ResumeD
         
         Improve this description to highlight achievements, use action verbs, and quantify results where possible.
         Keep it concise (2-4 bullet points) and professional.
+        Return ONLY the enhanced description without any introductory text, labels, or explanations.
         Do not include any markdown or special formatting, just plain text with each point separated by a newline.`;
 
       console.log("Sending request to Gemini API for work experience"); // Debug log
