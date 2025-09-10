@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-figtree);
+  --font-mono: var(--font-figtree);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -118,6 +118,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   }
   
   /* Fix autofill background in dark mode */
@@ -139,7 +140,7 @@
   /* Custom Toast Notifications */
   .Toastify__toast {
     border-radius: 0.75rem;
-    font-family: var(--font-geist-sans);
+    font-family: var(--font-figtree);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border: 1px solid #8b5cf6; /* Purple border */
   }
@@ -286,5 +287,93 @@
     100% {
       background-position: 0% 50%;
     }
+  }
+  
+  /* Tiptap Editor Styles */
+  .tiptap {
+    outline: none;
+  }
+
+  .tiptap p {
+    margin: 0;
+    margin-bottom: 0.5em;
+  }
+
+  .tiptap p.is-editor-empty:first-child::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .tiptap ul,
+  .tiptap ol {
+    padding: 0 1rem;
+    margin: 0;
+  }
+
+  .tiptap li > p {
+    margin-bottom: 0.25em;
+  }
+
+  .tiptap li > ul,
+  .tiptap li > ol {
+    margin: 0;
+  }
+
+  .tiptap ul {
+    list-style: disc;
+  }
+
+  .tiptap ol {
+    list-style: decimal;
+  }
+
+  .tiptap blockquote {
+    border-left: 3px solid #ccc;
+    margin: 0;
+    padding-left: 1rem;
+  }
+
+  .tiptap code {
+    background-color: #eee;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+    font-family: monospace;
+  }
+
+  .dark .tiptap code {
+    background-color: #333;
+    color: #fff;
+  }
+
+  .tiptap pre {
+    background: #0d0d0d;
+    border-radius: 0.5rem;
+    color: #fff;
+    font-family: 'JetBrainsMono', monospace;
+    padding: 0.75rem 1rem;
+  }
+
+  .tiptap pre code {
+    background: none;
+    color: inherit;
+    font-size: 0.8rem;
+    padding: 0;
+  }
+
+  .tiptap mark {
+    background-color: #fef08a;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+  }
+
+  .dark .tiptap mark {
+    background-color: #ca8a04;
+  }
+
+  .tiptap text {
+    white-space: pre-wrap;
   }
 }

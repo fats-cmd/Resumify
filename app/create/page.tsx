@@ -41,6 +41,8 @@ import {
   MapPin
 } from "lucide-react";
 
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
 // Skeleton component for loading states
 const SkeletonSection = () => (
   <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
@@ -184,8 +186,8 @@ const CreateResumeContent = () => {
   }, [templateId]);
 
   // Handle input changes for personal info
-  const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+  const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => {
+    const { name, value } = 'target' in e ? e.target : e;
     setResumeData({
       ...resumeData,
       personalInfo: {
@@ -825,13 +827,12 @@ const CreateResumeContent = () => {
                               Generate with AI
                             </Button>
                           </div>
-                          <Textarea
-                            id="summary"
-                            name="summary"
+                          <RichTextEditor
                             value={resumeData.personalInfo.summary}
-                            onChange={handlePersonalInfoChange}
-                            placeholder="A brief summary of your professional background, skills, and career goals..."
-                            rows={4}
+                            onChange={(value) => handlePersonalInfoChange({
+                              target: { name: "summary", value }
+                            } as React.ChangeEvent<HTMLTextAreaElement>)}
+                            placeholder="Write a brief summary of your professional background, skills, and career goals..."
                           />
                         </div>
                       </CardContent>
