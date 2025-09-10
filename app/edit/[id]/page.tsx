@@ -784,10 +784,15 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/dashboard" className="font-bold text-2xl sm:text-3xl flex items-center text-white">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                <span>Back to Dashboard</span>
-              </Link>
+              <Button 
+                asChild
+                className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
+              >
+                <Link href="/dashboard" className="flex items-center">
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <span>Back to Dashboard</span>
+                </Link>
+              </Button>
               <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
@@ -810,7 +815,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar Navigation */}
             <div className="lg:col-span-1">
