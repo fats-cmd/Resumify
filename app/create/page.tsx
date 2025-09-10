@@ -37,7 +37,8 @@ import {
   Save,
   Mail,
   Phone,
-  MapPin
+  MapPin,
+  ArrowLeft
 } from "lucide-react";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -103,10 +104,6 @@ const SkeletonSidebar = () => (
       </div>
       
       <div className="mt-8 pt-6 border-t border-border">
-        <div className="flex flex-col gap-3">
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-        </div>
       </div>
     </CardContent>
   </Card>
@@ -682,11 +679,15 @@ const CreateResumeContent = () => {
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/" className="font-bold text-2xl sm:text-3xl flex items-center">
-                <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
-                  Resumify
-                </span>
-              </Link>
+              <Button 
+                asChild
+                className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
+              >
+                <Link href="/dashboard" className="flex items-center">
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <span>Back to Dashboard</span>
+                </Link>
+              </Button>
               <div className="flex items-center space-x-3">
                 <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
               </div>
@@ -712,8 +713,8 @@ const CreateResumeContent = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar - Always visible on larger screens, collapsible on mobile */}
             <div className="lg:col-span-1">
               {loading ? (
@@ -779,15 +780,6 @@ const CreateResumeContent = () => {
                     </div>
                     
                     <div className="mt-8 pt-6 border-t border-border">
-                      <div className="flex flex-col gap-3">
-                        <Button 
-                          variant="outline" 
-                          className="w-full rounded-full"
-                          onClick={() => router.push("/dashboard")}
-                        >
-                          Back to Dashboard
-                        </Button>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -795,7 +787,7 @@ const CreateResumeContent = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-3">
               {showPreview ? (
                 <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
                   <CardHeader>

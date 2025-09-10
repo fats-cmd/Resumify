@@ -600,7 +600,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
           {/* Resume Content - This is what will be converted to PDF */}
           <div ref={resumeRef} className="pdf-content" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
             <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden relative" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
