@@ -42,9 +42,10 @@ export function RichTextEditor({
   const sanitizedValue = React.useMemo(() => {
     if (!value) return '';
     // If it's plain text, convert line breaks to HTML
-    if (typeof value === 'string' && !value.includes('<')) {
+    if (typeof value === 'string' && !/<\/?[a-z][\s\S]*>/i.test(value)) {
       return value.replace(/\n/g, '<br />');
     }
+    // If it's already HTML, return as is
     return value;
   }, [value]);
 

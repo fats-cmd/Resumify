@@ -493,9 +493,11 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                   {/* Full Width Summary */}
                   {resumeData?.personalInfo?.summary && (
                     <div className="mt-6">
-                      <p className="text-foreground" style={{ color: '#000000' }}>
-                        {resumeData.personalInfo.summary}
-                      </p>
+                      <div 
+                        className="text-foreground prose prose-sm max-w-none" 
+                        style={{ color: '#000000' }}
+                        dangerouslySetInnerHTML={{ __html: resumeData.personalInfo.summary }}
+                      />
                     </div>
                   )}
                 </div>
@@ -519,9 +521,11 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                               {exp.startDate} - {exp.current ? "Present" : exp.endDate}
                             </p>
                           </div>
-                          <p className="text-foreground mt-2" style={{ color: '#000000' }}>
-                            {exp.description}
-                          </p>
+                          <div 
+                            className="text-foreground mt-2 prose prose-sm max-w-none" 
+                            style={{ color: '#000000' }}
+                            dangerouslySetInnerHTML={{ __html: exp.description }}
+                          />
                         </div>
                       ))}
                     </div>
@@ -548,9 +552,11 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                               {edu.startDate} - {edu.endDate}
                             </p>
                           </div>
-                          <p className="text-foreground mt-2" style={{ color: '#000000' }}>
-                            {edu.description}
-                          </p>
+                          <div 
+                            className="text-foreground mt-2 prose prose-sm max-w-none" 
+                            style={{ color: '#000000' }}
+                            dangerouslySetInnerHTML={{ __html: edu.description }}
+                          />
                         </div>
                       ))}
                     </div>
