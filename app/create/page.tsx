@@ -166,6 +166,7 @@ const CreateResumeContent = () => {
   // State for AI generation loading
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [isGeneratingExperience, setIsGeneratingExperience] = useState<{[key: number]: boolean}>({});
+  const [isGeneratingEducation, setIsGeneratingEducation] = useState<{[key: number]: boolean}>({});
   const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
 
   // Debug effect to log image preview changes
@@ -532,10 +533,80 @@ const CreateResumeContent = () => {
     }
   };
 
+  const generateEducationWithAI = async (id: number) => {
+    console.log("Generating education with AI for ID:", id); // Debug log
+    setIsGeneratingEducation(prev => ({...prev, [id]: true}));
+    try {
+      // Find the index of the education entry being enhanced
+      const educationIndex = resumeData.education.findIndex(edu => edu.id === id);
+      if (educationIndex === -1) {
+        toast.error("Education entry not found. Please try again.");
+        return;
+      }
+
+      const response = await fetch("/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "generateEducation",
+          data: {
+            education: resumeData.education
+          }
+        }),
+      });
+      
+      // Check if the response is JSON before parsing
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        toast.error("Error enhancing education description. Please try again.");
+        console.error("Non-JSON response received:", await response.text());
+        return;
+      }
+      
+      const result = await response.json();
+      
+      if (response.ok && result.result) {
+        // Check if the result is an error message
+        if (Array.isArray(result.result) && result.result.length > 0 && 
+            typeof result.result[0] === 'string' && result.result[0].startsWith('Error:')) {
+          toast.error(result.result[0]);
+          return;
+        }
+        
+        // Make sure we have a result for the specific education entry
+        if (Array.isArray(result.result) && result.result.length > educationIndex) {
+          handleEducationChange(id, "description", result.result[educationIndex]);
+          toast.success("Education description generated successfully!");
+        } else {
+          toast.error("Failed to generate education description. Please try again.");
+        }
+      } else {
+        toast.error(result.error || "Failed to enhance education description. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error enhancing education description:", error);
+      toast.error("Error enhancing education description. Please try again.");
+    } finally {
+      setIsGeneratingEducation(prev => ({...prev, [id]: false}));
+    }
+  };
+
   const generateSkillsWithAI = async () => {
     console.log("Generating skills with AI..."); // Debug log
     setIsGeneratingSkills(true);
     try {
+      // Check if work experience or education data exists
+      if ((!resumeData.workExperience || resumeData.workExperience.length === 0 || 
+           resumeData.workExperience.every(exp => !exp.company && !exp.position)) &&
+          (!resumeData.education || resumeData.education.length === 0 || 
+           resumeData.education.every(edu => !edu.institution && !edu.degree))) {
+        toast.error("Please add your work experience and education details first.");
+        setIsGeneratingSkills(false);
+        return;
+      }
+
       const response = await fetch("/api/ai", {
         method: "POST",
         headers: {
@@ -553,16 +624,44 @@ const CreateResumeContent = () => {
       const result = await response.json();
       
       if (response.ok && result.result) {
-        // Check if the result is an error message
+        // Check if the result is an error message (both string and array formats)
+        if (typeof result.result === 'string' && result.result.startsWith('Error:')) {
+          toast.error(result.result);
+          return;
+        }
+        
         if (Array.isArray(result.result) && result.result.length > 0 && 
             typeof result.result[0] === 'string' && result.result[0].startsWith('Error:')) {
           toast.error(result.result[0]);
           return;
         }
         
+        // Post-process the skills to remove any introductory text
+        let skills = Array.isArray(result.result) ? result.result : [result.result];
+        
+        // If we have a single string that contains commas, split it properly
+        if (skills.length === 1 && typeof skills[0] === 'string' && skills[0].includes(',')) {
+          skills = skills[0].split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+        }
+        
+        // Clean up each skill to remove any remaining introductory text or markdown
+        skills = skills.map(skill => {
+          if (typeof skill === 'string') {
+            // Remove common introductory phrases
+            return skill
+              .replace(/^Here are.*?:\s*/i, '')
+              .replace(/^Skills?:\s*/i, '')
+              .replace(/^\d+\.\s*/, '') // Remove numbered lists
+              .replace(/^\*\s*/, '') // Remove bullet points
+              .replace(/^\-\s*/, '') // Remove dash bullet points
+              .trim();
+          }
+          return skill;
+        }).filter(skill => typeof skill === 'string' && skill.length > 0);
+        
         setResumeData({
           ...resumeData,
-          skills: result.result
+          skills: skills
         });
         toast.success("Skills suggestions generated successfully!");
       } else {
@@ -1115,7 +1214,29 @@ const CreateResumeContent = () => {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
+                              <div className="flex justify-between items-center">
+                                <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => generateEducationWithAI(edu.id)}
+                                  disabled={isGeneratingEducation[edu.id]}
+                                  className="rounded-full text-xs"
+                                >
+                                  {isGeneratingEducation[edu.id] ? (
+                                    <>
+                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Generate with AI
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
                               <RichTextEditor
                                 value={edu.description}
                                 onChange={(value) => handleEducationChange(edu.id, "description", value)}
