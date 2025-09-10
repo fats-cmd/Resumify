@@ -87,6 +87,11 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     ],
     skills: [""]
   });
+  
+  // State for AI generation loading
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [isGeneratingExperience, setIsGeneratingExperience] = useState<{[key: number]: boolean}>({});
+  const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
 
   // Fetch resume data
   useEffect(() => {
@@ -402,6 +407,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   // AI Helper Functions
   const generateSummaryWithAI = async () => {
     console.log("Generating summary with AI..."); // Debug log
+    setIsGeneratingSummary(true);
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
@@ -419,8 +425,17 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       const result = await response.json();
       
       if (response.ok && result.result) {
+        // Clean up the result to remove any introductory phrases
+        let cleanedResult = result.result;
+        
+        // Remove common introductory phrases
+        cleanedResult = cleanedResult.replace(/^Here's a professional resume summary for.*?:\s*/i, '');
+        cleanedResult = cleanedResult.replace(/^Here is a professional.*?:\s*/i, '');
+        cleanedResult = cleanedResult.replace(/^Professional summary for.*?:\s*/i, '');
+        cleanedResult = cleanedResult.replace(/^Summary:\s*/i, '');
+        
         // Sanitize the result to ensure it's proper HTML for the rich text editor
-        let sanitizedResult = result.result;
+        let sanitizedResult = cleanedResult;
         if (typeof sanitizedResult === 'string' && !sanitizedResult.includes('<')) {
           // If it's plain text, convert line breaks to HTML
           sanitizedResult = sanitizedResult.replace(/\n/g, '<br />');
@@ -448,11 +463,17 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     } catch (error) {
       console.error("Error generating summary:", error);
       toast.error("Error generating summary. Please try again.");
+    } finally {
+      setIsGeneratingSummary(false);
     }
   };
 
   const generateExperienceWithAI = async (id: number) => {
     console.log("Generating experience with AI for ID:", id); // Debug log
+    setIsGeneratingExperience(prevState => ({
+      ...prevState,
+      [id]: true
+    }));
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
@@ -481,11 +502,17 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     } catch (error) {
       console.error("Error enhancing work experience:", error);
       toast.error("Error enhancing work experience. Please try again.");
+    } finally {
+      setIsGeneratingExperience(prevState => ({
+        ...prevState,
+        [id]: false
+      }));
     }
   };
 
   const generateSkillsWithAI = async () => {
     console.log("Generating skills with AI..."); // Debug log
+    setIsGeneratingSkills(true);
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
@@ -515,6 +542,8 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     } catch (error) {
       console.error("Error generating skills:", error);
       toast.error("Error generating skills. Please try again.");
+    } finally {
+      setIsGeneratingSkills(false);
     }
   };
 
@@ -627,7 +656,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                 <ArrowLeft className="h-5 w-5 mr-2" />
                 <span>Back to Dashboard</span>
               </Link>
-              <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+              <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
               <div>
@@ -640,7 +669,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                 <Button 
                   onClick={() => router.push("/dashboard")}
                   variant="outline"
-                  className="bg-white/20 text-white border-white/30 hover:bg-white/30 rounded-full"
+                  className="bg-white/20 text-white border-white/30 hover:bg-white/20 rounded-full"
                 >
                   Cancel
                 </Button>
@@ -888,10 +917,20 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                             variant="outline"
                             size="sm"
                             onClick={generateSummaryWithAI}
+                            disabled={isGeneratingSummary}
                             className="rounded-full text-xs"
                           >
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            Generate with AI
+                            {isGeneratingSummary ? (
+                              <>
+                                <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Generate with AI
+                              </>
+                            )}
                           </Button>
                         </div>
                         <RichTextEditor
@@ -998,10 +1037,20 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                                 variant="outline"
                                 size="sm"
                                 onClick={() => generateExperienceWithAI(exp.id)}
+                                disabled={isGeneratingExperience[exp.id]}
                                 className="rounded-full text-xs"
                               >
-                                <Sparkles className="h-3 w-3 mr-1" />
-                                Enhance with AI
+                                {isGeneratingExperience[exp.id] ? (
+                                  <>
+                                    <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-3 w-3 mr-1" />
+                                    Enhance with AI
+                                  </>
+                                )}
                               </Button>
                             </div>
                             <Textarea
@@ -1155,10 +1204,20 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                           variant="outline"
                           size="sm"
                           onClick={generateSkillsWithAI}
+                          disabled={isGeneratingSkills}
                           className="rounded-full text-xs"
                         >
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          Generate with AI
+                          {isGeneratingSkills ? (
+                            <>
+                              <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Generate with AI
+                            </>
+                          )}
                         </Button>
                       </div>
                       {(resumeData.skills || []).map((skill, index) => (

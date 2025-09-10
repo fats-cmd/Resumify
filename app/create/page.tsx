@@ -164,6 +164,11 @@ const CreateResumeContent = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // State for AI generation loading
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [isGeneratingExperience, setIsGeneratingExperience] = useState<{[key: number]: boolean}>({});
+  const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
+
   // Debug effect to log image preview changes
   useEffect(() => {
     console.log("Image preview updated:", imagePreview);
@@ -426,6 +431,7 @@ const CreateResumeContent = () => {
   // AI Helper Functions
   const generateSummaryWithAI = async () => {
     console.log("Generating summary with AI..."); // Debug log
+    setIsGeneratingSummary(true);
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
@@ -443,8 +449,17 @@ const CreateResumeContent = () => {
       const result = await response.json();
       
       if (response.ok && result.result) {
+        // Clean up the result to remove any introductory phrases
+        let cleanedResult = result.result;
+        
+        // Remove common introductory phrases
+        cleanedResult = cleanedResult.replace(/^Here's a professional resume summary for.*?:\s*/i, '');
+        cleanedResult = cleanedResult.replace(/^Here is a professional.*?:\s*/i, '');
+        cleanedResult = cleanedResult.replace(/^Professional summary for.*?:\s*/i, '');
+        cleanedResult = cleanedResult.replace(/^Summary:\s*/i, '');
+        
         // Sanitize the result to ensure it's proper HTML for the rich text editor
-        let sanitizedResult = result.result;
+        let sanitizedResult = cleanedResult;
         if (typeof sanitizedResult === 'string' && !sanitizedResult.includes('<')) {
           // If it's plain text, convert line breaks to HTML
           sanitizedResult = sanitizedResult.replace(/\n/g, '<br />');
@@ -464,11 +479,14 @@ const CreateResumeContent = () => {
     } catch (error) {
       console.error("Error generating summary:", error);
       toast.error("Error generating summary. Please try again.");
+    } finally {
+      setIsGeneratingSummary(false);
     }
   };
 
   const generateExperienceWithAI = async (id: number) => {
     console.log("Generating experience with AI for ID:", id); // Debug log
+    setIsGeneratingExperience(prev => ({...prev, [id]: true}));
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
@@ -497,11 +515,14 @@ const CreateResumeContent = () => {
     } catch (error) {
       console.error("Error enhancing work experience:", error);
       toast.error("Error enhancing work experience. Please try again.");
+    } finally {
+      setIsGeneratingExperience(prev => ({...prev, [id]: false}));
     }
   };
 
   const generateSkillsWithAI = async () => {
     console.log("Generating skills with AI..."); // Debug log
+    setIsGeneratingSkills(true);
     try {
       const response = await fetch("/api/ai", {
         method: "POST",
@@ -531,6 +552,8 @@ const CreateResumeContent = () => {
     } catch (error) {
       console.error("Error generating skills:", error);
       toast.error("Error generating skills. Please try again.");
+    } finally {
+      setIsGeneratingSkills(false);
     }
   };
 
@@ -828,10 +851,20 @@ const CreateResumeContent = () => {
                               variant="outline"
                               size="sm"
                               onClick={generateSummaryWithAI}
+                              disabled={isGeneratingSummary}
                               className="rounded-full text-xs"
                             >
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              Generate with AI
+                              {isGeneratingSummary ? (
+                                <>
+                                  <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  Generate with AI
+                                </>
+                              )}
                             </Button>
                           </div>
                           <RichTextEditor
@@ -940,10 +973,20 @@ const CreateResumeContent = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => generateExperienceWithAI(exp.id)}
+                                  disabled={isGeneratingExperience[exp.id]}
                                   className="rounded-full text-xs"
                                 >
-                                  <Sparkles className="h-3 w-3 mr-1" />
-                                  Enhance with AI
+                                  {isGeneratingExperience[exp.id] ? (
+                                    <>
+                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Enhance with AI
+                                    </>
+                                  )}
                                 </Button>
                               </div>
                               <Textarea
@@ -1101,10 +1144,20 @@ const CreateResumeContent = () => {
                             variant="outline"
                             size="sm"
                             onClick={generateSkillsWithAI}
+                            disabled={isGeneratingSkills}
                             className="rounded-full text-xs"
                           >
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            Generate with AI
+                            {isGeneratingSkills ? (
+                              <>
+                                <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Generate with AI
+                              </>
+                            )}
                           </Button>
                         </div>
                         {resumeData.skills.map((skill, index) => (

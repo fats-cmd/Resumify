@@ -89,6 +89,7 @@ export async function generateProfessionalSummary(personalInfo: ResumeData["pers
       Headline: ${personalInfo.headline}
       
       The summary should be concise (2-3 sentences), professional, and highlight the person's value proposition.
+      Return ONLY the summary content without any introductory phrases or labels.
       Do not include any markdown or special formatting, just plain text.`;
 
     console.log("Sending request to Groq API with prompt:", prompt.substring(0, 100) + "..."); // Debug log
