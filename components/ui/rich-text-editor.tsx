@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -37,6 +38,16 @@ export function RichTextEditor({
   placeholder = "Write something...",
   className 
 }: RichTextEditorProps) {
+  // Ensure the value is proper HTML for the editor
+  const sanitizedValue = React.useMemo(() => {
+    if (!value) return '';
+    // If it's plain text, convert line breaks to HTML
+    if (typeof value === 'string' && !value.includes('<')) {
+      return value.replace(/\n/g, '<br />');
+    }
+    return value;
+  }, [value]);
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -53,11 +64,18 @@ export function RichTextEditor({
         placeholder,
       }),
     ],
-    content: value,
+    content: sanitizedValue,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
   });
+
+  // Update editor content when value prop changes
+  React.useEffect(() => {
+    if (editor && sanitizedValue !== editor.getHTML()) {
+      editor.commands.setContent(sanitizedValue);
+    }
+  }, [sanitizedValue, editor]);
 
   if (!editor) {
     return null;

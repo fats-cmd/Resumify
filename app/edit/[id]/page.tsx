@@ -419,6 +419,13 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       const result = await response.json();
       
       if (response.ok && result.result) {
+        // Sanitize the result to ensure it's proper HTML for the rich text editor
+        let sanitizedResult = result.result;
+        if (typeof sanitizedResult === 'string' && !sanitizedResult.includes('<')) {
+          // If it's plain text, convert line breaks to HTML
+          sanitizedResult = sanitizedResult.replace(/\n/g, '<br />');
+        }
+        
         setResumeData({
           ...resumeData,
           personalInfo: {
@@ -431,7 +438,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
               headline: "",
               summary: ""
             }),
-            summary: result.result
+            summary: sanitizedResult
           }
         });
         toast.success("Professional summary generated successfully!");

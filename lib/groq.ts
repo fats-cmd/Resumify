@@ -69,10 +69,13 @@ export async function generateProfessionalSummary(personalInfo: ResumeData["pers
   // Only show warning in console, don't block the function
   if (!apiKey) {
     console.warn("Warning: GROQ_API_KEY is not set. AI features may not work.");
+    return "Error: GROQ_API_KEY is not set. Please configure your API key in the environment variables to use AI features.";
   } else if (apiKey === "your_actual_api_key_here") {
     console.warn("Warning: GROQ_API_KEY appears to be a placeholder.");
+    return "Error: GROQ_API_KEY appears to be a placeholder. Please update it with a valid API key from Groq.";
   } else if (apiKey.length < 30) {
     console.warn("Warning: GROQ_API_KEY appears to be too short.");
+    return "Error: GROQ_API_KEY appears to be invalid. Please check your API key and ensure it's a valid key from Groq.";
   } else {
     console.log("API key validation passed"); // Debug log
   }
@@ -132,10 +135,13 @@ export async function generateWorkExperienceDescriptions(workExperience: ResumeD
   // Only show warning in console, don't block the function
   if (!apiKey) {
     console.warn("Warning: GROQ_API_KEY is not set. AI features may not work.");
+    return ["Error: GROQ_API_KEY is not set. Please configure your API key in the environment variables to use AI features."];
   } else if (apiKey === "your_actual_api_key_here") {
     console.warn("Warning: GROQ_API_KEY appears to be a placeholder.");
+    return ["Error: GROQ_API_KEY appears to be a placeholder. Please update it with a valid API key from Groq."];
   } else if (apiKey.length < 30) {
     console.warn("Warning: GROQ_API_KEY appears to be too short.");
+    return ["Error: GROQ_API_KEY appears to be invalid. Please check your API key and ensure it's a valid key from Groq."];
   } else {
     console.log("API key validation passed"); // Debug log
   }
@@ -199,10 +205,13 @@ export async function generateSkillsSuggestions(
   // Only show warning in console, don't block the function
   if (!apiKey) {
     console.warn("Warning: GROQ_API_KEY is not set. AI features may not work.");
+    return ["Error: GROQ_API_KEY is not set. Please configure your API key in the environment variables to use AI features."];
   } else if (apiKey === "your_actual_api_key_here") {
     console.warn("Warning: GROQ_API_KEY appears to be a placeholder.");
+    return ["Error: GROQ_API_KEY appears to be a placeholder. Please update it with a valid API key from Groq."];
   } else if (apiKey.length < 30) {
     console.warn("Warning: GROQ_API_KEY appears to be too short.");
+    return ["Error: GROQ_API_KEY appears to be invalid. Please check your API key and ensure it's a valid key from Groq."];
   } else {
     console.log("API key validation passed"); // Debug log
   }
