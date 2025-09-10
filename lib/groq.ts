@@ -112,6 +112,22 @@ export async function generateProfessionalSummary(personalInfo: ResumeData["pers
     console.error("Error generating professional summary:", error);
     
     if (error instanceof Error) {
+      // Check for specific error types
+      if (error.message.includes('API key')) {
+        return "Error: Invalid API key. Please check your GROQ API key configuration.";
+      } else if (error.message.includes('network')) {
+        return "Error: Network error. Please check your internet connection and try again.";
+      } else if (error.message.includes('quota') || error.message.includes('limit')) {
+        return "Error: API quota exceeded. Please check your GROQ plan limits.";
+      } else if (error.message.includes('401')) {
+        return "Error: Unauthorized. Please check your GROQ API key.";
+      } else if (error.message.includes('403')) {
+        return "Error: Forbidden. Please check your GROQ API key permissions.";
+      } else if (error.message.includes('429')) {
+        return "Error: Rate limit exceeded. Please wait before making another request.";
+      } else if (error.message.includes('500') || error.message.includes('503')) {
+        return "Error: Server error. Please try again later.";
+      }
       return `Error: ${error.message}`;
     }
     return "Error generating professional summary. Please check your API key and internet connection.";
@@ -182,9 +198,112 @@ export async function generateWorkExperienceDescriptions(workExperience: ResumeD
   } catch (error) {
     console.error("Error generating work experience descriptions:", error);
     if (error instanceof Error) {
+      // Check for specific error types
+      if (error.message.includes('API key')) {
+        return ["Error: Invalid API key. Please check your GROQ API key configuration."];
+      } else if (error.message.includes('network')) {
+        return ["Error: Network error. Please check your internet connection and try again."];
+      } else if (error.message.includes('quota') || error.message.includes('limit')) {
+        return ["Error: API quota exceeded. Please check your GROQ plan limits."];
+      } else if (error.message.includes('401')) {
+        return ["Error: Unauthorized. Please check your GROQ API key."];
+      } else if (error.message.includes('403')) {
+        return ["Error: Forbidden. Please check your GROQ API key permissions."];
+      } else if (error.message.includes('429')) {
+        return ["Error: Rate limit exceeded. Please wait before making another request."];
+      } else if (error.message.includes('500') || error.message.includes('503')) {
+        return ["Error: Server error. Please try again later."];
+      }
       return [`Error: ${error.message}`];
     }
     return ["Error generating work experience descriptions. Please check your API key and internet connection."];
+  }
+}
+
+/**
+ * Generate education descriptions
+ * @param education - Array of education items
+ * @returns Array of enhanced education descriptions
+ */
+export async function generateEducationDescriptions(education: ResumeData["education"]): Promise<string[]> {
+  if (!education || education.length === 0) {
+    return [];
+  }
+
+  // Check if API key is valid before making request
+  console.log("Checking API key in generateEducationDescriptions"); // Debug log
+  console.log("API Key present:", !!apiKey); // Debug log
+  console.log("API Key value (first 10 chars):", apiKey.substring(0, 10)); // Debug log
+  
+  // Only show warning in console, don't block the function
+  if (!apiKey) {
+    console.warn("Warning: GROQ_API_KEY is not set. AI features may not work.");
+    return ["Error: GROQ_API_KEY is not set. Please configure your API key in the environment variables to use AI features."];
+  } else if (apiKey === "your_actual_api_key_here") {
+    console.warn("Warning: GROQ_API_KEY appears to be a placeholder.");
+    return ["Error: GROQ_API_KEY appears to be a placeholder. Please update it with a valid API key from Groq."];
+  } else if (apiKey.length < 30) {
+    console.warn("Warning: GROQ_API_KEY appears to be too short.");
+    return ["Error: GROQ_API_KEY appears to be invalid. Please check your API key and ensure it's a valid key from Groq."];
+  } else {
+    console.log("API key validation passed"); // Debug log
+  }
+
+  try {
+    const descriptions: string[] = [];
+    
+    for (const edu of education) {
+      const prompt = `Generate a professional education description based on the following details:
+        Institution: ${edu.institution || 'Not specified'}
+        Degree: ${edu.degree || 'Not specified'}
+        Field of Study: ${edu.field || 'Not specified'}
+        
+        Create a compelling description that highlights achievements, relevant coursework, projects, or skills gained during this educational experience.
+        Focus on quantifiable accomplishments and specific skills developed.
+        Keep it concise (2-3 bullet points) and professional.
+        Do not include any markdown or special formatting, just plain text with each point separated by a newline.`;
+
+      console.log("Sending request to Groq API for education description"); // Debug log
+      
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        model: "llama-3.1-8b-instant",
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
+      
+      console.log("Received response from Groq API for education description"); // Debug log
+      descriptions.push(chatCompletion.choices[0]?.message?.content?.trim() || "");
+    }
+    
+    return descriptions;
+  } catch (error) {
+    console.error("Error generating education descriptions:", error);
+    if (error instanceof Error) {
+      // Check for specific error types
+      if (error.message.includes('API key')) {
+        return ["Error: Invalid API key. Please check your GROQ API key configuration."];
+      } else if (error.message.includes('network')) {
+        return ["Error: Network error. Please check your internet connection and try again."];
+      } else if (error.message.includes('quota') || error.message.includes('limit')) {
+        return ["Error: API quota exceeded. Please check your GROQ plan limits."];
+      } else if (error.message.includes('401')) {
+        return ["Error: Unauthorized. Please check your GROQ API key."];
+      } else if (error.message.includes('403')) {
+        return ["Error: Forbidden. Please check your GROQ API key permissions."];
+      } else if (error.message.includes('429')) {
+        return ["Error: Rate limit exceeded. Please wait before making another request."];
+      } else if (error.message.includes('500') || error.message.includes('503')) {
+        return ["Error: Server error. Please try again later."];
+      }
+      return [`Error: ${error.message}`];
+    }
+    return ["Error generating education descriptions. Please check your API key and internet connection."];
   }
 }
 
@@ -234,7 +353,7 @@ export async function generateSkillsSuggestions(
       });
     }
     
-    prompt += "\nProvide 10-15 relevant skills as a comma-separated list. Focus on technical skills, soft skills, and industry-specific competencies.";
+    prompt += "\nProvide ONLY a comma-separated list of 10-15 relevant skills. Return nothing else, just the skills. Focus on technical skills, soft skills, and industry-specific competencies. Do not include any introductory text, labels, or explanations.";
     
     console.log("Sending request to Groq API for skills suggestions"); // Debug log
     
@@ -258,7 +377,23 @@ export async function generateSkillsSuggestions(
   } catch (error) {
     console.error("Error generating skills suggestions:", error);
     if (error instanceof Error) {
-      return [error.message];
+      // Check for specific error types
+      if (error.message.includes('API key')) {
+        return ["Error: Invalid API key. Please check your GROQ API key configuration."];
+      } else if (error.message.includes('network')) {
+        return ["Error: Network error. Please check your internet connection and try again."];
+      } else if (error.message.includes('quota') || error.message.includes('limit')) {
+        return ["Error: API quota exceeded. Please check your GROQ plan limits."];
+      } else if (error.message.includes('401')) {
+        return ["Error: Unauthorized. Please check your GROQ API key."];
+      } else if (error.message.includes('403')) {
+        return ["Error: Forbidden. Please check your GROQ API key permissions."];
+      } else if (error.message.includes('429')) {
+        return ["Error: Rate limit exceeded. Please wait before making another request."];
+      } else if (error.message.includes('500') || error.message.includes('503')) {
+        return ["Error: Server error. Please try again later."];
+      }
+      return [`Error: ${error.message}`];
     }
     return ["Error generating skills suggestions. Please check your API key and internet connection."];
   }
@@ -276,6 +411,8 @@ export async function generateResumeSection(section: string, data: ResumeData): 
       return await generateProfessionalSummary(data.personalInfo);
     case "experience":
       return await generateWorkExperienceDescriptions(data.workExperience);
+    case "education":
+      return await generateEducationDescriptions(data.education);
     case "skills":
       return await generateSkillsSuggestions(data.workExperience, data.education);
     default:

@@ -193,7 +193,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                 <head>
                   <title>${firstName} ${lastName} - Resume</title>
                   <style>
-                    body { font-family: Arial, sans-serif; color: #000; background: #fff; }
+                    body { font-family: Arial, sans-serif; color: #000000; background: #ffffff; }
                     h1 { color: #000; }
                     h2 { color: #000; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
                     h3 { color: #000; }
@@ -277,8 +277,58 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
   };
 
   const handlePrint = () => {
-    toast.info("Printing resume...");
-    window.print();
+    toast.info("Preparing resume for printing...");
+    
+    // Add print-specific styles
+    const printStyles = document.createElement('style');
+    printStyles.innerHTML = `
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        .pdf-content, .pdf-content * {
+          visibility: visible;
+          color: #000000 !important;
+          background-color: #ffffff !important;
+        }
+        .pdf-content {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          box-shadow: none !important;
+        }
+        .pdf-content .absolute {
+          display: none !important;
+        }
+        .no-print, .no-print * {
+          display: none !important;
+        }
+      }
+    `;
+    document.head.appendChild(printStyles);
+    
+    // Add no-print class to elements we don't want to print
+    const header = document.querySelector('header');
+    const dock = document.querySelector('.fixed.bottom-8');
+    const buttons = document.querySelectorAll('button');
+    
+    if (header) header.classList.add('no-print');
+    if (dock) dock.classList.add('no-print');
+    buttons.forEach(button => button.classList.add('no-print'));
+    
+    // Print after a short delay to ensure styles are applied
+    setTimeout(() => {
+      window.print();
+      
+      // Clean up after print
+      setTimeout(() => {
+        document.head.removeChild(printStyles);
+        if (header) header.classList.remove('no-print');
+        if (dock) dock.classList.remove('no-print');
+        buttons.forEach(button => button.classList.remove('no-print'));
+      }, 1000);
+    }, 500);
   };
 
   const handleShare = () => {
@@ -376,6 +426,37 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         .pdf-content .text-muted-foreground {
           color: #333333 !important;
         }
+        
+        @media print {
+          body {
+            background-color: #ffffff !important;
+            margin: 0;
+            padding: 0;
+          }
+          .pdf-content {
+            box-shadow: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .pdf-content .rounded-2xl {
+            border-radius: 0 !important;
+          }
+          .pdf-content .shadow-lg {
+            box-shadow: none !important;
+          }
+          .pdf-content .p-8 {
+            padding: 2rem !important;
+          }
+          .no-print, .no-print * {
+            display: none !important;
+          }
+          .pdf-content .absolute {
+            position: static !important;
+          }
+        }
       `}</style>
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
         {/* Header */}
@@ -439,7 +520,18 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
           {/* Resume Content - This is what will be converted to PDF */}
           <div ref={resumeRef} style={{ backgroundColor: '#ffffff' }} className="pdf-content">
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden relative" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+              {/* Quick Edit Button */}
+              <Button 
+                asChild
+                size="sm"
+                className="absolute top-4 right-4 bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full h-10 w-10 p-0"
+              >
+                <Link href={`/edit/${unwrappedParams.id}`}>
+                  <Edit className="h-5 w-5" />
+                </Link>
+              </Button>
+              
               <CardContent className="p-8" style={{ color: '#000000' }}>
                 {/* Personal Info */}
                 <div className="mb-8">

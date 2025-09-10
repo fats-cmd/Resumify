@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateProfessionalSummary, generateWorkExperienceDescriptions, generateSkillsSuggestions } from '@/lib/groq';
+import { generateProfessionalSummary, generateWorkExperienceDescriptions, generateEducationDescriptions, generateSkillsSuggestions } from '@/lib/groq';
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +17,9 @@ export async function POST(request: Request) {
       case 'generateExperience':
         result = await generateWorkExperienceDescriptions(data.workExperience);
         break;
+      case 'generateEducation':
+        result = await generateEducationDescriptions(data.education);
+        break;
       case 'generateSkills':
         result = await generateSkillsSuggestions(data.workExperience, data.education);
         break;
@@ -32,8 +35,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ result });
   } catch (error) {
     console.error('Error in AI API route:', error);
+    
+    // Return a proper JSON error response even for unexpected errors
+    let errorMessage = 'Failed to generate content';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to generate content' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
