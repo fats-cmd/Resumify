@@ -17,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { signOut } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,7 +26,9 @@ import {
   Settings,
   LogOut,
   Plus,
-  LayoutTemplate
+  LayoutDashboard,
+  FileText,
+  Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -245,105 +248,218 @@ export default function TemplatesPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {templateCategories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? "default" : "outline"}
-                className={`rounded-full px-4 py-2 ${
-                  selectedCategory === category.id
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                    : "border-input text-foreground hover:bg-accent"
-                }`}
-                onClick={() => setSelectedCategory(category.id)}
-              >
-                {category.name}
-              </Button>
-            ))}
-          </div>
-
-          {/* Templates Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {templateCategories
-              .find((category) => category.id === selectedCategory)
-              ?.templates.map((template, index) => (
-                <motion.div
-                  key={template.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-                    <div className="relative">
-                      {template.previewImage ? (
-                        <div className="w-full h-64 bg-gray-200 rounded-t-2xl overflow-hidden">
-                          <Image 
-                            src={template.previewImage} 
-                            alt={template.name}
-                            width={400}
-                            height={256}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              // Fallback to placeholder if image fails to load
-                              e.currentTarget.src = "/placeholder.svg";
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div className="bg-gray-200 border-2 border-dashed rounded-t-2xl w-full h-64" />
-                      )}
-                      {template.isFeatured && (
-                        <Badge className="absolute top-4 left-4 bg-yellow-500 text-yellow-900 rounded-full">
-                          <Star className="h-3 w-3 mr-1 fill-current" />
-                          Featured
-                        </Badge>
-                      )}
-                      {template.isPremium && (
-                        <Badge className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full">
-                          Premium
-                        </Badge>
-                      )}
-                    </div>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{template.name}</CardTitle>
-                      </div>
-                      <CardDescription className="text-muted-foreground mt-1">
-                        {template.description}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="mt-auto">
-                      <Button 
-                        className="w-full rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                        onClick={() => router.push(`/create?template=${template.id}`)}
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Sidebar Menu */}
+            <div className="lg:w-64 flex-shrink-0">
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                <CardHeader>
+                  <CardTitle className="text-lg">Dashboard Menu</CardTitle>
+                  <CardDescription>
+                    Navigate your workspace
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <nav className="space-y-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start rounded-full"
+                      asChild
+                    >
+                      <Link href="/dashboard">
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start rounded-full"
+                      asChild
+                    >
+                      <Link href="/my-resumes">
+                        <FileText className="h-4 w-4 mr-2" />
+                        My Resumes
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="default"
+                      className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                      onClick={() => router.push("/templates")}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      My Templates
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start rounded-full"
+                      asChild
+                    >
+                      <Link href="/settings">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </Link>
+                    </Button>
+                  </nav>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
+                    <div className="space-y-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full"
+                        onClick={() => toast.info("Help documentation coming soon!")}
                       >
-                        <LayoutTemplate className="h-4 w-4 mr-2" />
-                        Use Template
+                        <FileText className="h-4 w-4 mr-2" />
+                        Help Center
                       </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-          </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0">
+                        {getUserAvatar()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {user?.user_metadata?.full_name || 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* Premium CTA Section */}
-          <div className="mt-16">
-            <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 rounded-2xl overflow-hidden">
-              <CardContent className="p-8 text-center">
-                <h2 className="text-2xl font-bold text-white mb-2">Unlock All Premium Templates</h2>
-                <p className="text-purple-100 mb-6 max-w-2xl mx-auto">
-                  Get access to all our premium templates and create a resume that truly stands out from the competition.
+            {/* Main Content */}
+            <div className="flex-1">
+              {/* Category Filter using shadcn Tabs */}
+              <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
+                <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 h-auto">
+                  {templateCategories.map((category) => (
+                    <TabsTrigger 
+                      key={category.id} 
+                      value={category.id}
+                      className="rounded-full py-2.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
+                    >
+                      {category.name}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+
+              {/* Category Description */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  {templateCategories.find(cat => cat.id === selectedCategory)?.name} Templates
+                </h2>
+                <p className="text-muted-foreground">
+                  {templateCategories.find(cat => cat.id === selectedCategory)?.description}
                 </p>
-                <Button 
-                  variant="secondary" 
-                  className="bg-white text-purple-600 hover:bg-white/90 rounded-full font-medium"
-                  onClick={() => router.push('/settings')}
-                >
-                  Upgrade to Premium
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Templates Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {templateCategories
+                  .find((category) => category.id === selectedCategory)
+                  ?.templates.map((template, index) => (
+                    <motion.div
+                      key={template.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ y: -5 }}
+                      className="h-full"
+                    >
+                      <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col group">
+                        <div className="relative">
+                          {template.previewImage ? (
+                            <div className="w-full h-48 bg-gray-200 rounded-t-2xl overflow-hidden">
+                              <Image 
+                                src={template.previewImage} 
+                                alt={template.name}
+                                width={400}
+                                height={192}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                onError={(e) => {
+                                  // Fallback to placeholder if image fails to load
+                                  e.currentTarget.src = "/placeholder.svg";
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <div className="bg-gray-200 border-2 border-dashed rounded-t-2xl w-full h-48" />
+                          )}
+                          {template.isFeatured && (
+                            <Badge className="absolute top-4 left-4 bg-yellow-500 text-yellow-900 rounded-full shadow">
+                              <Star className="h-3 w-3 mr-1 fill-current" />
+                              Featured
+                            </Badge>
+                          )}
+                          {template.isPremium && (
+                            <Badge className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow">
+                              Premium
+                            </Badge>
+                          )}
+                        </div>
+                        <CardHeader className="pb-3">
+                          <div className="flex justify-between items-start">
+                            <CardTitle className="text-lg">{template.name}</CardTitle>
+                          </div>
+                          <CardDescription className="text-muted-foreground mt-2 text-sm">
+                            {template.description}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="mt-auto pt-0">
+                          <Button 
+                            className="w-full rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow transition-all duration-300 transform hover:scale-[1.02]"
+                            onClick={() => router.push(`/create?template=${template.id}`)}
+                          >
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Use Template
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+              </div>
+
+              {/* Premium CTA Section */}
+              <div className="mt-16">
+                <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 rounded-2xl overflow-hidden shadow-xl">
+                  <CardContent className="p-8 text-center">
+                    <div className="flex justify-center mb-4">
+                      <div className="bg-white/20 p-3 rounded-full">
+                        <Sparkles className="h-8 w-8 text-white" />
+                      </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Unlock All Premium Templates</h2>
+                    <p className="text-purple-100 mb-6 max-w-2xl mx-auto">
+                      Get access to all our premium templates and create a resume that truly stands out from the competition.
+                    </p>
+                    <Button 
+                      variant="secondary" 
+                      className="bg-white text-purple-600 hover:bg-white/90 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => router.push('/settings')}
+                    >
+                      Upgrade to Premium
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>

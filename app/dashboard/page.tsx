@@ -379,10 +379,12 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       className="w-full justify-start rounded-full"
-                      onClick={() => router.push("/dashboard")}
+                      asChild
                     >
-                      <FileText className="h-4 w-4 mr-2" />
-                      My Resumes
+                      <Link href="/my-resumes">
+                        <FileText className="h-4 w-4 mr-2" />
+                        My Resumes
+                      </Link>
                     </Button>
                     <Button
                       variant="ghost"

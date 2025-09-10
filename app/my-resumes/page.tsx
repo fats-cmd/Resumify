@@ -322,143 +322,244 @@ export default function MyResumesPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
-          {/* Resumes Section */}
-          <div className="mb-24">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-              <div>
-                {loading ? (
-                  <div className="space-y-2">
-                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="text-2xl font-bold text-foreground">Your Resumes</h2>
-                    <p className="text-muted-foreground">Manage and track your resumes</p>
-                  </>
-                )}
-              </div>
-              {loading ? (
-                <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-              ) : (
-                <Button variant="outline" asChild className="border-input text-foreground hover:bg-accent hover:text-accent-foreground rounded-full">
-                  <Link href="/create">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Resume
-                  </Link>
-                </Button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {resumesLoading ? (
-                [...Array(3)].map((_, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 * index }}
-                  >
-                    <SkeletonCard />
-                  </motion.div>
-                ))
-              ) : resumes.length > 0 ? (
-                resumes.map((resume, index) => (
-                  <motion.div
-                    key={resume.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 * index }}
-                  >
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
-                      <CardHeader className="pb-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                              {resume.title}
-                              {resume.is_featured && (
-                                <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 rounded-full px-2 py-0.5">
-                                  <Star className="h-3 w-3 mr-1 fill-current" />
-                                  Featured
-                                </Badge>
-                              )}
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground mt-1">
-                              Last updated: {new Date(resume.updated_at).toLocaleDateString()}
-                            </CardDescription>
-                          </div>
-                          <Badge 
-                            variant={resume.status === "Published" ? "default" : "secondary"}
-                            className={`rounded-full px-2 py-0.5 ${
-                              resume.status === "Published" 
-                                ? "bg-green-500/20 text-green-700 dark:text-green-300" 
-                                : "bg-gray-500/20 text-gray-700 dark:text-gray-300"
-                            }`}
-                          >
-                            {resume.status || "Draft"}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex justify-between items-center mb-4">
-                          <div className="flex gap-4">
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Eye className="h-4 w-4 mr-1" />
-                              {resume.views || 0}
-                            </div>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Download className="h-4 w-4 mr-1" />
-                              {resume.downloads || 0}
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            Created {formatDateDifference(resume.created_at)}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
-                            <Link href={`/resume/${resume.id}`}>
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Link>
-                          </Button>
-                          <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
-                            <Link href={`/edit/${resume.id}`}>
-                              <Edit className="h-4 w-4 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleDeleteResume(resume.id)}
-                            className="border-red-500/30 text-red-700 hover:bg-red-500/10 dark:text-red-300 rounded-full"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))
-              ) : (
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden lg:col-span-2">
-                  <CardContent className="flex flex-col items-center justify-center py-16">
-                    <FileText className="h-16 w-16 text-muted-foreground mb-6" />
-                    <h3 className="text-2xl font-bold mb-2">No resumes yet</h3>
-                    <p className="text-muted-foreground mb-6 text-center max-w-md">
-                      Get started by creating your first professional resume.
-                    </p>
-                    <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full">
-                      <Link href="/create">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Resume
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Sidebar Menu */}
+            <div className="lg:w-64 flex-shrink-0">
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                <CardHeader>
+                  <CardTitle className="text-lg">Dashboard Menu</CardTitle>
+                  <CardDescription>
+                    Navigate your workspace
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <nav className="space-y-2">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start rounded-full"
+                      asChild
+                    >
+                      <Link href="/dashboard">
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Dashboard
                       </Link>
                     </Button>
-                  </CardContent>
-                </Card>
-              )}
+                    <Button
+                      variant="default"
+                      className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                      onClick={() => router.push("/my-resumes")}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      My Resumes
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start rounded-full"
+                      asChild
+                    >
+                      <Link href="/templates">
+                        <FileText className="h-4 w-4 mr-2" />
+                        My Templates
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start rounded-full"
+                      asChild
+                    >
+                      <Link href="/settings">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </Link>
+                    </Button>
+                  </nav>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
+                    <div className="space-y-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full"
+                        onClick={() => toast.info("Help documentation coming soon!")}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        Help Center
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0">
+                        {getUserAvatar()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {user?.user_metadata?.full_name || 'User'}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user?.email}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1">
+              {/* Resumes Section */}
+              <div className="mb-24 mt-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                  <div>
+                    {loading ? (
+                      <div className="space-y-2">
+                        <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      </div>
+                    ) : (
+                      <>
+                        <h2 className="text-2xl font-bold text-foreground">Your Resumes</h2>
+                        <p className="text-muted-foreground mt-1 sm:mt-0">
+                          Manage and track your resumes
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {loading ? (
+                    <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                  ) : (
+                    <Button variant="outline" asChild className="border-input text-foreground hover:bg-accent hover:text-accent-foreground rounded-full">
+                      <Link href="/create">
+                        <Plus className="h-4 w-4 mr-2" />
+                        New Resume
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {resumesLoading ? (
+                    [...Array(3)].map((_, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 * index }}
+                      >
+                        <SkeletonCard />
+                      </motion.div>
+                    ))
+                  ) : resumes.length > 0 ? (
+                    resumes.map((resume, index) => (
+                      <motion.div
+                        key={resume.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1 * index }}
+                      >
+                        <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                          <CardHeader className="pb-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="flex items-center gap-2 text-lg">
+                                  {resume.title}
+                                  {resume.is_featured && (
+                                    <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 rounded-full px-2 py-0.5">
+                                      <Star className="h-3 w-3 mr-1 fill-current" />
+                                      Featured
+                                    </Badge>
+                                  )}
+                                </CardTitle>
+                                <CardDescription className="text-muted-foreground mt-1">
+                                  Last updated: {new Date(resume.updated_at).toLocaleDateString()}
+                                </CardDescription>
+                              </div>
+                              <Badge 
+                                variant={resume.status === "Published" ? "default" : "secondary"}
+                                className={`rounded-full px-2 py-0.5 ${
+                                  resume.status === "Published" 
+                                    ? "bg-green-500/20 text-green-700 dark:text-green-300" 
+                                    : "bg-gray-500/20 text-gray-700 dark:text-gray-300"
+                                }`}
+                              >
+                                {resume.status || "Draft"}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex justify-between items-center mb-4">
+                              <div className="flex gap-4">
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  {resume.views || 0}
+                                </div>
+                                <div className="flex items-center text-sm text-muted-foreground">
+                                  <Download className="h-4 w-4 mr-1" />
+                                  {resume.downloads || 0}
+                                </div>
+                              </div>
+                              <div className="text-sm text-muted-foreground flex items-center">
+                                <Clock className="h-4 w-4 mr-1" />
+                                Created {formatDateDifference(resume.created_at)}
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
+                                <Link href={`/resume/${resume.id}`}>
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Link>
+                              </Button>
+                              <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
+                                <Link href={`/edit/${resume.id}`}>
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Edit
+                                </Link>
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDeleteResume(resume.id)}
+                                className="border-red-500/30 text-red-700 hover:bg-red-500/10 dark:text-red-300 rounded-full"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden lg:col-span-2">
+                      <CardContent className="flex flex-col items-center justify-center py-16">
+                        <FileText className="h-16 w-16 text-muted-foreground mb-6" />
+                        <h3 className="text-2xl font-bold mb-2">No resumes yet</h3>
+                        <p className="text-muted-foreground mb-6 text-center max-w-md">
+                          Get started by creating your first professional resume.
+                        </p>
+                        <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full">
+                          <Link href="/create">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Resume
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
