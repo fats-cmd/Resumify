@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Dock, DockItem } from "@/components/ui/dock";
 import Link from "next/link";
@@ -1073,12 +1072,10 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                                 )}
                               </Button>
                             </div>
-                            <Textarea
-                              id={`description-${exp.id}`}
+                            <RichTextEditor
                               value={exp.description}
-                              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleWorkExperienceChange(exp.id, "description", e.target.value)}
+                              onChange={(value) => handleWorkExperienceChange(exp.id, "description", value)}
                               placeholder="Describe your responsibilities and achievements..."
-                              rows={3}
                             />
                           </div>
                         </div>
@@ -1181,12 +1178,10 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                           
                           <div className="space-y-2">
                             <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
-                            <Textarea
-                              id={`eduDescription-${edu.id}`}
+                            <RichTextEditor
                               value={edu.description}
-                              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleEducationChange(edu.id, "description", e.target.value)}
+                              onChange={(value) => handleEducationChange(edu.id, "description", value)}
                               placeholder="Additional details about your education..."
-                              rows={2}
                             />
                           </div>
                         </div>

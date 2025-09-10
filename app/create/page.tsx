@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Dock, DockItem } from "@/components/ui/dock";
 import TemplatePreview from "@/components/template-preview";
@@ -1009,12 +1008,10 @@ const CreateResumeContent = () => {
                                   )}
                                 </Button>
                               </div>
-                              <Textarea
-                                id={`description-${exp.id}`}
+                              <RichTextEditor
                                 value={exp.description}
-                                onChange={(e) => handleWorkExperienceChange(exp.id, "description", e.target.value)}
+                                onChange={(value) => handleWorkExperienceChange(exp.id, "description", value)}
                                 placeholder="Describe your responsibilities and achievements..."
-                                rows={4}
                               />
                             </div>
                           </div>
@@ -1119,12 +1116,10 @@ const CreateResumeContent = () => {
                             
                             <div className="space-y-2">
                               <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
-                              <Textarea
-                                id={`eduDescription-${edu.id}`}
+                              <RichTextEditor
                                 value={edu.description}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleEducationChange(edu.id, "description", e.target.value)}
+                                onChange={(value) => handleEducationChange(edu.id, "description", value)}
                                 placeholder="Additional details about your education..."
-                                rows={2}
                               />
                             </div>
                           </div>
