@@ -425,6 +425,12 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       const result = await response.json();
       
       if (response.ok && result.result) {
+        // Check if the result is an error message
+        if (typeof result.result === 'string' && result.result.startsWith('Error:')) {
+          toast.error(result.result);
+          return;
+        }
+        
         // Clean up the result to remove any introductory phrases
         let cleanedResult = result.result;
         
@@ -491,6 +497,13 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       const result = await response.json();
       
       if (response.ok && result.result) {
+        // Check if the result is an error message
+        if (Array.isArray(result.result) && result.result.length > 0 && 
+            typeof result.result[0] === 'string' && result.result[0].startsWith('Error:')) {
+          toast.error(result.result[0]);
+          return;
+        }
+        
         const experience = (resumeData.workExperience || []).find(exp => exp.id === id);
         if (experience) {
           handleWorkExperienceChange(id, "description", result.result[0]);
@@ -531,6 +544,13 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       const result = await response.json();
       
       if (response.ok && result.result) {
+        // Check if the result is an error message
+        if (Array.isArray(result.result) && result.result.length > 0 && 
+            typeof result.result[0] === 'string' && result.result[0].startsWith('Error:')) {
+          toast.error(result.result[0]);
+          return;
+        }
+        
         setResumeData({
           ...resumeData,
           skills: result.result
