@@ -1436,7 +1436,7 @@ export default function EditResumePage() {
       </div>
       
       {/* Dynamic Dock Component */}
-      <DynamicDock currentPage="resume" />
+      <DynamicDock currentPage="resume" showLogout={false} />
     </ProtectedPage>
   );
 }

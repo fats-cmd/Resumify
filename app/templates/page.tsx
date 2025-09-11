@@ -70,6 +70,39 @@ const templateCategories = [
         previewImage: "/modern-split-preview.svg",
         isPremium: false,
         isFeatured: true
+      },
+      // Adding more templates to test pagination
+      {
+        id: 9,
+        name: "Corporate Elite",
+        description: "Sophisticated design for senior executives and corporate professionals",
+        previewImage: "/placeholder.svg",
+        isPremium: true,
+        isFeatured: true
+      },
+      {
+        id: 10,
+        name: "Minimalist Pro",
+        description: "Clean, uncluttered design that emphasizes your content",
+        previewImage: "/placeholder.svg",
+        isPremium: false,
+        isFeatured: false
+      },
+      {
+        id: 11,
+        name: "Tech Professional",
+        description: "Modern design tailored for technology and IT professionals",
+        previewImage: "/placeholder.svg",
+        isPremium: true,
+        isFeatured: false
+      },
+      {
+        id: 12,
+        name: "Finance Executive",
+        description: "Professional design for banking, finance, and consulting industries",
+        previewImage: "/placeholder.svg",
+        isPremium: true,
+        isFeatured: true
       }
     ]
   },
@@ -125,6 +158,8 @@ export default function TemplatesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("professional");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6; // Show 6 templates per page
 
   const handleLogout = async () => {
     try {
@@ -412,6 +447,7 @@ export default function TemplatesPage() {
                       key={category.id} 
                       value={category.id}
                       className="rounded-full py-2.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
+                      onClick={() => setCurrentPage(1)} // Reset to first page when category changes
                     >
                       {category.name}
                     </TabsTrigger>
@@ -431,9 +467,17 @@ export default function TemplatesPage() {
 
               {/* Templates Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {templateCategories
-                  .find((category) => category.id === selectedCategory)
-                  ?.templates.map((template, index) => (
+                {(() => {
+                  const currentCategory = templateCategories.find(cat => cat.id === selectedCategory);
+                  const templates = currentCategory?.templates || [];
+                  
+                  // Calculate pagination
+                  const totalPages = Math.ceil(templates.length / itemsPerPage);
+                  const startIndex = (currentPage - 1) * itemsPerPage;
+                  const endIndex = startIndex + itemsPerPage;
+                  const currentTemplates = templates.slice(startIndex, endIndex);
+                  
+                  return currentTemplates.map((template, index) => (
                     <motion.div
                       key={template.id}
                       initial={{ opacity: 0, y: 20 }}
@@ -540,8 +584,77 @@ export default function TemplatesPage() {
                         </div>
                       </Card>
                     </motion.div>
-                  ))}
+                  ));
+                })()}
               </div>
+
+              {/* Pagination Controls */}
+              {(() => {
+                const currentCategory = templateCategories.find(cat => cat.id === selectedCategory);
+                const templates = currentCategory?.templates || [];
+                const totalPages = Math.ceil(templates.length / itemsPerPage);
+                
+                if (totalPages <= 1) return null;
+                
+                return (
+                  <div className="flex justify-center mt-12">
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="rounded-full"
+                      >
+                        Previous
+                      </Button>
+                      
+                      {[...Array(totalPages)].map((_, index) => {
+                        const page = index + 1;
+                        // Show first, last, current, and nearby pages
+                        if (
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        ) {
+                          return (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(page)}
+                              className={`rounded-full ${currentPage === page ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' : ''}`}
+                            >
+                              {page}
+                            </Button>
+                          );
+                        }
+                        
+                        // Show ellipsis for skipped pages
+                        if (page === currentPage - 2 || page === currentPage + 2) {
+                          return (
+                            <span key={page} className="px-2 py-1 text-muted-foreground">
+                              ...
+                            </span>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="rounded-full"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Premium CTA Section */}
               <div className="mt-16">

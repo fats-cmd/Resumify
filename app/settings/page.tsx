@@ -27,7 +27,10 @@ import {
   Eye,
   EyeOff,
   X,
-  Upload
+  Upload,
+  LayoutDashboard,
+  FileText,
+  Settings
 } from "lucide-react";
 
 // Custom avatar images
@@ -399,7 +402,7 @@ export default function SettingsPage() {
   };
 
   // Render the appropriate avatar based on user selection
-  const renderAvatar = () => {
+  const renderAvatar = (isSidebar = false) => {
     // If user has uploaded an image, show it
     if (avatarUrl) {
       // Extract the base URL and cache-busting parameter
@@ -408,9 +411,9 @@ export default function SettingsPage() {
         <Image 
           src={baseUrl} 
           alt="Profile" 
-          width={96}
-          height={96}
-          className="w-full h-full object-cover"
+          width={isSidebar ? 32 : 96}
+          height={isSidebar ? 32 : 96}
+          className={isSidebar ? "w-8 h-8 object-cover" : "w-full h-full object-cover"}
           priority
         />
       );
@@ -422,9 +425,9 @@ export default function SettingsPage() {
         <Image 
           src={selectedCustomAvatar} 
           alt="Custom Avatar" 
-          width={96}
-          height={96}
-          className="w-full h-full object-cover"
+          width={isSidebar ? 32 : 96}
+          height={isSidebar ? 32 : 96}
+          className={isSidebar ? "w-8 h-8 object-cover" : "w-full h-full object-cover"}
           priority
         />
       );
@@ -432,7 +435,7 @@ export default function SettingsPage() {
     
     // Default to user initials
     return (
-      <span className="text-white text-2xl font-bold">
+      <span className={isSidebar ? "text-white text-sm font-medium" : "text-white text-2xl font-bold"}>
         {getUserInitials()}
       </span>
     );
@@ -440,8 +443,8 @@ export default function SettingsPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background pb-20">
-        {/* Header */}
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+        {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between w-full mb-8">
@@ -465,397 +468,535 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-          {loading ? (
-            // Skeleton Loading UI
-            <div className="space-y-6">
-              {/* Profile Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
-                    <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
-                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center mb-6">
-                    <div className="relative">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/40 animate-pulse" />
-                      <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                    </div>
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-6" />
-                  </div>
-                  
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Sidebar Menu - hidden on mobile and tablet */}
+            <div className="lg:w-64 flex-shrink-0 hidden lg:block">
+              {loading ? (
+                // Sidebar Skeleton Loading
+                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                  <CardHeader>
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                     </div>
                     
-                    <div className="space-y-2">
-                      <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      <div className="h-4 w-72 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                      <div className="space-y-3">
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      </div>
                     </div>
                     
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Security Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
-                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
-                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                </CardContent>
-              </Card>
-
-              {/* Preferences Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
-                    <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
-                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                        <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                          <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        </div>
                       </div>
-                      <div className="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                        <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      </div>
-                      <div className="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Theme Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <div className="flex items-center">
-                    <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
-                    <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  </div>
-                  <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      <div className="h-3 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    </div>
-                    <div className="h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Logout Section Skeleton */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardContent className="pt-6">
-                  <div className="h-10 w-full bg-red-100 dark:bg-red-900/30 rounded animate-pulse" />
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Profile Section */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <User className="h-5 w-5 mr-2 text-purple-500" />
-                    Profile Information
-                  </CardTitle>
-                  <CardDescription>
-                    Update your personal details and contact information
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col items-center mb-6">
-                    <div className="relative">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                        {renderAvatar()}
-                      </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Dashboard Menu</CardTitle>
+                    <CardDescription>
+                      Navigate your workspace
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <nav className="space-y-2">
                       <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setShowAvatarSelection(!showAvatarSelection)}
-                        className="absolute -bottom-2 -right-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                        aria-label="Choose avatar"
+                        variant="ghost"
+                        className="w-full justify-start rounded-full"
+                        asChild
                       >
-                        <Camera className="h-4 w-4" />
+                        <Link href="/dashboard">
+                          <LayoutDashboard className="h-4 w-4 mr-2" />
+                          Dashboard
+                        </Link>
                       </Button>
-                      {(avatarUrl || selectedCustomAvatar) && (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full"
+                        asChild
+                      >
+                        <Link href="/my-resumes">
+                          <FileText className="h-4 w-4 mr-2" />
+                          My Resumes
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full"
+                        asChild
+                      >
+                        <Link href="/templates">
+                          <FileText className="h-4 w-4 mr-2" />
+                          My Templates
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="default"
+                        className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                        onClick={() => router.push("/settings")}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </Button>
+                    </nav>
+                    
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
+                      <div className="space-y-2">
                         <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setShowRemoveImageDialog(true)}
-                          className="absolute -bottom-2 -left-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                          aria-label="Remove profile image"
+                          variant="ghost"
+                          className="w-full justify-start rounded-full"
+                          onClick={() => toast.info("Help documentation coming soon!")}
                         >
-                          <X className="h-4 w-4" />
+                          <FileText className="h-4 w-4 mr-2" />
+                          Help Center
                         </Button>
-                      )}
+                      </div>
                     </div>
                     
-                    {/* Avatar Selection Panel */}
-                    {showAvatarSelection && (
-                      <div className="mt-4 w-full">
-                        <p className="text-sm text-muted-foreground mb-3 text-center">
-                          Choose an avatar or upload your own image
-                        </p>
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                            {renderAvatar(true)}
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {user?.user_metadata?.full_name || 'User'}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {user?.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={handleLogout}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Main Content - takes full width on mobile */}
+            <div className="flex-1">
+              {loading ? (
+                // Skeleton Loading UI
+                <div className="space-y-6">
+                  {/* Profile Section Skeleton */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardHeader>
+                      <div className="flex items-center">
+                        <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                        <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col items-center mb-6">
+                        <div className="relative">
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500/40 to-blue-500/40 animate-pulse" />
+                          <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                        </div>
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-6" />
+                      </div>
+                      
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        </div>
                         
-                        {/* Custom image avatars */}
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-96 overflow-y-auto p-2">
-                          {/* Upload Image Option at the top */}
+                        <div className="space-y-2">
+                          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          <div className="h-4 w-72 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        </div>
+                        
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Security Section Skeleton */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardHeader>
+                      <div className="flex items-center">
+                        <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                        <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </CardContent>
+                  </Card>
+
+                  {/* Preferences Section Skeleton */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardHeader>
+                      <div className="flex items-center">
+                        <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                        <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                            <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          </div>
+                          <div className="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-1">
+                            <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                            <div className="h-3 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          </div>
+                          <div className="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Theme Section Skeleton */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardHeader>
+                      <div className="flex items-center">
+                        <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
+                        <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                      <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          <div className="h-3 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        </div>
+                        <div className="h-6 w-6 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Logout Section Skeleton */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardContent className="pt-6">
+                      <div className="h-10 w-full bg-red-100 dark:bg-red-900/30 rounded animate-pulse" />
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Profile Section */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <User className="h-5 w-5 mr-2 text-purple-500" />
+                        Profile Information
+                      </CardTitle>
+                      <CardDescription>
+                        Update your personal details and contact information
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-col items-center mb-6">
+                        <div className="relative">
+                          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+                            {renderAvatar()}
+                          </div>
                           <Button
                             type="button"
                             variant="outline"
-                            className="h-20 flex flex-col items-center justify-center rounded-xl"
-                            onClick={triggerFileInput}
+                            size="icon"
+                            onClick={() => setShowAvatarSelection(!showAvatarSelection)}
+                            className="absolute -bottom-2 -right-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                            aria-label="Choose avatar"
                           >
-                            <Upload className="h-6 w-6" />
-                            <span className="text-xs mt-1">Upload</span>
+                            <Camera className="h-4 w-4" />
                           </Button>
-                          
-                          {loadingAvatars
-                            ? // Skeleton loading for avatars
-                              Array.from({ length: visibleAvatars }).map((_, index) => (
-                                <div 
-                                  key={index} 
-                                  className="h-20 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse"
-                                />
-                              ))
-                            : // Actual avatars
-                              customAvatarImages.slice(0, visibleAvatars).map((avatar) => (
-                                <Button
-                                  key={avatar.id}
-                                  type="button"
-                                  variant={selectedCustomAvatar === avatar.src ? "default" : "outline"}
-                                  className={`h-20 flex flex-col items-center justify-center rounded-xl p-1 ${
-                                    selectedCustomAvatar === avatar.src 
-                                      ? "ring-2 ring-purple-500" 
-                                      : ""
-                                  }`}
-                                  onClick={() => handleSelectCustomImageAvatar(avatar.src)}
-                                >
-                                  <div className="w-12 h-12 rounded-full overflow-hidden">
-                                    <Image 
-                                      src={avatar.src} 
-                                      alt={avatar.name} 
-                                      width={48}
-                                      height={48}
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <span className="text-xs mt-1 truncate w-full px-1">{avatar.name}</span>
-                                </Button>
-                              ))
-                          }
-                        </div>
-                        
-                        {/* Load More Button */}
-                        {visibleAvatars < customAvatarImages.length && !loadingAvatars && (
-                          <div className="flex justify-center mt-4">
+                          {(avatarUrl || selectedCustomAvatar) && (
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={() => {
-                                setLoadingAvatars(true);
-                                // Simulate loading delay for better UX
-                                setTimeout(() => {
-                                  setVisibleAvatars(prev => Math.min(prev + 7, customAvatarImages.length));
-                                  setLoadingAvatars(false);
-                                }, 300);
-                              }}
+                              size="icon"
+                              onClick={() => setShowRemoveImageDialog(true)}
+                              className="absolute -bottom-2 -left-2 rounded-full bg-white dark:bg-gray-900 border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                              aria-label="Remove profile image"
                             >
-                              Load More
+                              <X className="h-4 w-4" />
                             </Button>
+                          )}
+                        </div>
+                        
+                        {/* Avatar Selection Panel */}
+                        {showAvatarSelection && (
+                          <div className="mt-4 w-full">
+                            <p className="text-sm text-muted-foreground mb-3 text-center">
+                              Choose an avatar or upload your own image
+                            </p>
+                            
+                            {/* Custom image avatars */}
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-96 overflow-y-auto p-2">
+                              {/* Upload Image Option at the top */}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="h-20 flex flex-col items-center justify-center rounded-xl"
+                                onClick={triggerFileInput}
+                              >
+                                <Upload className="h-6 w-6" />
+                                <span className="text-xs mt-1">Upload</span>
+                              </Button>
+                              
+                              {loadingAvatars
+                                ? // Skeleton loading for avatars
+                                  Array.from({ length: visibleAvatars }).map((_, index) => (
+                                    <div 
+                                      key={index} 
+                                      className="h-20 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse"
+                                    />
+                                  ))
+                                : // Actual avatars
+                                  customAvatarImages.slice(0, visibleAvatars).map((avatar) => (
+                                    <Button
+                                      key={avatar.id}
+                                      type="button"
+                                      variant={selectedCustomAvatar === avatar.src ? "default" : "outline"}
+                                      className={`h-20 flex flex-col items-center justify-center rounded-xl p-1 ${
+                                        selectedCustomAvatar === avatar.src 
+                                          ? "ring-2 ring-purple-500" 
+                                          : ""
+                                      }`}
+                                      onClick={() => handleSelectCustomImageAvatar(avatar.src)}
+                                    >
+                                      <div className="w-12 h-12 rounded-full overflow-hidden">
+                                        <Image 
+                                          src={avatar.src} 
+                                          alt={avatar.name} 
+                                          width={48}
+                                          height={48}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      </div>
+                                      <span className="text-xs mt-1 truncate w-full px-1">{avatar.name}</span>
+                                    </Button>
+                                  ))
+                              }
+                            </div>
+                            
+                            {/* Load More Button */}
+                            {visibleAvatars < customAvatarImages.length && !loadingAvatars && (
+                              <div className="flex justify-center mt-4">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setLoadingAvatars(true);
+                                    // Simulate loading delay for better UX
+                                    setTimeout(() => {
+                                      setVisibleAvatars(prev => Math.min(prev + 7, customAvatarImages.length));
+                                      setLoadingAvatars(false);
+                                    }, 300);
+                                  }}
+                                >
+                                  Load More
+                                </Button>
+                              </div>
+                            )}
+                            
+                            <input
+                              type="file"
+                              ref={fileInputRef}
+                              onChange={handleImageUpload}
+                              accept="image/*"
+                              className="hidden"
+                            />
                           </div>
                         )}
                         
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handleImageUpload}
-                          accept="image/*"
-                          className="hidden"
-                        />
-                      </div>
-                    )}
-                    
-                    <p className="text-sm text-muted-foreground mt-4 text-center">
-                      {avatarUrl || selectedCustomAvatar
-                        ? "Click the camera icon to change your avatar or upload an image"
-                        : "Click the camera icon to choose an avatar or upload an image"}
-                    </p>
-                    {uploading && (
-                      <p className="text-sm text-purple-600 mt-2">Uploading...</p>
-                    )}
-                  </div>
-                  
-                  <form onSubmit={handleSave} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
-                      <Input
-                        id="fullName"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Enter your full name"
-                        disabled={loading || saving}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        disabled={true} // Email cannot be changed directly
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        Email cannot be changed. Contact support if you need to update your email address.
-                      </p>
-                    </div>
-                    
-                    <Button type="submit" disabled={loading || saving} className="w-full">
-                      {saving ? "Saving..." : "Save Changes"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {/* Security Section */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Shield className="h-5 w-5 mr-2 text-purple-500" />
-                    Security
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your password and security settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button 
-                      onClick={() => setShowChangePasswordModal(true)}
-                      variant="outline" 
-                      className="w-full justify-start"
-                    >
-                      <Lock className="h-4 w-4 mr-2" />
-                      Change Password
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Preferences Section */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Bell className="h-5 w-5 mr-2 text-purple-500" />
-                    Preferences
-                  </CardTitle>
-                  <CardDescription>
-                    Customize your notification and communication preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Notifications</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive notifications about your resumes and account activity
+                        <p className="text-sm text-muted-foreground mt-4 text-center">
+                          {avatarUrl || selectedCustomAvatar
+                            ? "Click the camera icon to change your avatar or upload an image"
+                            : "Click the camera icon to choose an avatar or upload an image"}
                         </p>
+                        {uploading && (
+                          <p className="text-sm text-purple-600 mt-2">Uploading...</p>
+                        )}
                       </div>
-                      <Switch
-                        id="notifications"
-                        checked={notifications}
-                        onCheckedChange={setNotifications}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label>Marketing Emails</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receive emails about new features and product updates
-                        </p>
-                      </div>
-                      <Switch
-                        id="marketing-emails"
-                        checked={marketingEmails}
-                        onCheckedChange={setMarketingEmails}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      
+                      <form onSubmit={handleSave} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="fullName">Full Name</Label>
+                          <Input
+                            id="fullName"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            placeholder="Enter your full name"
+                            disabled={loading || saving}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email Address</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            disabled={true} // Email cannot be changed directly
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Email cannot be changed. Contact support if you need to update your email address.
+                          </p>
+                        </div>
+                        
+                        <Button type="submit" disabled={loading || saving} className="w-full">
+                          {saving ? "Saving..." : "Save Changes"}
+                        </Button>
+                      </form>
+                    </CardContent>
+                  </Card>
 
-              {/* Theme Section */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Palette className="h-5 w-5 mr-2 text-purple-500" />
-                    Appearance
-                  </CardTitle>
-                  <CardDescription>
-                    Customize the look and feel of the application
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Theme</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Select your preferred color scheme
-                      </p>
-                    </div>
-                    <ThemeToggle />
-                  </div>
-                </CardContent>
-              </Card>
+                  {/* Column Layout for Security, Preferences, and Appearance */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Security and Appearance Section */}
+                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Shield className="h-5 w-5 mr-2 text-purple-500" />
+                          Security
+                        </CardTitle>
+                        <CardDescription>
+                          Manage your password and security settings
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <Button 
+                            onClick={() => setShowChangePasswordModal(true)}
+                            variant="outline" 
+                            className="w-full justify-start"
+                          >
+                            <Lock className="h-4 w-4 mr-2" />
+                            Change Password
+                          </Button>
+                        </div>
+                      </CardContent>
+                      <div className="border-t border-border mx-6"></div>
+                      <CardContent>
+                        <div className="space-y-4 pt-4">
+                          <div className="space-y-2">
+                            <CardTitle className="flex items-center text-base font-medium">
+                              <Palette className="h-4 w-4 mr-2 text-purple-500" />
+                              Appearance
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              Customize the look and feel of the application
+                            </p>
+                            <div className="flex items-center justify-between pt-2">
+                              <span className="text-sm">Theme</span>
+                              <ThemeToggle />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-              {/* Logout Section */}
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
-                <CardContent className="pt-6">
-                  <Button 
-                    onClick={handleLogout}
-                    variant="outline" 
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Log out
-                  </Button>
-                </CardContent>
-              </Card>
+                    {/* Preferences Section */}
+                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Bell className="h-5 w-5 mr-2 text-purple-500" />
+                          Preferences
+                        </CardTitle>
+                        <CardDescription>
+                          Customize your notification and communication preferences
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>Notifications</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receive notifications about your resumes and account activity
+                            </p>
+                            <div className="flex items-center justify-between pt-2">
+                              <span>Enable Notifications</span>
+                              <Switch
+                                id="notifications"
+                                checked={notifications}
+                                onCheckedChange={setNotifications}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label>Marketing Emails</Label>
+                            <p className="text-sm text-muted-foreground">
+                              Receive emails about new features and product updates
+                            </p>
+                            <div className="flex items-center justify-between pt-2">
+                              <span>Enable Marketing Emails</span>
+                              <Switch
+                                id="marketing-emails"
+                                checked={marketingEmails}
+                                onCheckedChange={setMarketingEmails}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Logout Section */}
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <CardContent className="pt-6">
+                      <Button 
+                        onClick={handleLogout}
+                        variant="outline" 
+                        className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Log out
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
-          )}
+          </div>
           
           {/* Remove Image Confirmation Dialog */}
           {showRemoveImageDialog && (
@@ -1023,10 +1164,10 @@ export default function SettingsPage() {
               </Card>
             </div>
           )}
-          
-          {/* Dynamic Dock Component */}
-          <DynamicDock currentPage="settings" />
         </div>
+        
+        {/* Dynamic Dock Component */}
+        <DynamicDock currentPage="settings" showLogout={false} />
       </div>
     </ProtectedPage>
   );
