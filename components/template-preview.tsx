@@ -38,9 +38,10 @@ interface FormResumeData {
 interface TemplatePreviewProps {
   templateId: number | null;
   resumeData: FormResumeData;
+  imagePreview?: string | null; // Add image preview prop
 }
 
-const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeData }) => {
+const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeData, imagePreview }) => {
   // Convert the resume data to the format expected by the template
   const transformResumeData = (data: FormResumeData): ResumeData => {
     // Transform from form data to template-compatible format
@@ -53,7 +54,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
       location: data.personalInfo.location ? {
         address: data.personalInfo.location,
       } : undefined,
-      image: undefined // Add this line to ensure image property exists
+      image: imagePreview || undefined // Use imagePreview instead of undefined
     };
 
     const work = data.workExperience.map((exp) => ({

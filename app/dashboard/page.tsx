@@ -286,7 +286,7 @@ export default function DashboardPage() {
                   <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
                 ) : (
                   <>
-                    <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+                    <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
@@ -358,92 +358,130 @@ export default function DashboardPage() {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar Menu */}
             <div className="lg:w-64 flex-shrink-0">
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                <CardHeader>
-                  <CardTitle className="text-lg">Dashboard Menu</CardTitle>
-                  <CardDescription>
-                    Navigate your workspace
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <nav className="space-y-2">
-                    <Button
-                      variant="default"
-                      className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                      onClick={() => router.push("/dashboard")}
-                    >
-                      <LayoutDashboard className="h-4 w-4 mr-2" />
-                      Dashboard
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start rounded-full"
-                      asChild
-                    >
-                      <Link href="/my-resumes">
-                        <FileText className="h-4 w-4 mr-2" />
-                        My Resumes
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start rounded-full"
-                      onClick={() => router.push("/templates")}
-                    >
-                      <LayoutDashboard className="h-4 w-4 mr-2" />
-                      My Templates
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start rounded-full"
-                      onClick={() => router.push("/settings")}
-                    >
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </Button>
-                  </nav>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
-                    <div className="space-y-2">
+              {loading ? (
+                // Sidebar Skeleton Loading
+                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                  <CardHeader>
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                    
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                      <div className="space-y-3">
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                          <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        </div>
+                      </div>
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Dashboard Menu</CardTitle>
+                    <CardDescription>
+                      Navigate your workspace
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <nav className="space-y-2">
+                      <Button
+                        variant="default"
+                        className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                        onClick={() => router.push("/dashboard")}
+                      >
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Dashboard
+                      </Button>
                       <Button
                         variant="ghost"
                         className="w-full justify-start rounded-full"
-                        onClick={() => toast.info("Help documentation coming soon!")}
+                        asChild
                       >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Help Center
+                        <Link href="/my-resumes">
+                          <FileText className="h-4 w-4 mr-2" />
+                          My Resumes
+                        </Link>
                       </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0">
-                        {getUserAvatar()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {user?.user_metadata?.full_name || 'User'}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {user?.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-3">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        onClick={handleLogout}
+                        className="w-full justify-start rounded-full"
+                        onClick={() => router.push("/templates")}
                       >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        My Templates
                       </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start rounded-full"
+                        onClick={() => router.push("/settings")}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </Button>
+                    </nav>
+                    
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
+                      <div className="space-y-2">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start rounded-full"
+                          onClick={() => toast.info("Help documentation coming soon!")}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Help Center
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    
+                    <div className="mt-6 pt-6 border-t border-border">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="flex-shrink-0">
+                          {getUserAvatar()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {user?.user_metadata?.full_name || 'User'}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {user?.email}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={handleLogout}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          Logout
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Main Content */}
@@ -677,7 +715,7 @@ export default function DashboardPage() {
           </div>
           
           {/* Dynamic Dock Component */}
-          <DynamicDock currentPage="dashboard" />
+          <DynamicDock currentPage="dashboard" showLogout={false} />
         </div>
       </div>
     </ProtectedPage>

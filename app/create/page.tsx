@@ -779,7 +779,7 @@ const CreateResumeContent = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <TemplatePreview templateId={selectedTemplate} resumeData={resumeData} />
+                    <TemplatePreview templateId={selectedTemplate} resumeData={resumeData} imagePreview={imagePreview} />
                   </CardContent>
                 </Card>
               ) : (
@@ -1353,7 +1353,7 @@ const CreateResumeContent = () => {
       </div>
       
       {/* Dynamic Dock Component */}
-      <DynamicDock currentPage="create" />
+      <DynamicDock currentPage="create" showLogout={false} />
     </ProtectedPage>
   );
 };

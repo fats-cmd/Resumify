@@ -733,7 +733,7 @@ export default function ResumePage() {
           </div>
         
           {/* Dynamic Dock Component */}
-          <DynamicDock currentPage="resume" />
+          <DynamicDock currentPage="resume" showLogout={false} />
         </div>
       </div>
     </ProtectedPage>

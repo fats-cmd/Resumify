@@ -225,7 +225,14 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
               
               {/* Summary */}
               <div className="pl-8 mb-8">
-                <p className="text-gray-700 leading-relaxed">{data.basics?.summary || 'Add your professional summary here...'}</p>
+                {data.basics?.summary ? (
+                  <div 
+                    className="text-gray-700 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: data.basics.summary }}
+                  />
+                ) : (
+                  <p className="text-gray-700 leading-relaxed">Add your professional summary here...</p>
+                )}
               </div>
               
               {/* Job Experience */}
@@ -258,7 +265,14 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
                     </div>
                     
                     <div className="mt-2">
-                      <p className="text-gray-700">{work.summary}</p>
+                      {work.summary ? (
+                        <div 
+                          className="text-gray-700"
+                          dangerouslySetInnerHTML={{ __html: work.summary }}
+                        />
+                      ) : (
+                        <p className="text-gray-700">Add your job responsibilities and achievements here...</p>
+                      )}
                     </div>
                   </div>
                 ))}
