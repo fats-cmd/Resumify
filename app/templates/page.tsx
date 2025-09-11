@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dock, DockItem } from "@/components/ui/dock";
 import { signOut } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -28,7 +29,7 @@ import {
   Plus,
   LayoutDashboard,
   FileText,
-  Sparkles
+  Home
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -144,46 +145,105 @@ export default function TemplatesPage() {
 
   // Get user's profile image or generate initials
   const getUserAvatar = () => {
-    if (!user) return null;
-    
-    // Check if user has an avatar URL
-    const avatarUrl = user.user_metadata?.avatar_url;
-    if (avatarUrl) {
+    if (!user) {
       return (
-        <Image 
-          src={avatarUrl} 
-          alt="Profile" 
-          width={32}
-          height={32}
-          className="rounded-full object-cover border-2 border-white/20"
-          priority
-        />
+        <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+          <span className="text-gray-600 dark:text-gray-300 text-sm font-medium">?</span>
+        </div>
       );
     }
     
-    // Generate initials from user's name or email
-    const fullName = user.user_metadata?.full_name;
-    const email = user.email || '';
-    let initials = '';
+    // Check if user has an avatar URL (trying multiple possible locations)
+    // Handle cache-busted URLs by extracting the base URL
+    let avatarUrl = user.user_metadata?.avatar_url || 
+                   user.user_metadata?.picture || 
+                   user.identities?.[0]?.identity_data?.avatar_url;
     
-    if (fullName) {
-      const names = fullName.split(' ');
-      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
-    } else if (email) {
-      const emailParts = email.split('@');
-      initials = emailParts[0].charAt(0);
+    // If avatarUrl contains a cache-busting parameter, extract the base URL
+    if (avatarUrl && avatarUrl.includes('?t=')) {
+      avatarUrl = avatarUrl.split('?t=')[0];
     }
     
+    if (avatarUrl) {
+      return (
+        <div className="relative w-8 h-8">
+          <Image 
+            src={avatarUrl} 
+            alt="Profile" 
+            fill
+            className="rounded-full object-cover border-2 border-white/20"
+            sizes="32px"
+            priority
+            onError={(e) => {
+              // Fallback to initials if image fails to load
+              e.currentTarget.style.display = 'none';
+              const initialsContainer = e.currentTarget.nextSibling as HTMLElement;
+              if (initialsContainer) initialsContainer.style.display = 'flex';
+            }}
+          />
+          {/* Fallback initials that shows only if image fails to load */}
+          <div className="hidden w-full h-full rounded-full bg-purple-600 items-center justify-center text-white text-sm font-medium">
+            {getUserInitials()}
+          </div>
+        </div>
+      );
+    }
+    
+    // Check for custom image avatar
+    const customImageAvatar = user.user_metadata?.custom_image_avatar;
+    if (customImageAvatar) {
+      return (
+        <div className="relative w-8 h-8">
+          <Image 
+            src={customImageAvatar} 
+            alt="Profile" 
+            fill
+            className="rounded-full object-cover border-2 border-white/20"
+            sizes="32px"
+            priority
+          />
+        </div>
+      );
+    }
+    
+    // Fallback to initials if no avatar URL
     return (
-      <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-sm font-medium">
-        {initials.toUpperCase()}
+      <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium">
+        {getUserInitials()}
       </div>
     );
+  };
+  
+  // Helper function to get user initials
+  const getUserInitials = () => {
+    if (!user) return '?';
+    
+    // Try to get name from user_metadata or identity data
+    const fullName = user.user_metadata?.full_name || 
+                    user.user_metadata?.name ||
+                    user.identities?.[0]?.identity_data?.name ||
+                    '';
+    
+    const email = user.email || '';
+    
+    if (fullName) {
+      const names = fullName.trim().split(/\s+/);
+      if (names.length >= 2) {
+        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+      }
+      return names[0].charAt(0).toUpperCase();
+    } 
+    
+    if (email) {
+      return email.charAt(0).toUpperCase();
+    }
+    
+    return '?';
   };
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -371,7 +431,7 @@ export default function TemplatesPage() {
               </div>
 
               {/* Templates Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {templateCategories
                   .find((category) => category.id === selectedCategory)
                   ?.templates.map((template, index) => (
@@ -379,58 +439,106 @@ export default function TemplatesPage() {
                       key={template.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
-                      whileHover={{ y: -5 }}
-                      className="h-full"
+                      transition={{ 
+                        duration: 0.4, 
+                        delay: index * 0.07,
+                        ease: [0.16, 1, 0.3, 1]
+                      }}
+                      whileHover={{ 
+                        y: -8,
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                      }}
+                      className="h-full relative group"
                     >
-                      <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 h-full flex flex-col group">
-                        <div className="relative">
-                          {template.previewImage ? (
-                            <div className="w-full h-48 bg-gray-200 rounded-t-2xl overflow-hidden">
+                      {/* Premium Badge */}
+                      {template.isPremium && (
+                        <div className="absolute -top-3 -right-3 z-10">
+                          <div className="relative">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                            <span className="relative px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold rounded-full flex items-center">
+                              <Star className="h-3 w-3 mr-1 fill-current" />
+                              PREMIUM
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Card className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col group-hover:border-purple-200 dark:group-hover:border-purple-900/50 relative">
+                        {/* Preview Image */}
+                        <div className="relative overflow-hidden rounded-t-2xl h-56 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                          <div className="absolute inset-0 flex items-center justify-center p-4">
+                            {template.previewImage ? (
                               <Image 
                                 src={template.previewImage} 
                                 alt={template.name}
                                 width={400}
-                                height={192}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                height={400}
+                                className="object-contain transition-all duration-700 group-hover:scale-105 rounded-lg"
+                                style={{
+                                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                                }}
                                 onError={(e) => {
                                   // Fallback to placeholder if image fails to load
                                   e.currentTarget.src = "/placeholder.svg";
                                 }}
                               />
-                            </div>
-                          ) : (
-                            <div className="bg-gray-200 border-2 border-dashed rounded-t-2xl w-full h-48" />
-                          )}
-                          {template.isFeatured && (
-                            <Badge className="absolute top-4 left-4 bg-yellow-500 text-yellow-900 rounded-full shadow">
-                              <Star className="h-3 w-3 mr-1 fill-current" />
-                              Featured
-                            </Badge>
-                          )}
-                          {template.isPremium && (
-                            <Badge className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full shadow">
-                              Premium
-                            </Badge>
-                          )}
-                        </div>
-                        <CardHeader className="pb-3">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">{template.name}</CardTitle>
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                                <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600" />
+                              </div>
+                            )}
                           </div>
-                          <CardDescription className="text-muted-foreground mt-2 text-sm">
+                          
+                        </div>
+                        
+                        {/* Template Info */}
+                        <div className="p-5 flex-1 flex flex-col">
+                          <div className="flex justify-between items-start">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                              {template.name}
+                            </h3>
+                            {template.isFeatured && (
+                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                Popular
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                             {template.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="mt-auto pt-0">
-                          <Button 
-                            className="w-full rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow transition-all duration-300 transform hover:scale-[1.02]"
-                            onClick={() => router.push(`/create?template=${template.id}`)}
-                          >
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Use Template
-                          </Button>
-                        </CardContent>
+                          </p>
+                          
+                          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <div className="flex -space-x-2">
+                                {[1, 2, 3].map((i) => (
+                                  <div 
+                                    key={i}
+                                    className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 border-2 border-white dark:border-gray-800"
+                                    style={{ zIndex: 3 - i }}
+                                  />
+                                ))}
+                              </div>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {Math.floor(Math.random() * 100) + 1}K+ users
+                              </span>
+                            </div>
+                            
+                            <Button 
+                              asChild
+                              size="sm" 
+                              className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+                            >
+                              <Link href={`/create?template=${template.id}`}>
+                                {template.isPremium ? (
+                                  <span className="flex items-center">
+                                    <Star className="h-3.5 w-3.5 mr-1.5 fill-current" />
+                                    Use Premium
+                                  </span>
+                                ) : 'Use Free'}
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
                       </Card>
                     </motion.div>
                   ))}
@@ -438,11 +546,11 @@ export default function TemplatesPage() {
 
               {/* Premium CTA Section */}
               <div className="mt-16">
-                <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 rounded-2xl overflow-hidden shadow-xl">
+                <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 rounded-3xl overflow-hidden shadow-2xl">
                   <CardContent className="p-8 text-center">
                     <div className="flex justify-center mb-4">
                       <div className="bg-white/20 p-3 rounded-full">
-                        <Sparkles className="h-8 w-8 text-white" />
+                        <Star className="h-8 w-8 text-white fill-white" />
                       </div>
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Unlock All Premium Templates</h2>
@@ -451,7 +559,7 @@ export default function TemplatesPage() {
                     </p>
                     <Button 
                       variant="secondary" 
-                      className="bg-white text-purple-600 hover:bg-white/90 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="bg-white text-purple-600 hover:bg-white/90 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-base"
                       onClick={() => router.push('/settings')}
                     >
                       Upgrade to Premium
@@ -461,6 +569,27 @@ export default function TemplatesPage() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Dock Component */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
+          <Dock>
+            <DockItem title="Home" onClick={() => router.push("/")}>
+              <Home className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
+              <LayoutDashboard className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Create Resume" onClick={() => router.push("/create")}>
+              <Plus className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="My Templates" onClick={() => router.push("/templates")}>
+              <FileText className="h-6 w-6 text-foreground" />
+            </DockItem>
+            <DockItem title="Settings" onClick={() => router.push("/settings")}>
+              <Settings className="h-6 w-6 text-foreground" />
+            </DockItem>
+          </Dock>
         </div>
       </div>
     </ProtectedPage>
