@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Dock, DockItem } from "@/components/ui/dock";
+import { DynamicDock } from "@/components/dynamic-dock";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
-import { getResumes, updateResume, signOut } from "@/lib/supabase";
+import { getResumes, updateResume } from "@/lib/supabase";
 import { Resume, ResumeData } from "../../../types/resume";
 import { toast } from 'react-toastify';
 import { 
@@ -28,17 +28,14 @@ import {
   Save,
   Eye,
   ArrowLeft,
-  LayoutDashboard, 
-  LogOut,
-  Home,
-  Settings,
   Sparkles
 } from "lucide-react";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
-export default function EditResumePage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditResumePage() {
   const router = useRouter();
+  const { id } = useParams();
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState("personal");
   const [loading, setLoading] = useState(true);
@@ -47,9 +44,6 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
   // State for image upload
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
-  // Unwrap the params promise
-  const unwrappedParams = React.use(params);
   
   // State for form data
   const [resumeData, setResumeData] = useState<ResumeData>({
@@ -127,7 +121,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
           toast.error("Failed to load resume. Please try again later.");
           router.push("/dashboard");
         } else {
-          const resume = data?.find((r: Resume) => r.id === parseInt(unwrappedParams.id));
+          const resume = data?.find((r: Resume) => r.id === parseInt(id as string));
           if (resume) {
             setResumeData(resume.data as ResumeData);
             // Set image preview if resume has an image
@@ -159,7 +153,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
     if (user) {
       fetchResume();
     }
-  }, [user, unwrappedParams.id, router]);
+  }, [user, id, router]);
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -367,7 +361,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       };
       
       // Update the resume data in Supabase
-      const { data, error } = await updateResume(parseInt(unwrappedParams.id), resumeDataWithImage);
+      const { data, error } = await updateResume(parseInt(id as string), resumeDataWithImage);
       
       if (error) {
         console.error("Error updating resume:", error);
@@ -385,22 +379,6 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
       toast.error("Error updating resume. Please try again.");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        console.error("Error signing out:", error);
-        toast.error("Error signing out. Please try again.");
-      } else {
-        toast.success("You have been logged out successfully.");
-        router.push("/");
-      }
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out. Please try again.");
     }
   };
 
@@ -779,7 +757,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -886,7 +864,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                         className="w-full rounded-full"
                         asChild
                       >
-                        <Link href={`/resume/${unwrappedParams.id}`}>
+                        <Link href={`/resume/${id}`}>
                           <Eye className="h-4 w-4 mr-2" />
                           Preview
                         </Link>
@@ -1369,7 +1347,7 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
                             </>
                           ) : (
                             <>
-                              <Sparkles className="h-3 w-33 mr-1" />
+                              <Sparkles className="h-3 w-3 mr-1" />
                               Generate with AI
                             </>
                           )}
@@ -1457,26 +1435,8 @@ export default function EditResumePage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
       
-      {/* Dock Component */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        <Dock>
-          <DockItem title="Home" onClick={() => router.push("/")}>  
-            <Home className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-            <LayoutDashboard className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-            <Plus className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Settings" onClick={() => router.push("/settings")}>
-            <Settings className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Logout" onClick={() => handleLogout()}>
-            <LogOut className="h-6 w-6 text-foreground" />
-          </DockItem>
-        </Dock>
-      </div>
+      {/* Dynamic Dock Component */}
+      <DynamicDock currentPage="resume" />
     </ProtectedPage>
   );
 }

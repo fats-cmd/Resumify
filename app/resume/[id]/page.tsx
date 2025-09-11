@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Dock, DockItem } from "@/components/ui/dock";
+import { DynamicDock } from "@/components/dynamic-dock";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
-import { getResumes, signOut } from "@/lib/supabase";
+import { getResumes } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import { 
   FileText, 
@@ -24,30 +24,23 @@ import {
   MapPin,
   Briefcase,
   GraduationCap,
-  LayoutDashboard, 
-  LogOut,
-  Home,
-  Settings,
-  Plus,
   User
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Resume, ResumeData } from "@/types/resume";
 
-export default function ResumeViewPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ResumePage() {
   const router = useRouter();
+  const { id } = useParams();
   const { user } = useAuth();
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [loading, setLoading] = useState(true);
   const resumeRef = useRef<HTMLDivElement>(null);
-  
-  // Unwrap the params promise
-  const unwrappedParams = React.use(params);
 
   // Fetch the resume data from Supabase
   useEffect(() => {
     const fetchResume = async () => {
-      if (!user) return;
+      if (!user || !id) return;
       
       try {
         const { data, error } = await getResumes(user.id);
@@ -67,7 +60,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
           toast.error("Failed to load resume. Please try again later.");
           router.push("/dashboard");
         } else {
-          const resume = data?.find((r: Resume) => r.id === parseInt(unwrappedParams.id));
+          const resume = data?.find((r: Resume) => r.id === parseInt(id as string));
           if (resume) {
             setResumeData(resume.data as ResumeData);
           } else {
@@ -95,7 +88,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
     if (user) {
       fetchResume();
     }
-  }, [user, unwrappedParams.id, router]);
+  }, [user, id, router]);
 
   const handleDownload = async () => {
     if (!resumeData) {
@@ -408,22 +401,6 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
     // In a real app, this would open sharing options
   };
 
-  const handleLogout = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        console.error("Error signing out:", error);
-        toast.error("Error signing out. Please try again.");
-      } else {
-        toast.success("You have been logged out successfully.");
-        router.push("/");
-      }
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out. Please try again.");
-    }
-  };
-
   if (loading) {
     return (
       <ProtectedPage>
@@ -536,7 +513,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
           }
         }
       `}</style>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -590,7 +567,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                   variant="outline"
                   className="bg-white/20 text-white border-white/30 hover:bg-white/30 rounded-full"
                 >
-                  <Link href={`/edit/${unwrappedParams.id}`}>
+                  <Link href={`/edit/${id}`}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </Link>
@@ -610,7 +587,7 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
                 size="sm"
                 className="absolute top-4 right-4 bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full h-10 w-10 p-0 no-print"
               >
-                <Link href={`/edit/${unwrappedParams.id}`}>
+                <Link href={`/edit/${id}`}>
                   <Edit className="h-5 w-5" />
                 </Link>
               </Button>
@@ -754,28 +731,10 @@ export default function ResumeViewPage({ params }: { params: Promise<{ id: strin
               </CardContent>
             </Card>
           </div>
+        
+          {/* Dynamic Dock Component */}
+          <DynamicDock currentPage="resume" />
         </div>
-      </div>
-      
-      {/* Dock Component */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        <Dock>
-          <DockItem title="Home" onClick={() => router.push("/")}>  
-            <Home className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-            <LayoutDashboard className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-            <Plus className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Settings" onClick={() => router.push("/settings")}>
-            <Settings className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Logout" onClick={() => handleLogout()}>
-            <LogOut className="h-6 w-6 text-foreground" />
-          </DockItem>
-        </Dock>
       </div>
     </ProtectedPage>
   );

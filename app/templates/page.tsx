@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dock, DockItem } from "@/components/ui/dock";
+import { DynamicDock } from "@/components/dynamic-dock";
 import { signOut } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -28,8 +28,7 @@ import {
   LogOut,
   Plus,
   LayoutDashboard,
-  FileText,
-  Home
+  FileText
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -571,26 +570,8 @@ export default function TemplatesPage() {
           </div>
         </div>
         
-        {/* Dock Component */}
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
-          <Dock>
-            <DockItem title="Home" onClick={() => router.push("/")}>
-              <Home className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-              <LayoutDashboard className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-              <Plus className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="My Templates" onClick={() => router.push("/templates")}>
-              <FileText className="h-6 w-6 text-foreground" />
-            </DockItem>
-            <DockItem title="Settings" onClick={() => router.push("/settings")}>
-              <Settings className="h-6 w-6 text-foreground" />
-            </DockItem>
-          </Dock>
-        </div>
+        {/* Dynamic Dock Component */}
+        <DynamicDock currentPage="templates" showLogout={false} />
       </div>
     </ProtectedPage>
   );

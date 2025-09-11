@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Dock, DockItem } from "@/components/ui/dock";
+import { DynamicDock } from "@/components/dynamic-dock";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { getUser, signOut, updateProfile, uploadProfileImage, updatePassword } from "@/lib/supabase";
@@ -27,10 +27,6 @@ import {
   Eye,
   EyeOff,
   X,
-  Home,
-  LayoutDashboard,
-  Plus,
-  Settings,
   Upload
 } from "lucide-react";
 
@@ -444,7 +440,7 @@ export default function SettingsPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1028,26 +1024,8 @@ export default function SettingsPage() {
             </div>
           )}
           
-          {/* Dock Component */}
-          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-40">
-            <Dock>
-              <DockItem title="Home" onClick={() => router.push("/")}>
-                <Home className="h-6 w-6 text-foreground" />
-              </DockItem>
-              <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-                <LayoutDashboard className="h-6 w-6 text-foreground" />
-              </DockItem>
-              <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-                <Plus className="h-6 w-6 text-foreground" />
-              </DockItem>
-              <DockItem title="Settings" onClick={() => router.push("/settings")}>
-                <Settings className="h-6 w-6 text-foreground" />
-              </DockItem>
-              <DockItem title="Logout" onClick={() => handleLogout()}>
-                <LogOut className="h-6 w-6 text-foreground" />
-              </DockItem>
-            </Dock>
-          </div>
+          {/* Dynamic Dock Component */}
+          <DynamicDock currentPage="settings" />
         </div>
       </div>
     </ProtectedPage>

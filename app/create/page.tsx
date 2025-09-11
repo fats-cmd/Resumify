@@ -15,10 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Dock, DockItem } from "@/components/ui/dock";
+import { DynamicDock } from "@/components/dynamic-dock";
 import TemplatePreview from "@/components/template-preview";
 import Link from "next/link";
-import { saveResume, signOut } from "@/lib/supabase";
+import { saveResume } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -26,19 +26,15 @@ import {
   Briefcase,
   GraduationCap,
   FileText,
-  Plus,
   Trash2,
   Eye,
-  LogOut,
-  Home,
-  Settings,
   Sparkles,
-  LayoutDashboard,
   Save,
   Mail,
   Phone,
   MapPin,
-  ArrowLeft
+  ArrowLeft,
+  Plus
 } from "lucide-react";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -407,23 +403,6 @@ const CreateResumeContent = () => {
   const handlePreviewToggle = () => {
     setShowPreview(!showPreview);
   };
-  
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        console.error("Error signing out:", error);
-        toast.error("Error signing out. Please try again.");
-      } else {
-        toast.success("You have been logged out successfully.");
-        router.push("/");
-      }
-    } catch (error) {
-      console.error("Error signing out:", error);
-      toast.error("Error signing out. Please try again.");
-    }
-  };
 
   // AI Helper Functions
   const generateSummaryWithAI = async () => {
@@ -642,7 +621,7 @@ const CreateResumeContent = () => {
         }
         
         // Clean up each skill to remove any remaining introductory text or markdown
-        skills = skills.map(skill => {
+        skills = skills.map((skill: string) => {
           if (typeof skill === 'string') {
             // Remove common introductory phrases
             return skill
@@ -654,7 +633,7 @@ const CreateResumeContent = () => {
               .trim();
           }
           return skill;
-        }).filter(skill => typeof skill === 'string' && skill.length > 0);
+        }).filter((skill: string) => typeof skill === 'string' && skill.length > 0);
         
         setResumeData({
           ...resumeData,
@@ -674,7 +653,7 @@ const CreateResumeContent = () => {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1373,26 +1352,8 @@ const CreateResumeContent = () => {
         </div>
       </div>
       
-      {/* Dock Component */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-        <Dock>
-          <DockItem title="Home" onClick={() => router.push("/")}>  
-            <Home className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Dashboard" onClick={() => router.push("/dashboard")}>
-            <LayoutDashboard className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Create Resume" onClick={() => router.push("/create")}>
-            <Plus className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Settings" onClick={() => router.push("/settings")}>
-            <Settings className="h-6 w-6 text-foreground" />
-          </DockItem>
-          <DockItem title="Logout" onClick={() => handleLogout()}>
-            <LogOut className="h-6 w-6 text-foreground" />
-          </DockItem>
-        </Dock>
-      </div>
+      {/* Dynamic Dock Component */}
+      <DynamicDock currentPage="create" />
     </ProtectedPage>
   );
 };
