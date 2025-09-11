@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Resume } from "@/types/resume";
+import { DynamicDock } from "@/components/dynamic-dock";
 
 // Skeleton component for loading states - improved to better reflect resume structure
 const SkeletonCard = () => (
@@ -563,6 +564,9 @@ export default function MyResumesPage() {
             </div>
           </div>
         </div>
+        
+        {/* Dynamic Dock Component */}
+        <DynamicDock currentPage="my-resumes" />
       </div>
     </ProtectedPage>
   );
