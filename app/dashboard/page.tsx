@@ -368,7 +368,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
           <div className="flex flex-col lg:flex-row gap-8 relative">
             {/* Sidebar Menu - Floats on mobile */}
-            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto lg:sticky lg:top-8 lg:h-[calc(100vh-2rem)]`}>
               <div className="h-full lg:h-auto overflow-y-auto">
                 {loading ? (
                   // Sidebar Skeleton Loading
