@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Sidebar } from "@/components/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +32,9 @@ import {
   Clock, 
   Star,
   LogOut,
-  Settings
+  Settings,
+  Menu,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Resume } from "@/types/resume";
@@ -39,7 +42,7 @@ import { DynamicDock } from "@/components/dynamic-dock";
 
 // Skeleton component for loading states - improved to better reflect resume structure
 const SkeletonCard = () => (
-  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
     <CardHeader className="pb-4">
       <div className="flex justify-between items-start">
         <div className="space-y-2">
@@ -76,9 +79,10 @@ export default function MyResumesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [resumesLoading, setResumesLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false since ProtectedPage handles auth loading
+  const [resumesLoading, setResumesLoading] = useState(true); // Start with true to show skeleton immediately
   const [avatarError, setAvatarError] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
 
   // Fetch resumes
   useEffect(() => {
@@ -87,14 +91,15 @@ export default function MyResumesPage() {
       
       try {
         setResumesLoading(true);
+        setLoading(true);
         // Add a minimum loading time to ensure skeleton is visible
         const startTime = Date.now();
         
         const { data, error } = await getResumes(user.id);
         
-        // Ensure skeleton shows for at least 800ms for better UX
+        // Ensure skeleton shows for at least 1200ms for better UX
         const elapsed = Date.now() - startTime;
-        const minLoadingTime = 800;
+        const minLoadingTime = 1200;
         if (elapsed < minLoadingTime) {
           await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
         }
@@ -118,6 +123,10 @@ export default function MyResumesPage() {
       // Reset avatar error state when user changes
       setAvatarError(false);
       fetchResumes();
+    } else {
+      // If there's no user, we're not loading anymore
+      setResumesLoading(false);
+      setLoading(false);
     }
   }, [user]);
 
@@ -239,7 +248,7 @@ export default function MyResumesPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-background">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -250,6 +259,13 @@ export default function MyResumesPage() {
                 </span>
               </Link>
               <div className="flex items-center space-x-3">
+                {/* Hamburger menu button for mobile */}
+                <button 
+                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                >
+                  <Menu className="h-6 w-6 text-white" />
+                </button>
                 {loading ? (
                   <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
                 ) : (
@@ -323,141 +339,74 @@ export default function MyResumesPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Menu */}
-            <div className="lg:w-64 flex-shrink-0">
-              {loading ? (
-                // Sidebar Skeleton Loading
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                  <CardHeader>
-                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+          <div className="flex flex-col lg:flex-row gap-8 relative">
+            {/* Sidebar Menu - Floats on mobile */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
+              <div className="h-full lg:h-auto overflow-y-auto">
+                {loading ? (
+                  // Sidebar Skeleton Loading
+                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
+                    <CardHeader className="flex justify-between items-center">
+                      <div>
+                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                      </div>
+                      {/* Exit button for mobile */}
+                      <div className="lg:hidden">
+                        <button 
+                          onClick={() => setSidebarOpen(false)}
+                          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                          aria-label="Close sidebar"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
                       <div className="space-y-3">
                         <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                       </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                          <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                        <div className="space-y-3">
+                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                         </div>
                       </div>
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Dashboard Menu</CardTitle>
-                    <CardDescription>
-                      Navigate your workspace
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <nav className="space-y-2">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/dashboard">
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
-                          Dashboard
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="default"
-                        className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                        onClick={() => router.push("/my-resumes")}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        My Resumes
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/templates">
-                          <FileText className="h-4 w-4 mr-2" />
-                          My Templates
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/settings">
-                          <Settings className="h-4 w-4 mr-2" />
-                          Settings
-                        </Link>
-                      </Button>
-                    </nav>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
-                      <div className="space-y-2">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-full"
-                          onClick={() => toast.info("Help documentation coming soon!")}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Help Center
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0">
-                          {getUserAvatar()}
+                      
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                            <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {user?.user_metadata?.full_name || 'User'}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {user?.email}
-                          </p>
-                        </div>
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                       </div>
-                      <div className="flex flex-col gap-3">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          onClick={handleLogout}
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Logout
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Sidebar currentPage="my-resumes" onClose={() => setSidebarOpen(false)} />
+                )}
+              </div>
             </div>
+            
+            {/* Overlay for mobile when sidebar is open */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
+            )}
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 lg:ml-0">
               {/* Resumes Section */}
               <div className="mb-24 mt-10">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -490,6 +439,7 @@ export default function MyResumesPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {resumesLoading ? (
+                    // Show 3 skeleton cards while loading
                     [...Array(3)].map((_, index) => (
                       <motion.div
                         key={index}
@@ -508,7 +458,7 @@ export default function MyResumesPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.1 * index }}
                       >
-                        <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
                           <CardHeader className="pb-4">
                             <div className="flex justify-between items-start">
                               <div>
@@ -533,7 +483,7 @@ export default function MyResumesPage() {
                                     : "bg-gray-500/20 text-gray-700 dark:text-gray-300"
                                 }`}
                               >
-                                {resume.status || "Draft"}
+                                {resume.status === "Published" ? "Published" : ""}
                               </Badge>
                             </div>
                           </CardHeader>
@@ -581,7 +531,7 @@ export default function MyResumesPage() {
                       </motion.div>
                     ))
                   ) : (
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden lg:col-span-2">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden lg:col-span-2">
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <FileText className="h-16 w-16 text-muted-foreground mb-6" />
                         <h3 className="text-2xl font-bold mb-2">No resumes yet</h3>

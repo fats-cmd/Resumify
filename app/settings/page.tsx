@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Sidebar } from "@/components/sidebar";
 import { DynamicDock } from "@/components/dynamic-dock";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
@@ -30,7 +31,8 @@ import {
   Upload,
   LayoutDashboard,
   FileText,
-  Settings
+  Settings,
+  Menu
 } from "lucide-react";
 
 // Custom avatar images
@@ -75,6 +77,7 @@ export default function SettingsPage() {
   const [visibleAvatars, setVisibleAvatars] = useState(7); // Show 7 avatars initially
   const [loadingAvatars, setLoadingAvatars] = useState(false); // For skeleton loading
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Add this state for mobile sidebar
 
   // Password change state
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -443,7 +446,7 @@ export default function SettingsPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <div className="min-h-screen bg-background">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -454,6 +457,13 @@ export default function SettingsPage() {
                 </span>
               </Link>
               <div className="flex items-center space-x-3">
+                {/* Hamburger menu button for mobile */}
+                <button 
+                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                >
+                  <Menu className="h-6 w-6 text-white" />
+                </button>
                 <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
               </div>
             </div>
@@ -469,148 +479,79 @@ export default function SettingsPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Menu - hidden on mobile and tablet */}
-            <div className="lg:w-64 flex-shrink-0 hidden lg:block">
-              {loading ? (
-                // Sidebar Skeleton Loading
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                  <CardHeader>
-                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+          <div className="flex flex-col lg:flex-row gap-8 relative">
+            {/* Sidebar Menu - Floats on mobile */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
+              <div className="h-full lg:h-auto overflow-y-auto">
+                {loading ? (
+                  // Sidebar Skeleton Loading
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
+                    <CardHeader>
+                      <div>
+                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                      </div>
+                      {/* Exit button for mobile */}
+                      <div className="lg:hidden">
+                        <button 
+                          onClick={() => setSidebarOpen(false)}
+                          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                          aria-label="Close sidebar"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
                       <div className="space-y-3">
                         <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                       </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                          <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                        <div className="space-y-3">
+                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                         </div>
                       </div>
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Dashboard Menu</CardTitle>
-                    <CardDescription>
-                      Navigate your workspace
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <nav className="space-y-2">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/dashboard">
-                          <LayoutDashboard className="h-4 w-4 mr-2" />
-                          Dashboard
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/my-resumes">
-                          <FileText className="h-4 w-4 mr-2" />
-                          My Resumes
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/templates">
-                          <FileText className="h-4 w-4 mr-2" />
-                          My Templates
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="default"
-                        className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                        onClick={() => router.push("/settings")}
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Settings
-                      </Button>
-                    </nav>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
-                      <div className="space-y-2">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-full"
-                          onClick={() => toast.info("Help documentation coming soon!")}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Help Center
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
-                            {renderAvatar(true)}
+                      
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                            <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                           </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {user?.user_metadata?.full_name || 'User'}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {user?.email}
-                          </p>
-                        </div>
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                       </div>
-                      <div className="flex flex-col gap-3">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          onClick={handleLogout}
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Logout
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Sidebar currentPage="settings" onClose={() => setSidebarOpen(false)} />
+                )}
+              </div>
             </div>
+            
+            {/* Overlay for mobile when sidebar is open */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
+            )}
 
             {/* Main Content - takes full width on mobile */}
-            <div className="flex-1">
+            <div className="flex-1 lg:ml-0">
               {loading ? (
                 // Skeleton Loading UI
                 <div className="space-y-6">
                   {/* Profile Section Skeleton */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardHeader>
                       <div className="flex items-center">
                         <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
@@ -645,7 +586,7 @@ export default function SettingsPage() {
                   </Card>
 
                   {/* Security Section Skeleton */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardHeader>
                       <div className="flex items-center">
                         <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
@@ -659,7 +600,7 @@ export default function SettingsPage() {
                   </Card>
 
                   {/* Preferences Section Skeleton */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardHeader>
                       <div className="flex items-center">
                         <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
@@ -689,7 +630,7 @@ export default function SettingsPage() {
                   </Card>
 
                   {/* Theme Section Skeleton */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardHeader>
                       <div className="flex items-center">
                         <div className="h-5 w-5 mr-2 rounded-full bg-purple-500/30 animate-pulse" />
@@ -709,7 +650,7 @@ export default function SettingsPage() {
                   </Card>
 
                   {/* Logout Section Skeleton */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardContent className="pt-6">
                       <div className="h-10 w-full bg-red-100 dark:bg-red-900/30 rounded animate-pulse" />
                     </CardContent>
@@ -718,7 +659,7 @@ export default function SettingsPage() {
               ) : (
                 <div className="space-y-6">
                   {/* Profile Section */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <User className="h-5 w-5 mr-2 text-purple-500" />
@@ -891,7 +832,7 @@ export default function SettingsPage() {
                   {/* Column Layout for Security, Preferences, and Appearance */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {/* Security and Appearance Section */}
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <Shield className="h-5 w-5 mr-2 text-purple-500" />
@@ -934,7 +875,7 @@ export default function SettingsPage() {
                     </Card>
 
                     {/* Preferences Section */}
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <Bell className="h-5 w-5 mr-2 text-purple-500" />
@@ -981,7 +922,7 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Logout Section */}
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardContent className="pt-6">
                       <Button 
                         onClick={handleLogout}
@@ -1001,7 +942,7 @@ export default function SettingsPage() {
           {/* Remove Image Confirmation Dialog */}
           {showRemoveImageDialog && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
+              <Card className="w-full max-w-md bg-card border-0 rounded-2xl overflow-hidden">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <X className="h-5 w-5 mr-2 text-red-500" />
@@ -1041,7 +982,7 @@ export default function SettingsPage() {
           {/* Change Password Modal */}
           {showChangePasswordModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <Card className="w-full max-w-md bg-card border-0 shadow-2xl rounded-2xl overflow-hidden">
+              <Card className="w-full max-w-md bg-card border-0 rounded-2xl overflow-hidden">
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Lock className="h-5 w-5 mr-2 text-purple-500" />

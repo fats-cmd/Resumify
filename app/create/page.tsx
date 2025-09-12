@@ -41,7 +41,7 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 // Skeleton component for loading states
 const SkeletonSection = () => (
-  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
     <CardHeader>
       <div className="flex items-center space-x-2">
         <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
@@ -87,7 +87,7 @@ const SkeletonSection = () => (
 
 // Skeleton for sidebar
 const SkeletonSidebar = () => (
-  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+  <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8">
     <CardHeader>
       <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
       <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2"></div>
@@ -653,7 +653,7 @@ const CreateResumeContent = () => {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
+      <div className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -699,7 +699,7 @@ const CreateResumeContent = () => {
               {loading ? (
                 <SkeletonSidebar />
               ) : (
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+                <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8">
                   <CardHeader>
                     <CardTitle>Resume Sections</CardTitle>
                     <CardDescription>
@@ -768,7 +768,7 @@ const CreateResumeContent = () => {
             {/* Main Content Area */}
             <div className="lg:col-span-3">
               {showPreview ? (
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Eye className="h-5 w-5 mr-2 text-purple-500" />
@@ -788,7 +788,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "personal" && (
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <User className="h-5 w-5 mr-2 text-purple-500" />
@@ -972,7 +972,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "work" && (
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
@@ -1104,7 +1104,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "education" && (
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
@@ -1234,7 +1234,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "skills" && (
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                       <CardHeader>
                         <CardTitle className="flex items-center">
                           <FileText className="h-5 w-5 mr-2 text-indigo-500" />
@@ -1303,46 +1303,60 @@ const CreateResumeContent = () => {
 
                   {/* Form Actions */}
                   {!loading && (
-                    <div className="flex justify-between mt-8">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="rounded-full"
-                        onClick={() => router.push("/dashboard")}
-                      >
-                        Cancel
-                      </Button>
-                      <div className="space-x-3">
+                    <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
+                      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <div className="flex flex-row gap-3 w-full">
+                          <Button
+                            type="button"
+                            variant={activeSection === "personal" ? "outline" : "default"}
+                            className={`rounded-full flex-1 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                            onClick={() => {
+                              if (activeSection === "work") setActiveSection("personal");
+                              else if (activeSection === "education") setActiveSection("work");
+                              else if (activeSection === "skills") setActiveSection("education");
+                            }}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={activeSection === "skills" ? "outline" : "default"}
+                            className={`rounded-full flex-1 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                            onClick={() => {
+                              if (activeSection === "personal") setActiveSection("work");
+                              else if (activeSection === "work") setActiveSection("education");
+                              else if (activeSection === "education") setActiveSection("skills");
+                            }}
+                          >
+                            Next
+                          </Button>
+                        </div>
                         <Button
                           type="button"
-                          variant="outline"
-                          className="rounded-full"
-                          onClick={() => {
-                            if (activeSection === "personal") setActiveSection("work");
-                            else if (activeSection === "work") setActiveSection("education");
-                            else if (activeSection === "education") setActiveSection("skills");
-                          }}
+                          variant="default"
+                          className="rounded-full sm:w-auto w-full bg-white text-purple-600 hover:bg-white/90"
+                          onClick={() => router.push("/dashboard")}
                         >
-                          Next
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          className="rounded-full"
-                          disabled={saving}
-                        >
-                          {saving ? (
-                            <>
-                              <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                              Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Save className="h-4 w-4 mr-2" />
-                              Save Resume
-                            </>
-                          )}
+                          Cancel
                         </Button>
                       </div>
+                      <Button 
+                        type="submit" 
+                        className="rounded-full sm:w-auto w-full"
+                        disabled={saving}
+                      >
+                        {saving ? (
+                          <>
+                            <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Resume
+                          </>
+                        )}
+                      </Button>
                     </div>
                   )}
                 </form>

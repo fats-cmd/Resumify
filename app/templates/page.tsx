@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Sidebar } from "@/components/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +29,8 @@ import {
   LogOut,
   Plus,
   LayoutDashboard,
-  FileText
+  FileText,
+  Menu
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -154,11 +156,48 @@ const templateCategories = [
   }
 ];
 
+// Skeleton component for loading states
+const TemplateSkeleton = () => (
+  <div className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden h-full flex flex-col animate-pulse">
+    {/* Preview Image Skeleton */}
+    <div className="relative overflow-hidden rounded-t-2xl h-56 bg-gray-200 dark:bg-gray-700"></div>
+    
+    {/* Template Info Skeleton */}
+    <div className="p-5 flex-1 flex flex-col">
+      <div className="flex justify-between items-start">
+        <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+      </div>
+      <div className="mt-2 space-y-2">
+        <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-4 w-5/6 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      </div>
+      
+      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="flex -space-x-2">
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i}
+                className="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700"
+              />
+            ))}
+          </div>
+          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+        
+        <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function TemplatesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("professional");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Add this state for mobile sidebar
   const itemsPerPage = 6; // Show 6 templates per page
 
   const handleLogout = async () => {
@@ -275,9 +314,31 @@ export default function TemplatesPage() {
     return '?';
   };
 
+  // Get current templates based on selected category and pagination
+  const getCurrentTemplates = () => {
+    const currentCategory = templateCategories.find(cat => cat.id === selectedCategory);
+    const templates = currentCategory?.templates || [];
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(templates.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return templates.slice(startIndex, endIndex);
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCurrentPage(1); // Reset to first page when category changes
+  };
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
+      <div className="min-h-screen bg-background pb-20">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -288,6 +349,13 @@ export default function TemplatesPage() {
                 </span>
               </Link>
               <div className="flex items-center space-x-3">
+                {/* Hamburger menu button for mobile */}
+                <button 
+                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                >
+                  <Menu className="h-6 w-6 text-white" />
+                </button>
                 <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -342,112 +410,32 @@ export default function TemplatesPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Menu */}
-            <div className="lg:w-64 flex-shrink-0">
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                <CardHeader>
-                  <CardTitle className="text-lg">Dashboard Menu</CardTitle>
-                  <CardDescription>
-                    Navigate your workspace
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <nav className="space-y-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start rounded-full"
-                      asChild
-                    >
-                      <Link href="/dashboard">
-                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Dashboard
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start rounded-full"
-                      asChild
-                    >
-                      <Link href="/my-resumes">
-                        <FileText className="h-4 w-4 mr-2" />
-                        My Resumes
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="default"
-                      className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                      onClick={() => router.push("/templates")}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      My Templates
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start rounded-full"
-                      asChild
-                    >
-                      <Link href="/settings">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Settings
-                      </Link>
-                    </Button>
-                  </nav>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
-                    <div className="space-y-2">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        onClick={() => toast.info("Help documentation coming soon!")}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Help Center
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0">
-                        {getUserAvatar()}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {user?.user_metadata?.full_name || 'User'}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {user?.email}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="h-4 w-4 mr-2" />
-                        Logout
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+          <div className="flex flex-col lg:flex-row gap-8 relative">
+            {/* Sidebar Menu - Floats on mobile */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
+              <div className="h-full lg:h-auto overflow-y-auto">
+                <Sidebar currentPage="templates" onClose={() => setSidebarOpen(false)} />
+              </div>
             </div>
+            
+            {/* Overlay for mobile when sidebar is open */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
+            )}
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 lg:ml-0">
               {/* Category Filter using shadcn Tabs */}
-              <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="mb-8">
+              <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="mb-8">
                 <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 h-auto">
                   {templateCategories.map((category) => (
                     <TabsTrigger 
                       key={category.id} 
                       value={category.id}
                       className="rounded-full py-2.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
-                      onClick={() => setCurrentPage(1)} // Reset to first page when category changes
                     >
                       {category.name}
                     </TabsTrigger>
@@ -467,125 +455,114 @@ export default function TemplatesPage() {
 
               {/* Templates Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {(() => {
-                  const currentCategory = templateCategories.find(cat => cat.id === selectedCategory);
-                  const templates = currentCategory?.templates || [];
-                  
-                  // Calculate pagination
-                  const totalPages = Math.ceil(templates.length / itemsPerPage);
-                  const startIndex = (currentPage - 1) * itemsPerPage;
-                  const endIndex = startIndex + itemsPerPage;
-                  const currentTemplates = templates.slice(startIndex, endIndex);
-                  
-                  return currentTemplates.map((template, index) => (
-                    <motion.div
-                      key={template.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        duration: 0.4, 
-                        delay: index * 0.07,
-                        ease: [0.16, 1, 0.3, 1]
-                      }}
-                      whileHover={{ 
-                        y: -8,
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                      }}
-                      className="h-full relative group"
-                    >
-                      {/* Premium Badge */}
-                      {template.isPremium && (
-                        <div className="absolute -top-3 -right-3 z-10">
-                          <div className="relative">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
-                            <span className="relative px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold rounded-full flex items-center">
-                              <Star className="h-3 w-3 mr-1 fill-current" />
-                              PREMIUM
-                            </span>
-                          </div>
+                {getCurrentTemplates().map((template, index) => (
+                  <motion.div
+                    key={template.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      delay: index * 0.07,
+                      ease: [0.16, 1, 0.3, 1]
+                    }}
+                    whileHover={{ 
+                      y: -8,
+                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    }}
+                    className="h-full relative group"
+                  >
+                    {/* Premium Badge */}
+                    {template.isPremium && (
+                      <div className="absolute -top-3 -right-3 z-10">
+                        <div className="relative">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                          <span className="relative px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold rounded-full flex items-center">
+                            <Star className="h-3 w-3 mr-1 fill-current" />
+                            PREMIUM
+                          </span>
                         </div>
-                      )}
-                      
-                      <Card className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col group-hover:border-purple-200 dark:group-hover:border-purple-900/50 relative">
-                        {/* Preview Image */}
-                        <div className="relative overflow-hidden rounded-t-2xl h-56 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
-                          <div className="absolute inset-0 flex items-center justify-center p-4">
-                            {template.previewImage ? (
-                              <Image 
-                                src={template.previewImage} 
-                                alt={template.name}
-                                width={400}
-                                height={400}
-                                className="object-contain transition-all duration-700 group-hover:scale-105 rounded-lg"
-                                style={{
-                                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                                }}
-                                onError={(e) => {
-                                  // Fallback to placeholder if image fails to load
-                                  e.currentTarget.src = "/placeholder.svg";
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                                <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600" />
-                              </div>
-                            )}
-                          </div>
-                          
+                      </div>
+                    )}
+                    
+                    <Card className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col group-hover:border-purple-200 dark:group-hover:border-purple-900/50 relative">
+                      {/* Preview Image */}
+                      <div className="relative overflow-hidden rounded-t-2xl h-56 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                        <div className="absolute inset-0 flex items-center justify-center p-4">
+                          {template.previewImage ? (
+                            <Image 
+                              src={template.previewImage} 
+                              alt={template.name}
+                              width={400}
+                              height={400}
+                              className="object-contain transition-all duration-700 group-hover:scale-105 rounded-lg"
+                              style={{
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                              }}
+                              onError={(e) => {
+                                // Fallback to placeholder if image fails to load
+                                e.currentTarget.src = "/placeholder.svg";
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                              <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600" />
+                            </div>
+                          )}
                         </div>
                         
-                        {/* Template Info */}
-                        <div className="p-5 flex-1 flex flex-col">
-                          <div className="flex justify-between items-start">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
-                              {template.name}
-                            </h3>
-                            {template.isFeatured && (
-                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                                Popular
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                            {template.description}
-                          </p>
-                          
-                          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                            <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="flex -space-x-2">
-                                {[1, 2, 3].map((i) => (
-                                  <div 
-                                    key={i}
-                                    className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 border-2 border-white dark:border-gray-800"
-                                    style={{ zIndex: 3 - i }}
-                                  />
-                                ))}
-                              </div>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {Math.floor(Math.random() * 100) + 1}K+ users
-                              </span>
-                            </div>
-                            
-                            <Button 
-                              asChild
-                              size="sm" 
-                              className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-                            >
-                              <Link href={`/create?template=${template.id}`}>
-                                {template.isPremium ? (
-                                  <span className="flex items-center">
-                                    <Star className="h-3.5 w-3.5 mr-1.5 fill-current" />
-                                    Use Premium
-                                  </span>
-                                ) : 'Use Free'}
-                              </Link>
-                            </Button>
-                          </div>
+                      </div>
+                      
+                      {/* Template Info */}
+                      <div className="p-5 flex-1 flex flex-col">
+                        <div className="flex justify-between items-start">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                            {template.name}
+                          </h3>
+                          {template.isFeatured && (
+                            <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                              Popular
+                            </Badge>
+                          )}
                         </div>
-                      </Card>
-                    </motion.div>
-                  ));
-                })()}
+                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {template.description}
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                          <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="flex -space-x-2">
+                              {[1, 2, 3].map((i) => (
+                                <div 
+                                  key={i}
+                                  className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 border-2 border-white dark:border-gray-800"
+                                  style={{ zIndex: 3 - i }}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {Math.floor(Math.random() * 100) + 1}K+ users
+                            </span>
+                          </div>
+                          
+                          <Button 
+                            asChild
+                            size="sm" 
+                            className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 transition-all"
+                          >
+                            <Link href={`/create?template=${template.id}`}>
+                              {template.isPremium ? (
+                                <span className="flex items-center">
+                                  <Star className="h-3.5 w-3.5 mr-1.5 fill-current" />
+                                  Use Premium
+                                </span>
+                              ) : 'Use Free'}
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
               </div>
 
               {/* Pagination Controls */}
@@ -602,7 +579,7 @@ export default function TemplatesPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                         disabled={currentPage === 1}
                         className="rounded-full"
                       >
@@ -622,7 +599,7 @@ export default function TemplatesPage() {
                               key={page}
                               variant={currentPage === page ? "default" : "outline"}
                               size="sm"
-                              onClick={() => setCurrentPage(page)}
+                              onClick={() => handlePageChange(page)}
                               className={`rounded-full ${currentPage === page ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' : ''}`}
                             >
                               {page}
@@ -645,7 +622,7 @@ export default function TemplatesPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                         disabled={currentPage === totalPages}
                         className="rounded-full"
                       >

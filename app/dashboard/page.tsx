@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Sidebar } from "@/components/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,14 +34,16 @@ import {
   Clock, 
   Star,
   LogOut,
-  Settings
+  Settings,
+  Menu,
+  X
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Resume } from "@/types/resume";
 
 // Skeleton component for loading states - improved to better reflect resume structure
 const SkeletonCard = () => (
-  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+  <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
     <CardHeader className="pb-4">
       <div className="flex justify-between items-start">
         <div className="space-y-2">
@@ -77,7 +80,7 @@ const SkeletonCard = () => (
 const StatsSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     {[...Array(4)].map((_, index) => (
-      <Card key={index} className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+      <Card key={index} className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
           <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
@@ -104,6 +107,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [resumesLoading, setResumesLoading] = useState(true);
   const [avatarError, setAvatarError] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
 
   // Fetch resumes and stats
   useEffect(() => {
@@ -282,6 +286,13 @@ export default function DashboardPage() {
                 </span>
               </Link>
               <div className="flex items-center space-x-3">
+                {/* Hamburger menu button for mobile */}
+                <button 
+                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                >
+                  <Menu className="h-6 w-6 text-white" />
+                </button>
                 {loading ? (
                   <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
                 ) : (
@@ -355,137 +366,74 @@ export default function DashboardPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Menu */}
-            <div className="lg:w-64 flex-shrink-0">
-              {loading ? (
-                // Sidebar Skeleton Loading
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                  <CardHeader>
-                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+          <div className="flex flex-col lg:flex-row gap-8 relative">
+            {/* Sidebar Menu - Floats on mobile */}
+            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
+              <div className="h-full lg:h-auto overflow-y-auto">
+                {loading ? (
+                  // Sidebar Skeleton Loading
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
+                    <CardHeader className="flex justify-between items-center">
+                      <div>
+                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                      </div>
+                      {/* Exit button for mobile */}
+                      <div className="lg:hidden">
+                        <button 
+                          onClick={() => setSidebarOpen(false)}
+                          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                          aria-label="Close sidebar"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
                       <div className="space-y-3">
                         <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                       </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                          <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                        <div className="space-y-3">
+                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                         </div>
                       </div>
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Dashboard Menu</CardTitle>
-                    <CardDescription>
-                      Navigate your workspace
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <nav className="space-y-2">
-                      <Button
-                        variant="default"
-                        className="w-full justify-start rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                        onClick={() => router.push("/dashboard")}
-                      >
-                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Dashboard
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        asChild
-                      >
-                        <Link href="/my-resumes">
-                          <FileText className="h-4 w-4 mr-2" />
-                          My Resumes
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        onClick={() => router.push("/templates")}
-                      >
-                        <LayoutDashboard className="h-4 w-4 mr-2" />
-                        My Templates
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start rounded-full"
-                        onClick={() => router.push("/settings")}
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Settings
-                      </Button>
-                    </nav>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <h3 className="text-sm font-medium text-muted-foreground mb-3">Resources</h3>
-                      <div className="space-y-2">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-full"
-                          onClick={() => toast.info("Help documentation coming soon!")}
-                        >
-                          <FileText className="h-4 w-4 mr-2" />
-                          Help Center
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6 pt-6 border-t border-border">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="flex-shrink-0">
-                          {getUserAvatar()}
+                      
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                            <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {user?.user_metadata?.full_name || 'User'}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {user?.email}
-                          </p>
-                        </div>
+                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                       </div>
-                      <div className="flex flex-col gap-3">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          onClick={handleLogout}
-                        >
-                          <LogOut className="h-4 w-4 mr-2" />
-                          Logout
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Sidebar currentPage="dashboard" onClose={() => setSidebarOpen(false)} />
+                )}
+              </div>
             </div>
+            
+            {/* Overlay for mobile when sidebar is open */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
+            )}
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 lg:ml-0">
               {/* Stats Cards */}
               <div className="mb-12">
                 {loading ? (
@@ -497,7 +445,7 @@ export default function DashboardPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-sm font-medium text-muted-foreground">Total Resumes</CardTitle>
                           <div className="rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-2">
@@ -516,7 +464,7 @@ export default function DashboardPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.1 }}
                     >
-                      <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-sm font-medium text-muted-foreground">Published</CardTitle>
                           <div className="rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 p-2">
@@ -535,7 +483,7 @@ export default function DashboardPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.2 }}
                     >
-                      <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
                           <div className="rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-2">
@@ -554,7 +502,7 @@ export default function DashboardPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.3 }}
                     >
-                      <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                           <CardTitle className="text-sm font-medium text-muted-foreground">Downloads</CardTitle>
                           <div className="rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 p-2">
@@ -619,7 +567,7 @@ export default function DashboardPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.1 * index }}
                       >
-                        <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
                           <CardHeader className="pb-4">
                             <div className="flex justify-between items-start">
                               <div>
@@ -644,7 +592,7 @@ export default function DashboardPage() {
                                     : "bg-gray-500/20 text-gray-700 dark:text-gray-300"
                                 }`}
                               >
-                                {resume.status || "Draft"}
+                                {resume.status === "Published" ? "Published" : ""}
                               </Badge>
                             </div>
                           </CardHeader>
@@ -693,7 +641,7 @@ export default function DashboardPage() {
                       </motion.div>
                     ))
                   ) : (
-                    <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden lg:col-span-2">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden lg:col-span-2">
                       <CardContent className="flex flex-col items-center justify-center py-16">
                         <FileText className="h-16 w-16 text-muted-foreground mb-6" />
                         <h3 className="text-2xl font-bold mb-2">No resumes yet</h3>
