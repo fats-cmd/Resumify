@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Navbar } from "@/components/navbar";
 import { DarkVeil } from "@/components/ui/dark-veil";
 import {
@@ -133,7 +132,7 @@ export default function PricingPage() {
                 Choose the Plan That Fits Your Goals
               </h1>
               <p className="text-xl text-gray-200 max-w-3xl mx-auto">
-                From individuals to teams, we have a plan that works for everyone. Start for free and upgrade when you're ready.
+                From individuals to teams, we have a plan that works for everyone. Start for free and upgrade when you&#39;re ready.
               </p>
             </div>
           </section>
@@ -267,7 +266,7 @@ export default function PricingPage() {
               <AccordionTrigger value="item-1">Can I switch plans anytime?</AccordionTrigger>
               <AccordionContent value="item-1">
                 Yes, you can upgrade, downgrade, or cancel your subscription at any time. 
-                Changes take effect immediately and you'll only be charged for the time you use.
+                Changes take effect immediately and you&#39;ll only be charged for the time you use.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
@@ -281,7 +280,7 @@ export default function PricingPage() {
               <AccordionTrigger value="item-3">Is there a free trial for Pro plans?</AccordionTrigger>
               <AccordionContent value="item-3">
                 Yes, we offer a 7-day free trial for Pro plans. No credit card required to start your trial. 
-                You'll have full access to all Pro features during the trial period.
+                You&#39;ll have full access to all Pro features during the trial period.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-4">

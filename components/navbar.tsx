@@ -87,24 +87,6 @@ export function Navbar() {
     };
   }, [user]);
 
-  // Desktop navigation links
-  const DesktopNavLinks = () => (
-    <div className="hidden lg:flex items-center gap-6">
-      <Link
-        href="/about"
-        className="text-sm font-medium text-white/80 hover:text-white transition-colors"
-      >
-        About
-      </Link>
-      <Link
-        href="/pricing"
-        className="text-sm font-medium text-white/80 hover:text-white transition-colors"
-      >
-        Pricing
-      </Link>
-    </div>
-  );
-
   // Mobile navigation links
   const MobileNavLinks = () => (
     <div className="flex flex-col space-y-3">

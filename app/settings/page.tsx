@@ -30,9 +30,6 @@ import {
   EyeOff,
   X,
   Upload,
-  LayoutDashboard,
-  FileText,
-  Settings,
   Menu
 } from "lucide-react";
 

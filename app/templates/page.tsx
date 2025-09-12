@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useAuth } from "@/components/auth-provider";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sidebar } from "@/components/sidebar";
@@ -29,7 +29,6 @@ import {
   Settings,
   LogOut,
   Plus,
-  LayoutDashboard,
   FileText,
   Menu
 } from "lucide-react";
@@ -156,42 +155,6 @@ const templateCategories = [
     ]
   }
 ];
-
-// Skeleton component for loading states
-const TemplateSkeleton = () => (
-  <div className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden h-full flex flex-col animate-pulse">
-    {/* Preview Image Skeleton */}
-    <div className="relative overflow-hidden rounded-t-2xl h-56 bg-gray-200 dark:bg-gray-700"></div>
-    
-    {/* Template Info Skeleton */}
-    <div className="p-5 flex-1 flex flex-col">
-      <div className="flex justify-between items-start">
-        <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-5 w-16 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-      </div>
-      <div className="mt-2 space-y-2">
-        <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-4 w-5/6 bg-gray-200 dark:bg-gray-700 rounded"></div>
-      </div>
-      
-      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="flex -space-x-2">
-            {[1, 2, 3].map((i) => (
-              <div 
-                key={i}
-                className="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700"
-              />
-            ))}
-          </div>
-          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        </div>
-        
-        <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-      </div>
-    </div>
-  </div>
-);
 
 export default function TemplatesPage() {
   const { user } = useAuth();
@@ -321,7 +284,6 @@ export default function TemplatesPage() {
     const templates = currentCategory?.templates || [];
     
     // Calculate pagination
-    const totalPages = Math.ceil(templates.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return templates.slice(startIndex, endIndex);
