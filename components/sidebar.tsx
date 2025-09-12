@@ -94,7 +94,7 @@ export function Sidebar({ currentPage, onClose, showLogout = true }: SidebarProp
   };
 
   return (
-    <Card className="bg-card border-0 rounded-t-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
+    <Card className="bg-card border-0 shadow-lg rounded-t-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
       <CardHeader className="flex justify-between items-center">
         <div>
           <CardTitle className="text-lg">Dashboard Menu</CardTitle>

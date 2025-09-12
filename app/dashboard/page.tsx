@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sidebar } from "@/components/sidebar";
+import { DashboardFooter } from "@/components/dashboard-footer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -275,7 +276,7 @@ export default function DashboardPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen flex flex-col bg-background">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -365,7 +366,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
+        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
           <div className="flex flex-col lg:flex-row gap-8 relative">
             {/* Sidebar Menu - Floats on mobile */}
             <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto lg:sticky lg:top-8 lg:h-[calc(100vh-2rem)]`}>
@@ -520,7 +521,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Resumes Section */}
-              <div className="mb-24">
+              <div className="mb-12">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div>
                     {loading ? (
@@ -663,8 +664,13 @@ export default function DashboardPage() {
           </div>
           
           {/* Dynamic Dock Component */}
-          <DynamicDock currentPage="dashboard" showLogout={false} />
+          <div className="mt-auto">
+            <DynamicDock currentPage="dashboard" showLogout={false} />
+          </div>
         </div>
+        
+        {/* Footer - now using the reusable component */}
+        <DashboardFooter />
       </div>
     </ProtectedPage>
   );
