@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sidebar } from "@/components/sidebar";
+import { DashboardFooter } from "@/components/dashboard-footer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -338,7 +339,7 @@ export default function TemplatesPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen flex flex-col bg-background pb-20">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -409,7 +410,7 @@ export default function TemplatesPage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
+        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
           <div className="flex flex-col lg:flex-row gap-8 relative">
             {/* Sidebar Menu - Floats on mobile */}
             <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
@@ -661,7 +662,12 @@ export default function TemplatesPage() {
         </div>
         
         {/* Dynamic Dock Component */}
-        <DynamicDock currentPage="templates" showLogout={false} />
+        <div className="mt-auto">
+          <DynamicDock currentPage="templates" showLogout={false} />
+        </div>
+        
+        {/* Footer - now using the reusable component */}
+        <DashboardFooter />
       </div>
     </ProtectedPage>
   );

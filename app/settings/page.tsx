@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sidebar } from "@/components/sidebar";
+import { DashboardFooter } from "@/components/dashboard-footer";
 import { DynamicDock } from "@/components/dynamic-dock";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
@@ -446,7 +447,7 @@ export default function SettingsPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen flex flex-col bg-background">
         {/* Header with gradient */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -478,7 +479,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
+        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
           <div className="flex flex-col lg:flex-row gap-8 relative">
             {/* Sidebar Menu - Floats on mobile */}
             <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
@@ -1003,19 +1004,16 @@ export default function SettingsPage() {
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           placeholder="Enter your current password"
-                          disabled={changingPassword}
-                          required
                         />
                         <button
                           type="button"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
                         >
                           {showCurrentPassword ? (
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                         </button>
                       </div>
@@ -1030,19 +1028,16 @@ export default function SettingsPage() {
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="Enter your new password"
-                          disabled={changingPassword}
-                          required
                         />
                         <button
                           type="button"
                           onClick={() => setShowNewPassword(!showNewPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          aria-label={showNewPassword ? "Hide password" : "Show password"}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
                         >
                           {showNewPassword ? (
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                         </button>
                       </div>
@@ -1058,44 +1053,35 @@ export default function SettingsPage() {
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Confirm your new password"
-                          disabled={changingPassword}
-                          required
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
                         >
                           {showConfirmPassword ? (
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="h-4 w-4 text-muted-foreground" />
                           ) : (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                         </button>
                       </div>
                     </div>
                     
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-3 pt-2">
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => {
-                          setShowChangePasswordModal(false);
-                          // Reset form when closing
-                          setCurrentPassword("");
-                          setNewPassword("");
-                          setConfirmPassword("");
-                        }}
-                        disabled={changingPassword}
+                        onClick={() => setShowChangePasswordModal(false)}
                         className="flex-1"
+                        disabled={changingPassword}
                       >
                         Cancel
                       </Button>
                       <Button
                         type="submit"
-                        disabled={changingPassword}
                         className="flex-1"
+                        disabled={changingPassword}
                       >
                         {changingPassword ? "Changing..." : "Change Password"}
                       </Button>
@@ -1108,7 +1094,12 @@ export default function SettingsPage() {
         </div>
         
         {/* Dynamic Dock Component */}
-        <DynamicDock currentPage="settings" showLogout={false} />
+        <div className="mt-auto">
+          <DynamicDock currentPage="settings" showLogout={false} />
+        </div>
+        
+        {/* Footer - now using the reusable component */}
+        <DashboardFooter />
       </div>
     </ProtectedPage>
   );
