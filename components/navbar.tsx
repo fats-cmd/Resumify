@@ -87,6 +87,44 @@ export function Navbar() {
     };
   }, [user]);
 
+  // Desktop navigation links
+  const DesktopNavLinks = () => (
+    <div className="hidden lg:flex items-center gap-6">
+      <Link
+        href="/about"
+        className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+      >
+        About
+      </Link>
+      <Link
+        href="/pricing"
+        className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+      >
+        Pricing
+      </Link>
+    </div>
+  );
+
+  // Mobile navigation links
+  const MobileNavLinks = () => (
+    <div className="flex flex-col space-y-3">
+      <MobileCardNav 
+        href="/about"
+        onClick={() => setMobileMenuOpen(false)}
+        className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300"
+      >
+        <span className="font-medium">About</span>
+      </MobileCardNav>
+      <MobileCardNav 
+        href="/pricing"
+        onClick={() => setMobileMenuOpen(false)}
+        className="flex items-center gap-3 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all duration-300"
+      >
+        <span className="font-medium">Pricing</span>
+      </MobileCardNav>
+    </div>
+  );
+
   // Desktop auth buttons component
   const DesktopAuthButtons = () => {
     // Show loading state during auth check or when not mounted
@@ -326,7 +364,22 @@ export function Navbar() {
           </span>
         </Link>
         
-        {/* Desktop Menu */}
+        {/* Desktop Menu - Centered Navigation Links */}
+        <div className="hidden sm:flex items-center gap-6">
+          <Link
+            href="/about"
+            className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+          >
+            About
+          </Link>
+          <Link
+            href="/pricing"
+            className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+          >
+            Pricing
+          </Link>
+        </div>
+        
         <div className="hidden sm:flex items-center gap-4">
           <ThemeToggle />
           <DesktopAuthButtons />
@@ -355,6 +408,8 @@ export function Navbar() {
           />
           <div className="fixed top-20 left-4 right-4 bg-black/20 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl">
             <div className="flex flex-col space-y-3">
+              <MobileNavLinks />
+              <div className="border-t border-white/10 my-2"></div>
               <MobileAuthButtons />
             </div>
           </div>
