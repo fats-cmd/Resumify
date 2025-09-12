@@ -660,7 +660,7 @@ export default function EditResumePage() {
   if (loading) {
     return (
       <ProtectedPage>
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+        <div className="min-h-screen bg-background">
           {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -682,7 +682,7 @@ export default function EditResumePage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Sidebar Navigation Skeleton */}
               <div className="lg:col-span-1">
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8 animate-pulse">
+                <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8 animate-pulse">
                   <CardHeader className="space-y-2">
                     <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
                     <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
@@ -705,7 +705,7 @@ export default function EditResumePage() {
               
               {/* Main Content Skeleton */}
               <div className="lg:col-span-3">
-                <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden animate-pulse">
+                <Card className="bg-card border-0 rounded-2xl overflow-hidden animate-pulse">
                   <CardHeader className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
@@ -757,14 +757,14 @@ export default function EditResumePage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
+      <div className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between w-full mb-8">
               <Button 
                 asChild
-                className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
+                className="bg-black hover:bg-gray-800 text-white font-medium shadow rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
               >
                 <Link href="/dashboard" className="flex items-center">
                   <ArrowLeft className="h-5 w-5 mr-2" />
@@ -797,7 +797,7 @@ export default function EditResumePage() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar Navigation */}
             <div className="lg:col-span-1">
-              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8">
+              <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden sticky top-8">
                 <CardHeader>
                   <CardTitle className="text-lg">Resume Sections</CardTitle>
                   <CardDescription>
@@ -880,7 +880,7 @@ export default function EditResumePage() {
               <form onSubmit={handleSubmit}>
                 {/* Personal Information Section */}
                 {activeSection === "personal" && (
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <User className="h-5 w-5 mr-2 text-purple-500" />
@@ -1062,7 +1062,7 @@ export default function EditResumePage() {
 
                 {/* Work Experience Section */}
                 {activeSection === "work" && (
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
@@ -1192,7 +1192,7 @@ export default function EditResumePage() {
 
                 {/* Education Section */}
                 {activeSection === "education" && (
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
@@ -1320,7 +1320,7 @@ export default function EditResumePage() {
 
                 {/* Skills Section */}
                 {activeSection === "skills" && (
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden">
+                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <FileText className="h-5 w-5 mr-2 text-indigo-500" />
@@ -1388,46 +1388,60 @@ export default function EditResumePage() {
                 )}
 
                 {/* Form Actions */}
-                <div className="flex justify-between mt-8">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="rounded-full"
-                    onClick={() => router.push("/dashboard")}
-                  >
-                    Cancel
-                  </Button>
-                  <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <div className="flex flex-row gap-3 w-full">
+                      <Button
+                        type="button"
+                        variant={activeSection === "personal" ? "outline" : "default"}
+                        className={`rounded-full flex-1 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                        onClick={() => {
+                          if (activeSection === "work") setActiveSection("personal");
+                          else if (activeSection === "education") setActiveSection("work");
+                          else if (activeSection === "skills") setActiveSection("education");
+                        }}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={activeSection === "skills" ? "outline" : "default"}
+                        className={`rounded-full flex-1 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                        onClick={() => {
+                          if (activeSection === "personal") setActiveSection("work");
+                          else if (activeSection === "work") setActiveSection("education");
+                          else if (activeSection === "education") setActiveSection("skills");
+                        }}
+                      >
+                        Next
+                      </Button>
+                    </div>
                     <Button
                       type="button"
-                      variant="outline"
-                      className="rounded-full"
-                      onClick={() => {
-                        if (activeSection === "personal") setActiveSection("work");
-                        else if (activeSection === "work") setActiveSection("education");
-                        else if (activeSection === "education") setActiveSection("skills");
-                      }}
+                      variant="default"
+                      className="rounded-full sm:w-auto w-full bg-white text-purple-600 hover:bg-white/90"
+                      onClick={() => router.push("/dashboard")}
                     >
-                      Next
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      className="rounded-full"
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <>
-                          <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Update Resume
-                        </>
-                      )}
+                      Cancel
                     </Button>
                   </div>
+                  <Button 
+                    type="submit" 
+                    className="rounded-full sm:w-auto w-full"
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <>
+                        <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Update Resume
+                      </>
+                    )}
+                  </Button>
                 </div>
               </form>
             </div>

@@ -121,7 +121,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
 
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="max-h-[800px] overflow-auto">
+      <div className="overflow-auto max-h-[800px]">
         <TemplateComponent data={transformedData} />
       </div>
     </div>

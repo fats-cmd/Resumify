@@ -404,7 +404,7 @@ export default function ResumePage() {
   if (loading) {
     return (
       <ProtectedPage>
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+        <div className="min-h-screen bg-background">
           {/* Header */}
           <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -441,7 +441,7 @@ export default function ResumePage() {
   if (!resumeData) {
     return (
       <ProtectedPage>
-        <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden p-8">
             <CardContent className="text-center">
               <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -513,7 +513,7 @@ export default function ResumePage() {
           }
         }
       `}</style>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted pb-20">
+      <div className="min-h-screen bg-background pb-20">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
