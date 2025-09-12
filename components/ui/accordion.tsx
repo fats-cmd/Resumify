@@ -92,7 +92,7 @@ Accordion.displayName = "Accordion";
 const AccordionItem = React.forwardRef<
   HTMLDivElement,
   AccordionItemProps
->(({ children, value, className, ...props }, ref) => {
+>(({ children, className, ...props }, ref) => {
   return (
     <div
       ref={ref}

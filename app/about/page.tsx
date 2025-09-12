@@ -10,17 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Navbar } from "@/components/navbar";
 import { DarkVeil } from "@/components/ui/dark-veil";
 import {
   FileText,
-  Target,
   Lightbulb,
   Award,
   Heart,
   Globe,
-  Zap,
 } from "lucide-react";
 
 const values = [
@@ -71,7 +68,7 @@ export default function AboutPage() {
                 Crafting Careers, One Resume at a Time
               </h1>
               <p className="text-xl text-gray-200 max-w-3xl mx-auto">
-                We're on a mission to help job seekers create professional resumes that stand out and get noticed.
+                We&#39;re on a mission to help job seekers create professional resumes that stand out and get noticed.
               </p>
             </div>
           </section>
@@ -92,8 +89,8 @@ export default function AboutPage() {
                 create a compelling resume that opens doors to new opportunities.
               </p>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Founded in 2025, we've helped over 10,000 job seekers land interviews and advance their careers. 
-                We're constantly innovating to ensure our platform remains at the forefront of resume-building technology.
+                Founded in 2025, we&#39;ve helped over 10,000 job seekers land interviews and advance their careers. 
+                We&#39;re constantly innovating to ensure our platform remains at the forefront of resume-building technology.
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <Button asChild className="rounded-full">
