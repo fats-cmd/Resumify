@@ -14,8 +14,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Sidebar } from "@/components/sidebar";
 import { DynamicDock } from "@/components/dynamic-dock";
+import { DashboardFooter } from "@/components/dashboard-footer";
 import TemplatePreview from "@/components/template-preview";
 import Link from "next/link";
 import { saveResume } from "@/lib/supabase";
@@ -34,10 +37,64 @@ import {
   Phone,
   MapPin,
   ArrowLeft,
-  Plus
+  Plus,
+  Check,
+  Menu
 } from "lucide-react";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+
+// Template data - simplified version for the create page
+const templateData = [
+  {
+    id: 8,
+    name: "Modern Split",
+    description: "Bold two-column layout with accent colors and clean organization",
+    previewImage: "/modern-split-preview.svg",
+    isPremium: false,
+    isFeatured: true
+  },
+  {
+    id: 1,
+    name: "Classic Professional",
+    description: "Timeless design with clear structure and readability",
+    previewImage: "/placeholder.svg",
+    isPremium: false,
+    isFeatured: true
+  },
+  {
+    id: 2,
+    name: "Modern Executive",
+    description: "Sleek layout with bold typography and clean lines",
+    previewImage: "/placeholder.svg",
+    isPremium: true,
+    isFeatured: true
+  },
+  {
+    id: 3,
+    name: "Creative Pro",
+    description: "Professional with creative elements and unique layout",
+    previewImage: "/placeholder.svg",
+    isPremium: true,
+    isFeatured: false
+  },
+  {
+    id: 9,
+    name: "Corporate Elite",
+    description: "Sophisticated design for senior executives and corporate professionals",
+    previewImage: "/placeholder.svg",
+    isPremium: true,
+    isFeatured: true
+  },
+  {
+    id: 10,
+    name: "Minimalist Pro",
+    description: "Clean, uncluttered design that emphasizes your content",
+    previewImage: "/placeholder.svg",
+    isPremium: false,
+    isFeatured: false
+  }
+];
 
 // Skeleton component for loading states
 const SkeletonSection = () => (
@@ -85,25 +142,6 @@ const SkeletonSection = () => (
   </Card>
 );
 
-// Skeleton for sidebar
-const SkeletonSidebar = () => (
-  <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8">
-    <CardHeader>
-      <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-      <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-2"></div>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-3">
-        {[...Array(4)].map((_, index) => (
-          <div key={index} className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
-        ))}
-      </div>
-      
-      <div className="mt-8 pt-6 border-t border-border">
-      </div>
-    </CardContent>
-  </Card>
-);
 
 // Create a separate component for the content that uses useSearchParams
 const CreateResumeContent = () => {
@@ -115,6 +153,9 @@ const CreateResumeContent = () => {
   const [saving, setSaving] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [templateSelected, setTemplateSelected] = useState(false); // New state to track if template is selected
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Add state for sidebar collapse
   
   // State for form data
   const [resumeData, setResumeData] = useState({
@@ -180,8 +221,15 @@ const CreateResumeContent = () => {
   useEffect(() => {
     if (templateId) {
       setSelectedTemplate(templateId);
+      setTemplateSelected(true);
     }
   }, [templateId]);
+
+  // Handle template selection
+  const handleTemplateSelect = (templateId: number | null) => {
+    setSelectedTemplate(templateId);
+    setTemplateSelected(true);
+  };
 
   // Handle input changes for personal info
   const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: string } }) => {
@@ -367,7 +415,9 @@ const CreateResumeContent = () => {
           address: resumeData.personalInfo.location,
         } : undefined,
         image: imagePreview || undefined
-      }
+      },
+      // Add selected template ID to resume data
+      templateId: selectedTemplate || undefined
     };
     
     // Save resume
@@ -653,121 +703,210 @@ const CreateResumeContent = () => {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background pb-20">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between w-full mb-8">
-              <Button 
-                asChild
-                className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
-              >
-                <Link href="/dashboard" className="flex items-center">
-                  <ArrowLeft className="h-5 w-5 mr-2" />
-                  <span>Back to Dashboard</span>
-                </Link>
-              </Button>
-              <div className="flex items-center space-x-3">
-                <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+      <div className="h-screen flex bg-background">
+        {/* Sidebar - Full Height */}
+        <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
+          sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
+        }`}>
+          <div className="h-full overflow-y-auto">
+            {loading ? (
+              // Sidebar Skeleton Loading
+              <Card className="bg-card border-0 rounded-2xl overflow-hidden h-full">
+                <CardHeader className="flex justify-between items-center">
+                  <div>
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                  </div>
+                  <div className="lg:hidden">
+                    <button 
+                      onClick={() => setSidebarOpen(false)}
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      aria-label="Close sidebar"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                    <div className="space-y-3">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="h-full">
+                <Sidebar 
+                  currentPage="create" 
+                  onClose={() => setSidebarOpen(false)} 
+                  isCollapsed={sidebarCollapsed}
+                  onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+                />
               </div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">Create Your Resume</h1>
-                <p className="text-white/80 mt-2">
-                  Build a professional resume in minutes with our easy-to-use editor
-                </p>
+            )}
+          </div>
+        </div>
+        
+        {/* Overlay for mobile when sidebar is open */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* Main Content Area */}
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${
+          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
+        }`}>
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-end w-full mb-4">
+                <div className="flex items-center space-x-3">
+                  {/* Hamburger menu button for mobile */}
+                  <button 
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <Menu className="h-6 w-6 text-white" />
+                  </button>
+                  <Button 
+                    asChild
+                    className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
+                  >
+                    <Link href="/dashboard" className="flex items-center">
+                      <ArrowLeft className="h-5 w-5 mr-2" />
+                      <span>Back to Dashboard</span>
+                    </Link>
+                  </Button>
+                  <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <Button 
-                  variant="outline" 
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 rounded-full"
-                  onClick={handlePreviewToggle}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  {showPreview ? "Edit Resume" : "Preview Resume"}
-                </Button>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-white">Create Your Resume</h1>
+                  <p className="text-white/80 mt-2">
+                    {templateSelected 
+                      ? "Build a professional resume in minutes with our easy-to-use editor" 
+                      : "Choose a template to get started"}
+                  </p>
+                </div>
+                {templateSelected && (
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <Button 
+                      variant="outline" 
+                      className="bg-white/10 text-white border-white/20 hover:bg-white/20 rounded-full"
+                      onClick={handlePreviewToggle}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      {showPreview ? "Edit Resume" : "Preview Resume"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar - Always visible on larger screens, collapsible on mobile */}
-            <div className="lg:col-span-1">
-              {loading ? (
-                <SkeletonSidebar />
-              ) : (
-                <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8">
+          {/* Main Content */}
+          <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
+            {/* Main Content Area */}
+            <div className={templateSelected ? "lg:col-span-3" : "lg:col-span-4"}>
+              {!templateSelected ? (
+                // Template Selection Grid
+                <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                   <CardHeader>
-                    <CardTitle>Resume Sections</CardTitle>
+                    <CardTitle>Select a Template</CardTitle>
                     <CardDescription>
-                      Click on a section to edit
+                      Choose a professional template to create your resume
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <Button
-                        variant={activeSection === "personal" ? "default" : "outline"}
-                        className={`w-full justify-start rounded-full ${
-                          activeSection === "personal" 
-                            ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white" 
-                            : "border-input text-foreground hover:bg-accent"
-                        }`}
-                        onClick={() => setActiveSection("personal")}
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Personal Information
-                      </Button>
-                      <Button
-                        variant={activeSection === "work" ? "default" : "outline"}
-                        className={`w-full justify-start rounded-full ${
-                          activeSection === "work" 
-                            ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white" 
-                            : "border-input text-foreground hover:bg-accent"
-                        }`}
-                        onClick={() => setActiveSection("work")}
-                      >
-                        <Briefcase className="h-4 w-4 mr-2" />
-                        Work Experience
-                      </Button>
-                      <Button
-                        variant={activeSection === "education" ? "default" : "outline"}
-                        className={`w-full justify-start rounded-full ${
-                          activeSection === "education" 
-                            ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white" 
-                            : "border-input text-foreground hover:bg-accent"
-                        }`}
-                        onClick={() => setActiveSection("education")}
-                      >
-                        <GraduationCap className="h-4 w-4 mr-2" />
-                        Education
-                      </Button>
-                      <Button
-                        variant={activeSection === "skills" ? "default" : "outline"}
-                        className={`w-full justify-start rounded-full ${
-                          activeSection === "skills" 
-                            ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white" 
-                            : "border-input text-foreground hover:bg-accent"
-                        }`}
-                        onClick={() => setActiveSection("skills")}
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Skills
-                      </Button>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {templateData.map((template) => (
+                        <Card 
+                          key={template.id} 
+                          className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                            selectedTemplate === template.id 
+                              ? "ring-2 ring-purple-500 shadow-lg" 
+                              : ""
+                          }`}
+                          onClick={() => handleTemplateSelect(template.id)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                              {template.previewImage ? (
+                                <Image 
+                                  src={template.previewImage} 
+                                  alt={template.name}
+                                  fill
+                                  className="object-contain"
+                                  onError={(e) => {
+                                    // Fallback to placeholder if image fails to load
+                                    e.currentTarget.src = "/placeholder.svg";
+                                  }}
+                                />
+                              ) : (
+                                <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600" />
+                              )}
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-semibold text-lg">{template.name}</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                                  {template.description}
+                                </p>
+                              </div>
+                              {selectedTemplate === template.id && (
+                                <div className="bg-purple-500 rounded-full p-1">
+                                  <Check className="h-4 w-4 text-white" />
+                                </div>
+                              )}
+                            </div>
+                            {template.isPremium && (
+                              <Badge className="mt-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs">
+                                PREMIUM
+                              </Badge>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-border">
+                    <div className="mt-8 flex justify-center">
+                      <Button 
+                        size="lg" 
+                        className="rounded-full px-8 py-6 text-lg"
+                        disabled={selectedTemplate === null}
+                        onClick={() => selectedTemplate !== null && handleTemplateSelect(selectedTemplate)}
+                      >
+                        Continue with Selected Template
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
-              )}
-            </div>
-
-            {/* Main Content Area */}
-            <div className="lg:col-span-3">
-              {showPreview ? (
+              ) : showPreview ? (
                 <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                   <CardHeader>
                     <CardTitle className="flex items-center">
@@ -775,7 +914,7 @@ const CreateResumeContent = () => {
                       Resume Preview
                     </CardTitle>
                     <CardDescription>
-                      {selectedTemplate ? "Using custom template" : "Default preview of your resume"}
+                      {selectedTemplate ? `Using ${templateData.find(t => t.id === selectedTemplate)?.name} template` : "Preview of your resume"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -1308,6 +1447,14 @@ const CreateResumeContent = () => {
                         <div className="flex flex-row gap-3 w-full">
                           <Button
                             type="button"
+                            variant="outline"
+                            className="rounded-full sm:w-auto w-full"
+                            onClick={() => setTemplateSelected(false)}
+                          >
+                            Change Template
+                          </Button>
+                          <Button
+                            type="button"
                             variant={activeSection === "personal" ? "outline" : "default"}
                             className={`rounded-full flex-1 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                             onClick={() => {
@@ -1363,11 +1510,18 @@ const CreateResumeContent = () => {
               )}
             </div>
           </div>
+          
+          {/* Dynamic Dock Component */}
+          <div className="mt-auto w-full flex justify-center items-center">
+            <div className="w-full max-w-4xl flex justify-center">
+              <DynamicDock currentPage="create" showLogout={false} />
+            </div>
+          </div>
+          
+          {/* Footer */}
+          <DashboardFooter />
         </div>
       </div>
-      
-      {/* Dynamic Dock Component */}
-      <DynamicDock currentPage="create" showLogout={false} />
     </ProtectedPage>
   );
 };

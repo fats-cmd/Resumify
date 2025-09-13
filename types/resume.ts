@@ -114,6 +114,9 @@ export interface ResumeData {
     endDate?: string;
     url?: string;
   }>;
+  
+  // Template ID for resume display
+  templateId?: number;
 }
 
 export interface Resume {

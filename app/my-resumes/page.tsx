@@ -79,10 +79,11 @@ export default function MyResumesPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [loading, setLoading] = useState(false); // Start with false since ProtectedPage handles auth loading
-  const [resumesLoading, setResumesLoading] = useState(true); // Start with true to show skeleton immediately
+  const [loading, setLoading] = useState(true);
+  const [resumesLoading, setResumesLoading] = useState(true);
   const [avatarError, setAvatarError] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Add state for sidebar collapse
 
   // Fetch resumes
   useEffect(() => {
@@ -91,15 +92,14 @@ export default function MyResumesPage() {
       
       try {
         setResumesLoading(true);
-        setLoading(true);
         // Add a minimum loading time to ensure skeleton is visible
         const startTime = Date.now();
         
         const { data, error } = await getResumes(user.id);
         
-        // Ensure skeleton shows for at least 1200ms for better UX
+        // Ensure skeleton shows for at least 800ms for better UX
         const elapsed = Date.now() - startTime;
-        const minLoadingTime = 1200;
+        const minLoadingTime = 800;
         if (elapsed < minLoadingTime) {
           await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
         }
@@ -123,10 +123,6 @@ export default function MyResumesPage() {
       // Reset avatar error state when user changes
       setAvatarError(false);
       fetchResumes();
-    } else {
-      // If there's no user, we're not loading anymore
-      setResumesLoading(false);
-      setLoading(false);
     }
   }, [user]);
 
@@ -212,203 +208,173 @@ export default function MyResumesPage() {
     );
   };
 
-  // Add this helper function before the component definition
-  const formatDateDifference = (dateString: string): string => {
-    // Handle invalid date strings
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return 'Unknown time';
-    }
-    
-    const now = new Date();
-    const diffTime = now.getTime() - date.getTime();
-    
-    // Handle future dates
-    if (diffTime < 0) {
-      return date.toLocaleDateString();
-    }
-    
-    const diffSeconds = Math.floor(diffTime / 1000);
-    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffSeconds < 60) {
-      return 'Just now';
-    } else if (diffMinutes < 60) {
-      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-    } else if (diffDays < 30) {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   return (
     <ProtectedPage>
-      <div className="min-h-screen flex flex-col bg-background">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/" className="font-bold text-2xl sm:text-3xl flex items-center">
-                <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
-                  Resumify
-                </span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                {/* Hamburger menu button for mobile */}
-                <button 
-                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                >
-                  <Menu className="h-6 w-6 text-white" />
-                </button>
-                {loading ? (
-                  <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
-                ) : (
-                  <>
-                    <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
-                          {getUserAvatar()}
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
-                        <div className="flex items-center px-2 py-2">
-                          <div className="mr-2">
-                            {getUserAvatar()}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
-                              {user?.user_metadata?.full_name || 'User'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {user?.email}
-                            </span>
-                          </div>
-                        </div>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>Settings</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>Log out</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div>
-                {loading ? (
-                  <div className="space-y-2">
-                    <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
-                    <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
+      <div className="h-screen flex bg-background">
+        {/* Sidebar - Full Height */}
+        <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
+          sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
+        }`}>
+          <div className="h-full overflow-y-auto">
+            {loading ? (
+              // Sidebar Skeleton Loading
+              <Card className="bg-card border-0 rounded-2xl overflow-hidden h-full">
+                <CardHeader className="flex justify-between items-center">
+                  <div>
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
                   </div>
-                ) : (
-                  <>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-white">My Resumes</h1>
-                    <p className="text-white/80 mt-2">
-                      Manage your professional resumes
-                    </p>
-                  </>
-                )}
+                  {/* Exit button for mobile */}
+                  <div className="lg:hidden">
+                    <button 
+                      onClick={() => setSidebarOpen(false)}
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      aria-label="Close sidebar"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                    <div className="space-y-3">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="h-full">
+                <Sidebar 
+                  currentPage="my-resumes" 
+                  onClose={() => setSidebarOpen(false)} 
+                  isCollapsed={sidebarCollapsed}
+                  onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+                />
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                {loading ? (
-                  <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
-                ) : (
-                  <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
-                    <Link href="/create">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Resume
-                    </Link>
-                  </Button>
-                )}
+            )}
+          </div>
+        </div>
+        
+        {/* Overlay for mobile when sidebar is open */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* Main Content Area */}
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-end w-full mb-4">
+                <div className="flex items-center space-x-3">
+                  {/* Hamburger menu button for mobile */}
+                  <button 
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <Menu className="h-6 w-6 text-white" />
+                  </button>
+                  {loading ? (
+                    <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
+                  ) : (
+                    <>
+                      <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
+                            {getUserAvatar()}
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                          <div className="flex items-center px-2 py-2">
+                            <div className="mr-2">
+                              {getUserAvatar()}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">
+                                {user?.user_metadata?.full_name || 'User'}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {user?.email}
+                              </span>
+                            </div>
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  {loading ? (
+                    <div className="space-y-2">
+                      <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
+                      <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <h1 className="text-3xl sm:text-4xl font-bold text-white">My Resumes</h1>
+                      <p className="text-white/80 mt-1">
+                        Manage your professional resumes
+                      </p>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  {loading ? (
+                    <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
+                  ) : (
+                    <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
+                      <Link href="/create">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create New Resume
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-          <div className="flex flex-col lg:flex-row gap-8 relative">
-            {/* Sidebar Menu - Floats on mobile */}
-            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
-              <div className="h-full lg:h-auto overflow-y-auto">
-                {loading ? (
-                  // Sidebar Skeleton Loading
-                  <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
-                    <CardHeader className="flex justify-between items-center">
-                      <div>
-                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                      </div>
-                      {/* Exit button for mobile */}
-                      <div className="lg:hidden">
-                        <button 
-                          onClick={() => setSidebarOpen(false)}
-                          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                          aria-label="Close sidebar"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      </div>
-                      
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
-                        <div className="space-y-3">
-                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                            <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                          </div>
-                        </div>
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Sidebar currentPage="my-resumes" onClose={() => setSidebarOpen(false)} />
-                )}
-              </div>
-            </div>
-            
-            {/* Overlay for mobile when sidebar is open */}
-            {sidebarOpen && (
-              <div 
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-              ></div>
-            )}
-
-            {/* Main Content */}
-            <div className="flex-1 lg:ml-0">
+          {/* Main Content */}
+          <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
               {/* Resumes Section */}
-              <div className="mb-12 mt-10">
+              <div className="mb-12">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div>
                     {loading ? (
@@ -419,7 +385,7 @@ export default function MyResumesPage() {
                     ) : (
                       <>
                         <h2 className="text-2xl font-bold text-foreground">Your Resumes</h2>
-                        <p className="text-muted-foreground mt-1 sm:mt-0">
+                        <p className="text-muted-foreground">
                           Manage and track your resumes
                         </p>
                       </>
@@ -439,7 +405,6 @@ export default function MyResumesPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {resumesLoading ? (
-                    // Show 3 skeleton cards while loading
                     [...Array(3)].map((_, index) => (
                       <motion.div
                         key={index}
@@ -528,6 +493,7 @@ export default function MyResumesPage() {
                             </div>
                           </CardContent>
                         </Card>
+
                       </motion.div>
                     ))
                   ) : (
@@ -550,17 +516,50 @@ export default function MyResumesPage() {
                 </div>
               </div>
             </div>
-          </div>
+          
+            {/* Dynamic Dock Component */}
+            <div className="mt-auto px-4 sm:px-6 lg:px-8">
+              <DynamicDock currentPage="my-resumes" showLogout={false} />
+            </div>
+            
+            {/* Footer - now using the reusable component */}
+            <DashboardFooter />
         </div>
-        
-        {/* Dynamic Dock Component */}
-        <div className="mt-auto">
-          <DynamicDock currentPage="my-resumes" showLogout={false} />
-        </div>
-        
-        {/* Footer - now using the reusable component */}
-        <DashboardFooter />
       </div>
     </ProtectedPage>
   );
 }
+
+// Add this helper function before the component definition
+const formatDateDifference = (dateString: string): string => {
+  // Handle invalid date strings
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    return 'Unknown time';
+  }
+  
+  const now = new Date();
+  const diffTime = now.getTime() - date.getTime();
+  
+  // Handle future dates
+  if (diffTime < 0) {
+    return date.toLocaleDateString();
+  }
+  
+  const diffSeconds = Math.floor(diffTime / 1000);
+  const diffMinutes = Math.floor(diffTime / (1000 * 60));
+  const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffSeconds < 60) {
+    return 'Just now';
+  } else if (diffMinutes < 60) {
+    return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+  } else if (diffHours < 24) {
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  } else if (diffDays < 30) {
+    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+};

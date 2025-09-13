@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Resume, ResumeData } from "@/types/resume";
+import { getTemplateComponent, getTemplateById } from "@/components/template-registry";
+import TemplatePreview from "@/components/template-preview";
 
 export default function ResumePage() {
   const router = useRouter();
@@ -62,6 +64,9 @@ export default function ResumePage() {
         } else {
           const resume = data?.find((r: Resume) => r.id === parseInt(id as string));
           if (resume) {
+            console.log("Fetched resume data:", resume);
+            console.log("Resume templateId:", resume.data.templateId);
+            console.log("Resume data structure:", JSON.stringify(resume.data, null, 2));
             setResumeData(resume.data as ResumeData);
           } else {
             toast.error("Resume not found.");
@@ -459,6 +464,13 @@ export default function ResumePage() {
     );
   }
 
+  // Ensure templateId is a valid number
+  const validTemplateId = resumeData.templateId && typeof resumeData.templateId === 'number' && resumeData.templateId > 0 
+    ? resumeData.templateId 
+    : null;
+
+  console.log("Resume data templateId:", resumeData.templateId, "Valid templateId:", validTemplateId);
+
   return (
     <ProtectedPage>
       <style jsx global>{`
@@ -491,6 +503,7 @@ export default function ResumePage() {
             padding: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
+            background-color: transparent !important; /* Allow template backgrounds to show */
           }
           .pdf-content .rounded-2xl {
             border-radius: 1rem !important;
@@ -510,6 +523,20 @@ export default function ResumePage() {
           /* Prevent browser from adding headers/footers */
           @page {
             margin: 0;
+          }
+          /* Preserve template background colors */
+          .pdf-content .bg-gray-800 {
+            background-color: #1f2937 !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          .pdf-content .bg-amber-500 {
+            background-color: #f59e0b !important;
+            -webkit-print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          .pdf-content .text-white {
+            color: #ffffff !important;
           }
         }
       `}</style>
@@ -577,159 +604,189 @@ export default function ResumePage() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
           {/* Resume Content - This is what will be converted to PDF */}
-          <div ref={resumeRef} className="pdf-content" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-            <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden relative" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
-              {/* Quick Edit Button */}
-              <Button 
-                asChild
-                size="sm"
-                className="absolute top-4 right-4 bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full h-10 w-10 p-0 no-print"
-              >
-                <Link href={`/edit/${id}`}>
-                  <Edit className="h-5 w-5" />
-                </Link>
-              </Button>
-              
-              <CardContent className="p-8" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
-                {/* Personal Info */}
-                <div className="mb-8">
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-6">
-                    {/* Profile Image */}
-                    {resumeData?.basics?.image ? (
-                      <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                          <Image 
-                            src={resumeData.basics.image} 
-                            alt={`${resumeData.personalInfo?.firstName} ${resumeData.personalInfo?.lastName}`}
-                            width={96}
-                            height={96}
-                            className="w-full h-full object-cover"
-                          />
+          <div ref={resumeRef} className="pdf-content">
+            {/* Debug information - Remove this in production */}
+            <div className="mb-4 p-2 bg-yellow-100 text-yellow-800 text-sm rounded hidden">
+              Template ID: {resumeData.templateId ?? 'null'} | Type: {typeof resumeData.templateId} | Valid Template ID: {validTemplateId ?? 'null'}
+            </div>
+            
+            {/* Check if resume has a template ID and display using template */}
+            {validTemplateId ? (
+              <div className="rounded-lg shadow-lg">
+                <TemplatePreview 
+                  templateId={validTemplateId} 
+                  resumeData={{
+                    personalInfo: {
+                      firstName: resumeData.personalInfo?.firstName || "",
+                      lastName: resumeData.personalInfo?.lastName || "",
+                      email: resumeData.personalInfo?.email || "",
+                      phone: resumeData.personalInfo?.phone || "",
+                      location: resumeData.personalInfo?.location || "",
+                      headline: resumeData.personalInfo?.headline || "",
+                      summary: resumeData.personalInfo?.summary || ""
+                    },
+                    workExperience: resumeData.workExperience || [],
+                    education: resumeData.education || [],
+                    skills: resumeData.skills || []
+                  }} 
+                  imagePreview={resumeData.basics?.image || null} 
+                />
+              </div>
+            ) : (
+              // Fallback to default display if no template
+              <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden relative" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
+                {/* Quick Edit Button */}
+                <Button 
+                  asChild
+                  size="sm"
+                  className="absolute top-4 right-4 bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full h-10 w-10 p-0 no-print"
+                >
+                  <Link href={`/edit/${id}`}>
+                    <Edit className="h-5 w-5" />
+                  </Link>
+                </Button>
+                
+                <CardContent className="p-8" style={{ color: '#000000', backgroundColor: '#ffffff' }}>
+                  {/* Personal Info */}
+                  <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+                      {/* Profile Image */}
+                      {resumeData?.basics?.image ? (
+                        <div className="flex-shrink-0">
+                          <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                            <Image 
+                              src={resumeData.basics.image} 
+                              alt={`${resumeData.personalInfo?.firstName} ${resumeData.personalInfo?.lastName}`}
+                              width={96}
+                              height={96}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0">
+                          <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
+                            <User className="h-12 w-12 text-gray-400" />
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h1 className="text-3xl font-bold text-foreground">
+                          {resumeData?.personalInfo?.firstName} {resumeData?.personalInfo?.lastName}
+                        </h1>
+                        <p className="text-lg text-muted-foreground mt-1">
+                          {resumeData?.personalInfo?.headline}
+                        </p>
+                        
+                        <div className="flex flex-wrap gap-4 mt-4">
+                          <div className="flex items-center text-muted-foreground">
+                            <Mail className="h-4 w-4 mr-2" />
+                            <span>{resumeData?.personalInfo?.email}</span>
+                          </div>
+                          <div className="flex items-center text-muted-foreground">
+                            <Phone className="h-4 w-4 mr-2" />
+                            <span>{resumeData?.personalInfo?.phone}</span>
+                          </div>
+                          <div className="flex items-center text-muted-foreground">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            <span>{resumeData?.personalInfo?.location}</span>
+                          </div>
                         </div>
                       </div>
-                    ) : (
-                      <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-full bg-gray-200 border-4 border-white shadow-lg flex items-center justify-center">
-                          <User className="h-12 w-12 text-gray-400" />
-                        </div>
+                    </div>
+                    
+                    {/* Full Width Summary */}
+                    {resumeData?.personalInfo?.summary && (
+                      <div className="mt-6">
+                        <div 
+                          className="text-foreground prose prose-sm max-w-none" 
+                          dangerouslySetInnerHTML={{ __html: resumeData.personalInfo.summary }}
+                        />
                       </div>
                     )}
-                    
-                    <div>
-                      <h1 className="text-3xl font-bold text-foreground">
-                        {resumeData?.personalInfo?.firstName} {resumeData?.personalInfo?.lastName}
-                      </h1>
-                      <p className="text-lg text-muted-foreground mt-1">
-                        {resumeData?.personalInfo?.headline}
-                      </p>
-                      
-                      <div className="flex flex-wrap gap-4 mt-4">
-                        <div className="flex items-center text-muted-foreground">
-                          <Mail className="h-4 w-4 mr-2" />
-                          <span>{resumeData?.personalInfo?.email}</span>
-                        </div>
-                        <div className="flex items-center text-muted-foreground">
-                          <Phone className="h-4 w-4 mr-2" />
-                          <span>{resumeData?.personalInfo?.phone}</span>
-                        </div>
-                        <div className="flex items-center text-muted-foreground">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          <span>{resumeData?.personalInfo?.location}</span>
-                        </div>
+                  </div>
+
+                  {/* Work Experience */}
+                  {resumeData?.workExperience && resumeData.workExperience.length > 0 && (
+                    <div className="mb-8">
+                      <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                        <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
+                        Work Experience
+                      </h2>
+                      <div className="space-y-6">
+                        {resumeData.workExperience.map((exp) => (
+                          <div key={exp.id} className="border-l-2 border-blue-500 pl-4 py-1">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                              <div>
+                                <h3 className="text-xl font-semibold text-foreground">{exp.position}</h3>
+                                <p className="text-lg text-muted-foreground">{exp.company}</p>
+                              </div>
+                              <p className="text-muted-foreground mt-1 sm:mt-0">
+                                {exp.startDate} - {exp.current ? "Present" : exp.endDate}
+                              </p>
+                            </div>
+                            <div 
+                              className="text-foreground mt-2 prose prose-sm max-w-none" 
+                              dangerouslySetInnerHTML={{ __html: exp.description }}
+                            />
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Full Width Summary */}
-                  {resumeData?.personalInfo?.summary && (
-                    <div className="mt-6">
-                      <div 
-                        className="text-foreground prose prose-sm max-w-none" 
-                        dangerouslySetInnerHTML={{ __html: resumeData.personalInfo.summary }}
-                      />
+                  )}
+
+                  {/* Education */}
+                  {resumeData?.education && resumeData.education.length > 0 && (
+                    <div className="mb-8">
+                      <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                        <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
+                        Education
+                      </h2>
+                      <div className="space-y-6">
+                        {resumeData.education.map((edu) => (
+                          <div key={edu.id} className="border-l-2 border-green-500 pl-4 py-1">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                              <div>
+                                <h3 className="text-xl font-semibold text-foreground">{edu.degree}</h3>
+                                <p className="text-lg text-muted-foreground">{edu.institution}</p>
+                                <p className="text-muted-foreground">{edu.field}</p>
+                              </div>
+                              <p className="text-muted-foreground mt-1 sm:mt-0">
+                                {edu.startDate} - {edu.endDate}
+                              </p>
+                            </div>
+                            <div 
+                              className="text-foreground mt-2 prose prose-sm max-w-none" 
+                              dangerouslySetInnerHTML={{ __html: edu.description }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
 
-                {/* Work Experience */}
-                {resumeData?.workExperience && resumeData.workExperience.length > 0 && (
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                      <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
-                      Work Experience
-                    </h2>
-                    <div className="space-y-6">
-                      {resumeData.workExperience.map((exp) => (
-                        <div key={exp.id} className="border-l-2 border-blue-500 pl-4 py-1">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                            <div>
-                              <h3 className="text-xl font-semibold text-foreground">{exp.position}</h3>
-                              <p className="text-lg text-muted-foreground">{exp.company}</p>
-                            </div>
-                            <p className="text-muted-foreground mt-1 sm:mt-0">
-                              {exp.startDate} - {exp.current ? "Present" : exp.endDate}
-                            </p>
-                          </div>
-                          <div 
-                            className="text-foreground mt-2 prose prose-sm max-w-none" 
-                            dangerouslySetInnerHTML={{ __html: exp.description }}
-                          />
-                        </div>
-                      ))}
+                  {/* Skills */}
+                  {resumeData?.skills && resumeData.skills.length > 0 && (
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
+                        <FileText className="h-5 w-5 mr-2 text-indigo-500" />
+                        Skills
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {resumeData.skills.map((skill: string, index: number) => (
+                          <Badge key={index} variant="secondary" className="rounded-full px-3 py-1">
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Education */}
-                {resumeData?.education && resumeData.education.length > 0 && (
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                      <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
-                      Education
-                    </h2>
-                    <div className="space-y-6">
-                      {resumeData.education.map((edu) => (
-                        <div key={edu.id} className="border-l-2 border-green-500 pl-4 py-1">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
-                            <div>
-                              <h3 className="text-xl font-semibold text-foreground">{edu.degree}</h3>
-                              <p className="text-lg text-muted-foreground">{edu.institution}</p>
-                              <p className="text-muted-foreground">{edu.field}</p>
-                            </div>
-                            <p className="text-muted-foreground mt-1 sm:mt-0">
-                              {edu.startDate} - {edu.endDate}
-                            </p>
-                          </div>
-                          <div 
-                            className="text-foreground mt-2 prose prose-sm max-w-none" 
-                            dangerouslySetInnerHTML={{ __html: edu.description }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Skills */}
-                {resumeData?.skills && resumeData.skills.length > 0 && (
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center">
-                      <FileText className="h-5 w-5 mr-2 text-indigo-500" />
-                      Skills
-                    </h2>
-                    <div className="flex flex-wrap gap-2">
-                      {resumeData.skills.map((skill: string, index: number) => (
-                        <Badge key={index} variant="secondary" className="rounded-full px-3 py-1">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         
           {/* Dynamic Dock Component */}

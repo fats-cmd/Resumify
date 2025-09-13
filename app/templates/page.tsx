@@ -162,6 +162,7 @@ export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState("professional");
   const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Add this state for mobile sidebar
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const itemsPerPage = 6; // Show 6 templates per page
 
   const handleLogout = async () => {
@@ -301,96 +302,93 @@ export default function TemplatesPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen flex flex-col bg-background pb-20">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/" className="font-bold text-2xl sm:text-3xl flex items-center">
-                <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
-                  Resumify
-                </span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                {/* Hamburger menu button for mobile */}
-                <button 
-                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                >
-                  <Menu className="h-6 w-6 text-white" />
-                </button>
-                <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
-                      {getUserAvatar()}
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
-                    <div className="flex items-center px-2 py-2">
-                      <div className="mr-2">
-                        {getUserAvatar()}
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {user?.user_metadata?.full_name || 'User'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {user?.email}
-                        </span>
-                      </div>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">Resume Templates</h1>
-                <p className="text-white/80 mt-2">
-                  Choose from our professionally designed templates to create your perfect resume
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
-                  <Link href="/create">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create New Resume
-                  </Link>
-                </Button>
-              </div>
+      <div className="h-screen flex bg-background">
+        {/* Sidebar - Full Height */}
+        <div className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'} bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}>
+          <div className="h-full overflow-y-auto">
+            <div className="h-full">
+              <Sidebar currentPage="templates" onClose={() => setSidebarOpen(false)} isCollapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
             </div>
           </div>
         </div>
+        
+        {/* Overlay for mobile when sidebar is open */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
 
-        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-          <div className="flex flex-col lg:flex-row gap-8 relative">
-            {/* Sidebar Menu - Floats on mobile */}
-            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:z-auto`}>
-              <div className="h-full lg:h-auto overflow-y-auto">
-                <Sidebar currentPage="templates" onClose={() => setSidebarOpen(false)} />
+        {/* Main Content Area */}
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-end w-full mb-4">
+                <div className="flex items-center space-x-3">
+                  {/* Hamburger menu button for mobile */}
+                  <button 
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <Menu className="h-6 w-6 text-white" />
+                  </button>
+                  <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
+                        {getUserAvatar()}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                      <div className="flex items-center px-2 py-2">
+                        <div className="mr-2">
+                          {getUserAvatar()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {user?.user_metadata?.full_name || 'User'}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {user?.email}
+                          </span>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-white">Resume Templates</h1>
+                  <p className="text-white/80 mt-1">
+                    Choose from our professionally designed templates to create your perfect resume
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
+                    <Link href="/create">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Resume
+                    </Link>
+                  </Button>
+                </div>
               </div>
             </div>
-            
-            {/* Overlay for mobile when sidebar is open */}
-            {sidebarOpen && (
-              <div 
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-              ></div>
-            )}
+          </div>
 
-            {/* Main Content */}
-            <div className="flex-1 lg:ml-0">
+          {/* Main Content */}
+          <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
               {/* Category Filter using shadcn Tabs */}
               <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="mb-8">
                 <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 h-auto">
@@ -619,17 +617,16 @@ export default function TemplatesPage() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
           </div>
+          
+          {/* Dynamic Dock Component */}
+          <div className="mt-auto px-4 sm:px-6 lg:px-8">
+            <DynamicDock currentPage="templates" showLogout={false} />
+          </div>
+          
+          {/* Footer - now using the reusable component */}
+          <DashboardFooter />
         </div>
-        
-        {/* Dynamic Dock Component */}
-        <div className="mt-auto">
-          <DynamicDock currentPage="templates" showLogout={false} />
-        </div>
-        
-        {/* Footer - now using the reusable component */}
-        <DashboardFooter />
       </div>
     </ProtectedPage>
   );
