@@ -108,6 +108,7 @@ export default function DashboardPage() {
   const [resumesLoading, setResumesLoading] = useState(true);
   const [avatarError, setAvatarError] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Add state for sidebar collapse
 
   // Fetch resumes and stats
   useEffect(() => {
@@ -275,165 +276,171 @@ export default function DashboardPage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen flex flex-col bg-background">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between w-full mb-8">
-              <Link href="/" className="font-bold text-2xl sm:text-3xl flex items-center">
-                <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
-                  Resumify
-                </span>
-              </Link>
-              <div className="flex items-center space-x-3">
-                {/* Hamburger menu button for mobile */}
-                <button 
-                  className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                >
-                  <Menu className="h-6 w-6 text-white" />
-                </button>
-                {loading ? (
-                  <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
-                ) : (
-                  <>
-                    <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
-                          {getUserAvatar()}
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
-                        <div className="flex items-center px-2 py-2">
-                          <div className="mr-2">
-                            {getUserAvatar()}
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">
-                              {user?.user_metadata?.full_name || 'User'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {user?.email}
-                            </span>
-                          </div>
-                        </div>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>Settings</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>Log out</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div>
-                {loading ? (
-                  <div className="space-y-2">
-                    <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
-                    <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
+      <div className="h-screen flex bg-background">
+        {/* Sidebar - Full Height */}
+        <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
+          sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
+        }`}>
+          <div className="h-full overflow-y-auto">
+            {loading ? (
+              // Sidebar Skeleton Loading
+              <Card className="bg-card border-0 rounded-2xl overflow-hidden h-full">
+                <CardHeader className="flex justify-between items-center">
+                  <div>
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
                   </div>
-                ) : (
-                  <>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-white">Dashboard</h1>
-                    <p className="text-white/80 mt-2">
-                      Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}!
-                    </p>
-                  </>
-                )}
+                  {/* Exit button for mobile */}
+                  <div className="lg:hidden">
+                    <button 
+                      onClick={() => setSidebarOpen(false)}
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      aria-label="Close sidebar"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                    <div className="space-y-3">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="h-full">
+                <Sidebar 
+                  currentPage="dashboard" 
+                  onClose={() => setSidebarOpen(false)} 
+                  isCollapsed={sidebarCollapsed}
+                  onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+                />
               </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                {loading ? (
-                  <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
-                ) : (
-                  <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
-                    <Link href="/create">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Resume
-                    </Link>
-                  </Button>
-                )}
+            )}
+          </div>
+        </div>
+        
+        {/* Overlay for mobile when sidebar is open */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
+
+        {/* Main Content Area */}
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${
+          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
+        }`}>
+          {/* Header with gradient */}
+          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
+            <div className="px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-end w-full mb-4">
+                <div className="flex items-center space-x-3">
+                  {/* Hamburger menu button for mobile */}
+                  <button 
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <Menu className="h-6 w-6 text-white" />
+                  </button>
+                  {loading ? (
+                    <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
+                  ) : (
+                    <>
+                      <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
+                            {getUserAvatar()}
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                          <div className="flex items-center px-2 py-2">
+                            <div className="mr-2">
+                              {getUserAvatar()}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">
+                                {user?.user_metadata?.full_name || 'User'}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {user?.email}
+                              </span>
+                            </div>
+                          </div>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  {loading ? (
+                    <div className="space-y-2">
+                      <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
+                      <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <h1 className="text-3xl sm:text-4xl font-bold text-white">Dashboard</h1>
+                      <p className="text-white/80 mt-1">
+                        Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}!
+                      </p>
+                    </>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                  {loading ? (
+                    <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
+                  ) : (
+                    <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
+                      <Link href="/create">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create New Resume
+                      </Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
-          <div className="flex flex-col lg:flex-row gap-8 relative">
-            {/* Sidebar Menu - Floats on mobile */}
-            <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:sticky lg:top-8 lg:h-[calc(100vh-2rem)]`}>
-              <div className="h-full lg:h-auto overflow-y-auto">
-                {loading ? (
-                  // Sidebar Skeleton Loading
-                  <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8 h-full lg:h-auto">
-                    <CardHeader className="flex justify-between items-center">
-                      <div>
-                        <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                      </div>
-                      {/* Exit button for mobile */}
-                      <div className="lg:hidden">
-                        <button 
-                          onClick={() => setSidebarOpen(false)}
-                          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                          aria-label="Close sidebar"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      </div>
-                      
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
-                        <div className="space-y-3">
-                          <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                        </div>
-                      </div>
-                      
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="flex-shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                            <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                          </div>
-                        </div>
-                        <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Sidebar currentPage="dashboard" onClose={() => setSidebarOpen(false)} />
-                )}
-              </div>
-            </div>
-            
-            {/* Overlay for mobile when sidebar is open */}
-            {sidebarOpen && (
-              <div 
-                className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-              ></div>
-            )}
-
-            {/* Main Content */}
-            <div className="flex-1 lg:ml-0">
+          {/* Main Content */}
+          <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
               {/* Stats Cards */}
               <div className="mb-12">
                 {loading ? (
@@ -660,16 +667,15 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
           
-          {/* Dynamic Dock Component */}
-          <div className="mt-auto">
-            <DynamicDock currentPage="dashboard" showLogout={false} />
-          </div>
+            {/* Dynamic Dock Component */}
+            <div className="mt-auto px-4 sm:px-6 lg:px-8">
+              <DynamicDock currentPage="dashboard" showLogout={false} />
+            </div>
+            
+            {/* Footer - now using the reusable component */}
+            <DashboardFooter />
         </div>
-        
-        {/* Footer - now using the reusable component */}
-        <DashboardFooter />
       </div>
     </ProtectedPage>
   );

@@ -25,11 +25,17 @@ const templates: TemplateDefinition[] = [
 ];
 
 export const getTemplateById = (id: number): TemplateDefinition | undefined => {
-  return templates.find(template => template.id === id);
+  console.log("Looking for template with ID:", id);
+  console.log("Available templates:", templates);
+  const template = templates.find(template => template.id === id);
+  console.log("Found template:", template);
+  return template;
 };
 
 export const getTemplateComponent = (id: number): React.ComponentType<TemplateComponentProps> | null => {
+  console.log("Getting template component for ID:", id);
   const template = getTemplateById(id);
+  console.log("Template component result:", template ? "Found" : "Not found");
   return template ? template.component : null;
 };
 
