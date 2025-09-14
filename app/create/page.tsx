@@ -154,9 +154,33 @@ const CreateResumeContent = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [templateSelected, setTemplateSelected] = useState(false); // New state to track if template is selected
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Add state for sidebar collapse
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
+  // Load sidebar collapsed state from localStorage on component mount
+  useEffect(() => {
+    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    if (savedCollapsedState !== null) {
+      setSidebarCollapsed(JSON.parse(savedCollapsedState));
+    }
+    
+    // Load sidebar open state from localStorage on component mount (for mobile)
+    const savedOpenState = localStorage.getItem('sidebarOpen');
+    if (savedOpenState !== null) {
+      setSidebarOpen(JSON.parse(savedOpenState));
+    }
+  }, []);
+
+  // Save sidebar collapsed state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  // Save sidebar open state to localStorage whenever it changes (for mobile)
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
+
   // State for form data
   const [resumeData, setResumeData] = useState({
     personalInfo: {
@@ -703,7 +727,7 @@ const CreateResumeContent = () => {
 
   return (
     <ProtectedPage>
-      <div className="h-screen flex bg-background">
+      <div className="h-screen flex bg-background flex-col">
         {/* Sidebar - Full Height */}
         <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
           sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
@@ -781,34 +805,29 @@ const CreateResumeContent = () => {
         <div className={`flex-1 flex flex-col transition-all duration-300 ${
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
         }`}>
-          {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center justify-end w-full mb-4">
+          {/* Header with gradient - Fixed */}
+          <div className="bg-[#F4F7FA] dark:bg-[#0C111D] flex-shrink-0">
+            <div className="px-4 sm:px-6 lg:px-8 py-1">
+              <div className="flex items-center justify-end w-full">
+                <div className="lg:hidden absolute left-4">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
                   <button 
-                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
-                    <Menu className="h-6 w-6 text-white" />
+                    <Menu className="h-6 w-6 text-gray-900 dark:text-white" />
                   </button>
-                  <Button 
-                    asChild
-                    className="bg-black hover:bg-gray-800 text-white font-medium shadow-lg rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
-                  >
-                    <Link href="/dashboard" className="flex items-center">
-                      <ArrowLeft className="h-5 w-5 mr-2" />
-                      <span>Back to Dashboard</span>
-                    </Link>
-                  </Button>
-                  <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/30" />
+
+                  <ThemeToggle className="bg-gray-200 border-gray-300 hover:bg-gray-300" />
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-white">Create Your Resume</h1>
-                  <p className="text-white/80 mt-2">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Create Your Resume</h1>
+                  <p className="text-gray-700 mt-2 dark:text-white">
                     {templateSelected 
                       ? "Build a professional resume in minutes with our easy-to-use editor" 
                       : "Choose a template to get started"}
@@ -818,7 +837,7 @@ const CreateResumeContent = () => {
                   <div className="flex flex-col sm:flex-row gap-3 items-center">
                     <Button 
                       variant="outline" 
-                      className="bg-white/10 text-white border-white/20 hover:bg-white/20 rounded-full"
+                      className="bg-white/10 text-gray-900 border-gray-300 hover:bg-gray-100 rounded-full"
                       onClick={handlePreviewToggle}
                     >
                       <Eye className="h-4 w-4 mr-2" />
@@ -830,8 +849,8 @@ const CreateResumeContent = () => {
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
+          {/* Main Content - Scrollable Area */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
             {/* Main Content Area */}
             <div className={templateSelected ? "lg:col-span-3" : "lg:col-span-4"}>
               {!templateSelected ? (
@@ -856,7 +875,7 @@ const CreateResumeContent = () => {
                           onClick={() => handleTemplateSelect(template.id)}
                         >
                           <CardContent className="p-4">
-                            <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                            <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-gray-100 dark:bg-[#0C111D] flex items-center justify-center">
                               {template.previewImage ? (
                                 <Image 
                                   src={template.previewImage} 
@@ -922,7 +941,94 @@ const CreateResumeContent = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Tab Navigation - Circular Design */}
+                  <div className="flex justify-center mb-8">
+                    <div className="flex items-center bg-gray-100 dark:bg-[#0C111D] rounded-full p-1 overflow-x-auto scrollbar-hide">
+                      <button
+                        className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                          activeSection === "personal"
+                            ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                        onClick={() => setActiveSection("personal")}
+                      >
+                        <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                          activeSection === "personal"
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                        }`}>
+                          1
+                        </div>
+                        <span className="hidden sm:inline">Personal Info</span>
+                        <span className="sm:hidden">Personal</span>
+                      </button>
+                      
+                      <div className="w-2 md:w-8 h-0.5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                      
+                      <button
+                        className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                          activeSection === "work"
+                            ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                        onClick={() => setActiveSection("work")}
+                      >
+                        <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                          activeSection === "work"
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                        }`}>
+                          2
+                        </div>
+                        <span className="hidden sm:inline">Work Experience</span>
+                        <span className="sm:hidden">Work</span>
+                      </button>
+                      
+                      <div className="w-2 md:w-8 h-0.5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                      
+                      <button
+                        className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                          activeSection === "education"
+                            ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                        onClick={() => setActiveSection("education")}
+                      >
+                        <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                          activeSection === "education"
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                        }`}>
+                          3
+                        </div>
+                        <span className="hidden sm:inline">Education</span>
+                        <span className="sm:hidden">Edu</span>
+                      </button>
+                      
+                      <div className="w-2 md:w-8 h-0.5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                      
+                      <button
+                        className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                          activeSection === "skills"
+                            ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                        }`}
+                        onClick={() => setActiveSection("skills")}
+                      >
+                        <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                          activeSection === "skills"
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                        }`}>
+                          4
+                        </div>
+                        <span className="hidden sm:inline">Skills</span>
+                        <span className="sm:hidden">Skills</span>
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Personal Information Section */}
                   {loading ? (
                     <SkeletonSection />
@@ -939,7 +1045,7 @@ const CreateResumeContent = () => {
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Image Upload Section */}
-                        <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg bg-blue-50 dark:bg-gray-900">
+                        <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg bg-blue-50 dark:bg-[#0C111D]">
                           <Label htmlFor="image-upload" className="font-bold dark:text-blue-50">Profile Image</Label>
                           <div className="flex items-center space-x-4">
                             {/* Image Preview */}
@@ -964,7 +1070,7 @@ const CreateResumeContent = () => {
                                 </button>
                               </div>
                             ) : (
-                              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                              <div className="w-16 h-16 rounded-full bg-gray-200 dark:bg-[#0C111D] flex items-center justify-center">
                                 <User className="h-6 w-6 text-gray-500" />
                               </div>
                             )}
@@ -972,7 +1078,7 @@ const CreateResumeContent = () => {
                             {/* Upload Button */}
                             <div>
                               <label htmlFor="image-upload" className="cursor-pointer">
-                                <div className="px-4 py-2 dark:bg-gray-800 bg-gray-200 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                                <div className="px-4 py-2 dark:bg-[#0C111D] bg-gray-200 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
                                   {isUploading ? "Uploading..." : "Upload Image"}
                                 </div>
                                 <input
@@ -1443,20 +1549,12 @@ const CreateResumeContent = () => {
                   {/* Form Actions */}
                   {!loading && (
                     <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
-                      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        <div className="flex flex-row gap-3 w-full">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="rounded-full sm:w-auto w-full"
-                            onClick={() => setTemplateSelected(false)}
-                          >
-                            Change Template
-                          </Button>
+                      <div className="flex flex-col sm:flex-row gap-3 w-full">
+                        <div className="flex flex-row gap-3 w-full sm:w-1/2">
                           <Button
                             type="button"
                             variant={activeSection === "personal" ? "outline" : "default"}
-                            className={`rounded-full flex-1 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                            className={`rounded-full w-1/2 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                             onClick={() => {
                               if (activeSection === "work") setActiveSection("personal");
                               else if (activeSection === "education") setActiveSection("work");
@@ -1468,7 +1566,7 @@ const CreateResumeContent = () => {
                           <Button
                             type="button"
                             variant={activeSection === "skills" ? "outline" : "default"}
-                            className={`rounded-full flex-1 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                            className={`rounded-full w-1/2 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                             onClick={() => {
                               if (activeSection === "personal") setActiveSection("work");
                               else if (activeSection === "work") setActiveSection("education");
@@ -1480,8 +1578,16 @@ const CreateResumeContent = () => {
                         </div>
                         <Button
                           type="button"
+                          variant="outline"
+                          className="rounded-full w-full sm:w-1/4"
+                          onClick={() => setTemplateSelected(false)}
+                        >
+                          Change Template
+                        </Button>
+                        <Button
+                          type="button"
                           variant="default"
-                          className="rounded-full sm:w-auto w-full bg-white text-purple-600 hover:bg-white/90"
+                          className="rounded-full w-full sm:w-1/4 bg-white text-purple-600 hover:bg-white/90"
                           onClick={() => router.push("/dashboard")}
                         >
                           Cancel
@@ -1489,7 +1595,7 @@ const CreateResumeContent = () => {
                       </div>
                       <Button 
                         type="submit" 
-                        className="rounded-full sm:w-auto w-full"
+                        className="rounded-full w-full sm:w-auto"
                         disabled={saving}
                       >
                         {saving ? (

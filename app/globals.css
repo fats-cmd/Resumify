@@ -407,4 +407,14 @@
   .tiptap text {
     white-space: pre-wrap;
   }
+  
+  /* Hide scrollbar for tab navigation */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera*/
+  }
 }

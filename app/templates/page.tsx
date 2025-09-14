@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -161,9 +161,33 @@ export default function TemplatesPage() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState("professional");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Add this state for mobile sidebar
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const itemsPerPage = 6; // Show 6 templates per page
+
+  // Load sidebar collapsed state from localStorage on component mount
+  useEffect(() => {
+    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    if (savedCollapsedState !== null) {
+      setSidebarCollapsed(JSON.parse(savedCollapsedState));
+    }
+    
+    // Load sidebar open state from localStorage on component mount (for mobile)
+    const savedOpenState = localStorage.getItem('sidebarOpen');
+    if (savedOpenState !== null) {
+      setSidebarOpen(JSON.parse(savedOpenState));
+    }
+  }, []);
+
+  // Save sidebar collapsed state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  // Save sidebar open state to localStorage whenever it changes (for mobile)
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
 
   const handleLogout = async () => {
     try {
@@ -323,21 +347,24 @@ export default function TemplatesPage() {
         {/* Main Content Area */}
         <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center justify-end w-full mb-4">
+          <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
+            <div className="px-4 sm:px-6 lg:px-8 py-1">
+              <div className="flex items-center justify-end w-full">
+                <div className="lg:hidden absolute left-4">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
                   <button 
-                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
-                    <Menu className="h-6 w-6 text-white" />
+                    <Menu className="h-6 w-6 text-gray-900 dark:text-white" />
                   </button>
-                  <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
+                  <ThemeToggle className="bg-gray-200 border-gray-300 hover:bg-gray-300" />
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
+                      <button className="focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1">
                         {getUserAvatar()}
                       </button>
                     </DropdownMenuTrigger>
@@ -347,20 +374,20 @@ export default function TemplatesPage() {
                           {getUserAvatar()}
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium">
+                          <span className="text-sm font-medium dark:text-white">
                             {user?.user_metadata?.full_name || 'User'}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground dark:text-gray-300">
                             {user?.email}
                           </span>
                         </div>
                       </div>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer dark:text-white">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 dark:text-red-400">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                       </DropdownMenuItem>
@@ -370,8 +397,8 @@ export default function TemplatesPage() {
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-white">Resume Templates</h1>
-                  <p className="text-white/80 mt-1">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">Resume Templates</h1>
+                  <p className="text-gray-600 mt-1 dark:text-gray-300">
                     Choose from our professionally designed templates to create your perfect resume
                   </p>
                 </div>
@@ -465,7 +492,7 @@ export default function TemplatesPage() {
                               }}
                             />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-[#0C111D]">
                               <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600" />
                             </div>
                           )}
