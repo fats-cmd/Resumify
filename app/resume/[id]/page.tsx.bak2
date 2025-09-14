@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { DashboardFooter } from "@/components/dashboard-footer";
@@ -19,6 +19,7 @@ import {
   Printer,
   Share2,
   Edit,
+  ArrowLeft,
   Mail,
   Phone,
   MapPin,
@@ -30,8 +31,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Resume, ResumeData } from "@/types/resume";
+import { getTemplateComponent, getTemplateById } from "@/components/template-registry";
 import TemplatePreview from "@/components/template-preview";
-import { Sidebar } from "@/components/sidebar";
 
 export default function ResumePage() {
   const router = useRouter();
@@ -706,63 +707,48 @@ export default function ResumePage() {
           sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
         }`}>
           <div className="h-full overflow-y-auto">
-            {loading ? (
-              // Sidebar Skeleton Loading
-              <Card className="bg-card border-0 rounded-2xl overflow-hidden h-full">
-                <CardHeader className="flex justify-between items-center">
-                  <div>
-                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
-                  </div>
-                  <div className="lg:hidden">
+            <div className="h-full">
+              {/* Using a simplified sidebar for resume view */}
+              <div className="flex flex-col h-full">
+                <div className="px-6 py-4 border-b border-border">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-foreground">Resumify</h2>
                     <button 
+                      className="lg:hidden"
                       onClick={() => setSidebarOpen(false)}
-                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                      aria-label="Close sidebar"
                     >
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
-                    <div className="space-y-3">
-                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
-                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                      </div>
-                    </div>
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="h-full">
-                <Sidebar 
-                  currentPage="resume" 
-                  onClose={() => setSidebarOpen(false)} 
-                  isCollapsed={sidebarCollapsed}
-                  onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-                />
+                </div>
+                <div className="flex-1 px-4 py-6">
+                  <nav className="space-y-2">
+                    <Button 
+                      asChild
+                      variant="ghost"
+                      className="w-full justify-start"
+                    >
+                      <Link href="/dashboard">
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Back to Dashboard
+                      </Link>
+                    </Button>
+                  </nav>
+                </div>
+                <div className="p-4 border-t border-border">
+                  <Button 
+                    asChild
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Link href={`/edit/${id}`}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Resume
+                    </Link>
+                  </Button>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
         
@@ -820,7 +806,7 @@ export default function ResumePage() {
                   <Button 
                     onClick={handlePrint}
                     variant="outline"
-                    className="bg-background/80 text-foreground border-border hover:bg-accent rounded-full"
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30 rounded-full"
                   >
                     <Printer className="h-4 w-4 mr-2" />
                     Print
@@ -828,7 +814,7 @@ export default function ResumePage() {
                   <Button 
                     onClick={handleShare}
                     variant="outline"
-                    className="bg-background/80 text-foreground border-border hover:bg-accent rounded-full"
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30 rounded-full"
                   >
                     <Share2 className="h-4 w-4 mr-2" />
                     Share
@@ -836,7 +822,7 @@ export default function ResumePage() {
                   <Button 
                     asChild
                     variant="outline"
-                    className="bg-background/80 text-foreground border-border hover:bg-accent rounded-full"
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30 rounded-full"
                   >
                     <Link href={`/edit/${id}`}>
                       <Edit className="h-4 w-4 mr-2" />
@@ -881,7 +867,7 @@ export default function ResumePage() {
                     />
                   </div>
                 ) : (
-                  <>
+                  {/* Fallback to default display if no template */}
                   <Card className="bg-card border-0 shadow-lg rounded-2xl overflow-hidden relative" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
                     {/* Quick Edit Button */}
                     <Button 
@@ -1032,7 +1018,6 @@ export default function ResumePage() {
                       )}
                     </CardContent>
                   </Card>
-                  </>
                 )}
               </div>
             </div>

@@ -89,6 +89,7 @@ export default function EditResumePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [templateSelected, setTemplateSelected] = useState(true);
+  const [templateId, setTemplateId] = useState<number | null>(null);
 
   // Load sidebar state from localStorage
   useEffect(() => {
@@ -239,6 +240,8 @@ export default function EditResumePage() {
           const resume = data?.find((r: Resume) => r.id === parseInt(id as string));
           if (resume) {
             setResumeData(resume.data as ResumeData);
+            // Set template ID from resume data
+            setTemplateId(resume.data.templateId || null);
             // Set image preview if resume has an image
             if (resume.data.basics?.image) {
               setImagePreview(resume.data.basics.image);
@@ -966,7 +969,7 @@ export default function EditResumePage() {
 
   return (
     <ProtectedPage>
-      <div className="h-screen flex bg-background flex-col">
+      <div className="flex bg-background flex-col">
         {/* Sidebar - Full Height */}
         <div className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'} bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}>
           <div className="h-full overflow-y-auto">
@@ -991,7 +994,7 @@ export default function EditResumePage() {
 
         {/* Main Content Area */}
         <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
-          {/* Header with gradient - Fixed */}
+          {/* Header with gradient - NOT Fixed */}
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D] flex-shrink-0">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
               <div className="flex items-center justify-end w-full">
@@ -1246,7 +1249,7 @@ export default function EditResumePage() {
                     </CardHeader>
                     <CardContent>
                       <TemplatePreview 
-                        templateId={null} 
+                        templateId={templateId} 
                         resumeData={transformToFormResumeData(resumeData)} 
                         imagePreview={imagePreview} 
                       />
@@ -1877,7 +1880,6 @@ export default function EditResumePage() {
             </div>
           </div>
         </div>
-      </div>
       
       {/* Dynamic Dock Component */}
       <div className="mt-auto w-full flex justify-center items-center">
@@ -1885,6 +1887,7 @@ export default function EditResumePage() {
           <DynamicDock currentPage="resume" showLogout={false} />
         </div>
       </div>
-    </ProtectedPage>
+    </div>
+  </ProtectedPage>
   );
 }
