@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DynamicDock } from "@/components/dynamic-dock";
-import Link from "next/link";
+
 import { useAuth } from "@/components/auth-provider";
 import { getResumes, updateResume } from "@/lib/supabase";
 import { Resume, ResumeData } from "../../../types/resume";
@@ -27,10 +27,12 @@ import {
   Trash2,
   Save,
   Eye,
-  ArrowLeft,
+
   Sparkles,
   Menu,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { 
@@ -42,6 +44,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import TemplatePreview from "@/components/template-preview";
+
+interface FormResumeData {
+  personalInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    location: string;
+    headline: string;
+    summary: string;
+  };
+  workExperience: {
+    id: number;
+    company: string;
+    position: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+    current: boolean;
+  }[];
+  education: {
+    id: number;
+    institution: string;
+    degree: string;
+    field: string;
+    startDate: string;
+    endDate: string;
+    description: string;
+  }[];
+  skills: string[];
+}
 
 export default function EditResumePage() {
   const router = useRouter();
@@ -120,6 +154,50 @@ export default function EditResumePage() {
   const [isGeneratingExperience, setIsGeneratingExperience] = useState<{[key: number]: boolean}>({});
   const [isGeneratingEducation, setIsGeneratingEducation] = useState<{[key: number]: boolean}>({});
   const [isGeneratingSkills, setIsGeneratingSkills] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // Handle preview toggle
+  const handlePreviewToggle = () => {
+    setShowPreview(!showPreview);
+  };
+
+  // Transform ResumeData to FormResumeData for TemplatePreview
+  const transformToFormResumeData = (data: ResumeData): FormResumeData => {
+    return {
+      personalInfo: {
+        firstName: data.personalInfo?.firstName || "",
+        lastName: data.personalInfo?.lastName || "",
+        email: data.personalInfo?.email || "",
+        phone: data.personalInfo?.phone || "",
+        location: data.personalInfo?.location || "",
+        headline: data.personalInfo?.headline || "",
+        summary: data.personalInfo?.summary || ""
+      },
+      workExperience: data.workExperience || [
+        {
+          id: 1,
+          company: "",
+          position: "",
+          startDate: "",
+          endDate: "",
+          description: "",
+          current: false
+        }
+      ],
+      education: data.education || [
+        {
+          id: 1,
+          institution: "",
+          degree: "",
+          field: "",
+          startDate: "",
+          endDate: "",
+          description: ""
+        }
+      ],
+      skills: data.skills || [""]
+    };
+  };
 
   // Fetch resume data
   useEffect(() => {
@@ -1068,19 +1146,59 @@ export default function EditResumePage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content - Full Width */}
               <div className="lg:col-span-4">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {/* Personal Information Section */}
-                  {activeSection === "personal" && (
-                    <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                      <CardHeader>
+                {showPreview ? (
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div>
                         <CardTitle className="flex items-center">
-                          <User className="h-5 w-5 mr-2 text-purple-500" />
-                          Personal Information
+                          <Eye className="h-5 w-5 mr-2 text-purple-500" />
+                          Resume Preview
                         </CardTitle>
                         <CardDescription>
-                          Update your personal details
+                          Preview of your resume
                         </CardDescription>
-                      </CardHeader>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        className="rounded-full"
+                        onClick={handlePreviewToggle}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Edit Resume
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <TemplatePreview 
+                        templateId={null} 
+                        resumeData={transformToFormResumeData(resumeData)} 
+                        imagePreview={imagePreview} 
+                      />
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    {/* Personal Information Section */}
+                    {activeSection === "personal" && (
+                      <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <div>
+                            <CardTitle className="flex items-center">
+                              <User className="h-5 w-5 mr-2 text-purple-500" />
+                              Personal Information
+                            </CardTitle>
+                            <CardDescription>
+                              Update your personal details
+                            </CardDescription>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            className="rounded-full"
+                            onClick={handlePreviewToggle}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Preview Resume
+                          </Button>
+                        </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Image Upload Section */}
                         <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg">
@@ -1254,14 +1372,24 @@ export default function EditResumePage() {
                   {/* Work Experience Section */}
                   {activeSection === "work" && (
                     <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
-                          Work Experience
-                        </CardTitle>
-                        <CardDescription>
-                          Update your professional experience
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
+                            Work Experience
+                          </CardTitle>
+                          <CardDescription>
+                            Update your professional experience
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {(resumeData.workExperience || []).map((exp, index) => (
@@ -1384,14 +1512,24 @@ export default function EditResumePage() {
                   {/* Education Section */}
                   {activeSection === "education" && (
                     <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
-                          Education
-                        </CardTitle>
-                        <CardDescription>
-                          Update your educational background
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
+                            Education
+                          </CardTitle>
+                          <CardDescription>
+                            Update your educational background
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {(resumeData.education || []).map((edu, index) => (
@@ -1512,14 +1650,24 @@ export default function EditResumePage() {
                   {/* Skills Section */}
                   {activeSection === "skills" && (
                     <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <FileText className="h-5 w-5 mr-2 text-indigo-500" />
-                          Skills
-                        </CardTitle>
-                        <CardDescription>
-                          Update your professional skills
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <FileText className="h-5 w-5 mr-2 text-indigo-500" />
+                            Skills
+                          </CardTitle>
+                          <CardDescription>
+                            Update your professional skills
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="flex justify-end">
@@ -1579,36 +1727,51 @@ export default function EditResumePage() {
                   )}
 
                   {/* Form Actions */}
-                  <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
-                    <div className="flex flex-row gap-3 w-full">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex gap-3 w-full sm:w-auto sm:order-1 order-2">
+                      {/* Placeholder for left-aligned buttons if needed in future */}
+                    </div>
+                    <div className="flex gap-2 sm:order-2 order-1">
                       <Button
                         type="button"
                         variant={activeSection === "personal" ? "outline" : "default"}
-                        className={`rounded-full w-1/2 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                        size="icon"
+                        className={`rounded-full w-10 h-10 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                         onClick={() => {
-                          if (activeSection === "work") setActiveSection("personal");
-                          else if (activeSection === "education") setActiveSection("work");
-                          else if (activeSection === "skills") setActiveSection("education");
+                          let newSection = activeSection; // Default to current section
+                          if (activeSection === "personal") newSection = "skills";
+                          else if (activeSection === "work") newSection = "personal";
+                          else if (activeSection === "education") newSection = "work";
+                          else if (activeSection === "skills") newSection = "education";
+                          
+                          console.log("Previous button clicked. Current section:", activeSection, "New section:", newSection);
+                          setActiveSection(newSection);
                         }}
                       >
-                        Previous
+                        <ChevronLeft className="h-5 w-5" />
                       </Button>
                       <Button
                         type="button"
                         variant={activeSection === "skills" ? "outline" : "default"}
-                        className={`rounded-full w-1/2 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                        size="icon"
+                        className={`rounded-full w-10 h-10 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                         onClick={() => {
-                          if (activeSection === "personal") setActiveSection("work");
-                          else if (activeSection === "work") setActiveSection("education");
-                          else if (activeSection === "education") setActiveSection("skills");
+                          let newSection = activeSection; // Default to current section
+                          if (activeSection === "personal") newSection = "work";
+                          else if (activeSection === "work") newSection = "education";
+                          else if (activeSection === "education") newSection = "skills";
+                          else if (activeSection === "skills") newSection = "personal";
+                          
+                          console.log("Next button clicked. Current section:", activeSection, "New section:", newSection);
+                          if (newSection) setActiveSection(newSection);
                         }}
                       >
-                        Next
+                        <ChevronRight className="h-5 w-5" />
                       </Button>
                     </div>
                     <Button 
                       type="submit" 
-                      className="rounded-full w-full sm:w-auto"
+                      className="rounded-full w-full sm:w-auto sm:order-3 order-3 ml-auto"
                       disabled={saving}
                     >
                       {saving ? (
@@ -1625,6 +1788,7 @@ export default function EditResumePage() {
                     </Button>
                   </div>
                 </form>
+                )}
               </div>
             </div>
           </div>

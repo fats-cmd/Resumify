@@ -20,7 +20,7 @@ import { Sidebar } from "@/components/sidebar";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { DashboardFooter } from "@/components/dashboard-footer";
 import TemplatePreview from "@/components/template-preview";
-import Link from "next/link";
+
 import { saveResume } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -36,10 +36,12 @@ import {
   Mail,
   Phone,
   MapPin,
-  ArrowLeft,
+
   Plus,
   Check,
-  Menu
+  Menu,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -833,18 +835,7 @@ const CreateResumeContent = () => {
                       : "Choose a template to get started"}
                   </p>
                 </div>
-                {templateSelected && (
-                  <div className="flex flex-col sm:flex-row gap-3 items-center">
-                    <Button 
-                      variant="outline" 
-                      className="bg-white/10 text-gray-900 border-gray-300 hover:bg-gray-100 rounded-full"
-                      onClick={handlePreviewToggle}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      {showPreview ? "Edit Resume" : "Preview Resume"}
-                    </Button>
-                  </div>
-                )}
+                {/* Preview button moved to form actions */}
               </div>
             </div>
           </div>
@@ -927,14 +918,24 @@ const CreateResumeContent = () => {
                 </Card>
               ) : showPreview ? (
                 <Card className="bg-card border-0 rounded-2xl overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Eye className="h-5 w-5 mr-2 text-purple-500" />
-                      Resume Preview
-                    </CardTitle>
-                    <CardDescription>
-                      {selectedTemplate ? `Using ${templateData.find(t => t.id === selectedTemplate)?.name} template` : "Preview of your resume"}
-                    </CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center">
+                        <Eye className="h-5 w-5 mr-2 text-purple-500" />
+                        Resume Preview
+                      </CardTitle>
+                      <CardDescription>
+                        {selectedTemplate ? `Using ${templateData.find(t => t.id === selectedTemplate)?.name} template` : "Preview of your resume"}
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="rounded-full"
+                      onClick={handlePreviewToggle}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Edit Resume
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     <TemplatePreview templateId={selectedTemplate} resumeData={resumeData} imagePreview={imagePreview} />
@@ -1034,14 +1035,24 @@ const CreateResumeContent = () => {
                     <SkeletonSection />
                   ) : activeSection === "personal" && (
                     <Card className="bg-card border-0 rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <User className="h-5 w-5 mr-2 text-purple-500" />
-                          Personal Information
-                        </CardTitle>
-                        <CardDescription>
-                          Tell us about yourself
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <User className="h-5 w-5 mr-2 text-purple-500" />
+                            Personal Information
+                          </CardTitle>
+                          <CardDescription>
+                            Tell us about yourself
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Image Upload Section */}
@@ -1218,14 +1229,24 @@ const CreateResumeContent = () => {
                     <SkeletonSection />
                   ) : activeSection === "work" && (
                     <Card className="bg-card border-0 rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
-                          Work Experience
-                        </CardTitle>
-                        <CardDescription>
-                          List your professional experience
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
+                            Work Experience
+                          </CardTitle>
+                          <CardDescription>
+                            List your professional experience
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {resumeData.workExperience.map((exp, index) => (
@@ -1350,14 +1371,24 @@ const CreateResumeContent = () => {
                     <SkeletonSection />
                   ) : activeSection === "education" && (
                     <Card className="bg-card border-0 rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
-                          Education
-                        </CardTitle>
-                        <CardDescription>
-                          List your educational background
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
+                            Education
+                          </CardTitle>
+                          <CardDescription>
+                            List your educational background
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {resumeData.education.map((edu, index) => (
@@ -1480,14 +1511,24 @@ const CreateResumeContent = () => {
                     <SkeletonSection />
                   ) : activeSection === "skills" && (
                     <Card className="bg-card border-0 rounded-2xl overflow-hidden">
-                      <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <FileText className="h-5 w-5 mr-2 text-indigo-500" />
-                          Skills
-                        </CardTitle>
-                        <CardDescription>
-                          List your professional skills
-                        </CardDescription>
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <FileText className="h-5 w-5 mr-2 text-indigo-500" />
+                            Skills
+                          </CardTitle>
+                          <CardDescription>
+                            List your professional skills
+                          </CardDescription>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          className="rounded-full"
+                          onClick={handlePreviewToggle}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Preview Resume
+                        </Button>
                       </CardHeader>
                       <CardContent className="space-y-4">
                         <div className="flex justify-end">
@@ -1548,54 +1589,67 @@ const CreateResumeContent = () => {
 
                   {/* Form Actions */}
                   {!loading && (
-                    <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
-                      <div className="flex flex-col sm:flex-row gap-3 w-full">
-                        <div className="flex flex-row gap-3 w-full sm:w-1/2">
-                          <Button
-                            type="button"
-                            variant={activeSection === "personal" ? "outline" : "default"}
-                            className={`rounded-full w-1/2 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
-                            onClick={() => {
-                              if (activeSection === "work") setActiveSection("personal");
-                              else if (activeSection === "education") setActiveSection("work");
-                              else if (activeSection === "skills") setActiveSection("education");
-                            }}
-                          >
-                            Previous
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={activeSection === "skills" ? "outline" : "default"}
-                            className={`rounded-full w-1/2 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
-                            onClick={() => {
-                              if (activeSection === "personal") setActiveSection("work");
-                              else if (activeSection === "work") setActiveSection("education");
-                              else if (activeSection === "education") setActiveSection("skills");
-                            }}
-                          >
-                            Next
-                          </Button>
-                        </div>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div className="flex gap-2 sm:order-1 order-2">
                         <Button
                           type="button"
                           variant="outline"
-                          className="rounded-full w-full sm:w-1/4"
+                          className="rounded-full"
                           onClick={() => setTemplateSelected(false)}
                         >
                           Change Template
                         </Button>
+
                         <Button
                           type="button"
                           variant="default"
-                          className="rounded-full w-full sm:w-1/4 bg-white text-purple-600 hover:bg-white/90"
+                          className="rounded-full bg-white text-purple-600 hover:bg-white/90"
                           onClick={() => router.push("/dashboard")}
                         >
                           Cancel
                         </Button>
                       </div>
+                      <div className="flex gap-2 sm:order-2 order-1">
+                        <Button
+                          type="button"
+                          variant={activeSection === "personal" ? "outline" : "default"}
+                          size="icon"
+                          className={`rounded-full w-10 h-10 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                          onClick={() => {
+                            let newSection = activeSection; // Default to current section
+                            if (activeSection === "personal") newSection = "skills";
+                            else if (activeSection === "work") newSection = "personal";
+                            else if (activeSection === "education") newSection = "work";
+                            else if (activeSection === "skills") newSection = "education";
+                            
+                            console.log("Previous button clicked. Current section:", activeSection, "New section:", newSection);
+                            setActiveSection(newSection);
+                          }}
+                        >
+                          <ChevronLeft className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={activeSection === "skills" ? "outline" : "default"}
+                          size="icon"
+                          className={`rounded-full w-10 h-10 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                          onClick={() => {
+                            let newSection = activeSection; // Default to current section
+                            if (activeSection === "personal") newSection = "work";
+                            else if (activeSection === "work") newSection = "education";
+                            else if (activeSection === "education") newSection = "skills";
+                            else if (activeSection === "skills") newSection = "personal";
+                            
+                            console.log("Next button clicked. Current section:", activeSection, "New section:", newSection);
+                            setActiveSection(newSection);
+                          }}
+                        >
+                          <ChevronRight className="h-5 w-5" />
+                        </Button>
+                      </div>
                       <Button 
                         type="submit" 
-                        className="rounded-full w-full sm:w-auto"
+                        className="rounded-full w-full sm:w-auto sm:order-3 order-3"
                         disabled={saving}
                       >
                         {saving ? (
