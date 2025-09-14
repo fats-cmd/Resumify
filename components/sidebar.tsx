@@ -11,9 +11,7 @@ import {
   X,
   Search,
   Layout,
-  ChevronLeft,
-  ChevronRight,
-  User,
+
   LogOut,
   HelpCircle
 } from "lucide-react";
