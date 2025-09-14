@@ -214,7 +214,7 @@ function VerifyOtpContent() {
         >
           <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
             <div className="w-full max-w-md">
-              <Card className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
+              <Card className="bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
                   <p className="text-gray-600 dark:text-gray-400">
@@ -264,7 +264,7 @@ function VerifyOtpContent() {
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <Card className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
+            <Card className="bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
               <CardHeader className="text-center space-y-2 pb-4">
                 <motion.div
                   initial={{ scale: 0.9 }}
@@ -314,7 +314,7 @@ function VerifyOtpContent() {
                         value={otp}
                         onChange={setOtp}
                         length={6}
-                        inputClassName="border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
+                        inputClassName="border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
                       />
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Enter the code sent to your email address
@@ -410,7 +410,7 @@ export default function VerifyOtpPage() {
         >
           <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
             <div className="w-full max-w-md">
-              <Card className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
+              <Card className="bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
                   <p className="text-gray-600 dark:text-gray-400">

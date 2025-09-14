@@ -28,8 +28,18 @@ import {
   Save,
   Eye,
   ArrowLeft,
-  Sparkles
+  Sparkles,
+  Menu,
+  X
 } from "lucide-react";
+import { Sidebar } from "@/components/sidebar";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
@@ -40,6 +50,30 @@ export default function EditResumePage() {
   const [activeSection, setActiveSection] = useState("personal");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    if (savedCollapsedState !== null) {
+      setSidebarCollapsed(JSON.parse(savedCollapsedState));
+    }
+    
+    const savedOpenState = localStorage.getItem('sidebarOpen');
+    if (savedOpenState !== null) {
+      setSidebarOpen(JSON.parse(savedOpenState));
+    }
+  }, []);
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
   
   // State for image upload
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -382,6 +416,53 @@ export default function EditResumePage() {
     }
   };
 
+  // Get user's profile image or generate initials
+  const getUserAvatar = () => {
+    if (!user) return null;
+    
+    // Check if user has an avatar URL (uploaded image or custom avatar)
+    const avatarUrl = user.user_metadata?.avatar_url;
+    const customAvatar = user.user_metadata?.custom_image_avatar;
+    
+    // Add cache-busting parameter to avatar URL
+    const cacheBustedAvatarUrl = avatarUrl ? `${avatarUrl}?t=${Date.now()}` : null;
+    const displayAvatar = cacheBustedAvatarUrl || customAvatar;
+    
+    if (displayAvatar) {
+      // Extract the base URL without cache-busting parameter for the Image component
+      const [baseUrl] = displayAvatar.split('?t=');
+      return (
+        <Image 
+          src={baseUrl} 
+          alt="Profile" 
+          width={32}
+          height={32}
+          className="rounded-full object-cover border-2 border-white/20"
+          priority
+        />
+      );
+    }
+    
+    // Generate initials from user's name or email
+    const fullName = user.user_metadata?.full_name;
+    const email = user.email || '';
+    let initials = '';
+    
+    if (fullName) {
+      const names = fullName.split(' ');
+      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
+    } else if (email) {
+      const emailParts = email.split('@');
+      initials = emailParts[0].charAt(0);
+    }
+    
+    return (
+      <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-sm font-medium">
+        {initials.toUpperCase()}
+      </div>
+    );
+  };
+
   // AI Helper Functions
   const generateSummaryWithAI = async () => {
     console.log("Generating summary with AI..."); // Debug log
@@ -660,93 +741,140 @@ export default function EditResumePage() {
   if (loading) {
     return (
       <ProtectedPage>
-        <div className="min-h-screen bg-background">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="flex items-center justify-between w-full mb-8">
-                <div className="h-8 w-32 bg-white/30 rounded animate-pulse"></div>
-                <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-                <div className="space-y-2">
-                  <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
-                  <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
-                </div>
-                <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
-              </div>
+        <div className="h-screen flex bg-background">
+          {/* Sidebar Skeleton */}
+          <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
+            sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
+          }`}>
+            <div className="h-full overflow-y-auto">
+              <Card className="bg-card border-0 rounded-2xl overflow-hidden h-full">
+                <CardHeader className="flex justify-between items-center">
+                  <div>
+                    <div className="h-5 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
+                  </div>
+                  <div className="lg:hidden">
+                    <button 
+                      onClick={() => setSidebarOpen(false)}
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                      aria-label="Close sidebar"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
+                    <div className="space-y-3">
+                      <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+                        <div className="h-3 w-1/2 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
+          
+          {/* Overlay for mobile when sidebar is open */}
+          {sidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            ></div>
+          )}
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Sidebar Navigation Skeleton */}
-              <div className="lg:col-span-1">
-                <Card className="bg-card border-0 rounded-2xl overflow-hidden sticky top-8 animate-pulse">
-                  <CardHeader className="space-y-2">
-                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                    </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-border space-y-3">
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Main Content Area */}
+          <div className={`flex-1 flex flex-col transition-all duration-300 ${
+            sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
+          }`}>
+            {/* Header Skeleton */}
+            <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
+              <div className="px-4 sm:px-6 lg:px-8 py-1">
+                <div className="flex items-center justify-end w-full">
+                  <div className="lg:hidden absolute left-4">
+                    <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="h-10 w-10 bg-gray-200 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mt-4">
+                  <div className="space-y-2">
+                    <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-4 w-64 bg-gray-300 rounded animate-pulse"></div>
+                  </div>
+                  <div className="h-10 w-40 bg-gray-200 rounded animate-pulse"></div>
+                </div>
               </div>
-              
-              {/* Main Content Skeleton */}
-              <div className="lg:col-span-3">
-                <Card className="bg-card border-0 rounded-2xl overflow-hidden animate-pulse">
-                  <CardHeader className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-                      <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    </div>
-                    <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            </div>
+
+            <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
+              <div className="grid grid-cols-1 gap-8">
+                {/* Main Content Skeleton */}
+                <div className="col-span-1">
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden animate-pulse">
+                    <CardHeader className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                        <div className="h-6 w-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                      </div>
+                      <div className="h-4 w-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="h-4 w-332 bg-gray-200 dark:bg-gray-700 rounded"></div>
                         <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
                       </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                          <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        </div>
+                      </div>
+                      
                       <div className="space-y-2">
                         <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                        <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
                       </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="h-4 w-332 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                        <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                      <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>
@@ -757,285 +885,653 @@ export default function EditResumePage() {
 
   return (
     <ProtectedPage>
-      <div className="min-h-screen bg-background pb-20">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 rounded-b-3xl shadow-xl">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex items-center justify-between w-full mb-8">
-              <Button 
-                asChild
-                className="bg-black hover:bg-gray-800 text-white font-medium shadow rounded-full px-6 py-3 transition-all duration-300 hover:shadow-xl hover:scale-105"
-              >
-                <Link href="/dashboard" className="flex items-center">
-                  <ArrowLeft className="h-5 w-5 mr-2" />
-                  <span>Back to Dashboard</span>
-                </Link>
-              </Button>
-              <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-white">Edit Resume</h1>
-                <p className="text-white/80 mt-2">
-                  Update your professional resume
-                </p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <Button 
-                  onClick={() => router.push("/dashboard")}
-                  variant="outline"
-                  className="bg-white/20 text-white border-white/30 hover:bg-white/20 rounded-full"
-                >
-                  Cancel
-                </Button>
-              </div>
+      <div className="h-screen flex bg-background flex-col">
+        {/* Sidebar - Full Height */}
+        <div className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'} bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}>
+          <div className="h-full overflow-y-auto">
+            <div className="h-full">
+              <Sidebar 
+                currentPage="edit" 
+                onClose={() => setSidebarOpen(false)} 
+                isCollapsed={sidebarCollapsed}
+                onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              />
             </div>
           </div>
         </div>
+        
+        {/* Overlay for mobile when sidebar is open */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Sidebar Navigation */}
-            <div className="lg:col-span-1">
-              <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden sticky top-8">
-                <CardHeader>
-                  <CardTitle className="text-lg">Resume Sections</CardTitle>
-                  <CardDescription>
-                    Edit all sections of your resume
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <nav className="space-y-2">
-                    <Button
-                      variant={activeSection === "personal" ? "default" : "ghost"}
-                      className="w-full justify-start rounded-full"
-                      onClick={() => setActiveSection("personal")}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Personal Info
-                    </Button>
-                    <Button
-                      variant={activeSection === "work" ? "default" : "ghost"}
-                      className="w-full justify-start rounded-full"
-                      onClick={() => setActiveSection("work")}
-                    >
-                      <Briefcase className="h-4 w-4 mr-2" />
-                      Work Experience
-                    </Button>
-                    <Button
-                      variant={activeSection === "education" ? "default" : "ghost"}
-                      className="w-full justify-start rounded-full"
-                      onClick={() => setActiveSection("education")}
-                    >
-                      <GraduationCap className="h-4 w-4 mr-2" />
-                      Education
-                    </Button>
-                    <Button
-                      variant={activeSection === "skills" ? "default" : "ghost"}
-                      className="w-full justify-start rounded-full"
-                      onClick={() => setActiveSection("skills")}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Skills
-                    </Button>
-                  </nav>
-                  
-                  <div className="mt-8 pt-6 border-t border-border">
-                    <div className="flex flex-col gap-3">
-                      <Button 
-                        className="w-full rounded-full" 
-                        onClick={handleSubmit}
-                        disabled={saving}
+        {/* Main Content Area */}
+        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
+          {/* Header with gradient - Fixed */}
+          <div className="bg-[#F4F7FA] dark:bg-[#0C111D] flex-shrink-0">
+            <div className="px-4 sm:px-6 lg:px-8 py-1">
+              <div className="flex items-center justify-end w-full">
+                <div className="lg:hidden absolute left-4">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                </div>
+                <div className="flex items-center space-x-3">
+                  {/* Hamburger menu button for mobile */}
+                  <button 
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <Menu className="h-6 w-6 text-gray-900 dark:text-white" />
+                  </button>
+
+                  <ThemeToggle className="bg-gray-200 border-gray-300 hover:bg-gray-300" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1">
+                        {getUserAvatar()}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                      <div className="flex items-center px-2 py-2">
+                        <div className="mr-2">
+                          {getUserAvatar()}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium dark:text-white">
+                            {user?.user_metadata?.full_name || 'User'}
+                          </span>
+                          <span className="text-xs text-muted-foreground dark:text-white">
+                            {user?.email}
+                          </span>
+                        </div>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer dark:text-white">
+                        Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          router.push("/");
+                        }} 
+                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 dark:text-red-400"
                       >
-                        {saving ? (
-                          <>
-                            <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                            Saving...
-                          </>
-                        ) : (
-                          <>
-                            <Save className="h-4 w-4 mr-2" />
-                            Update Resume
-                          </>
-                        )}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full rounded-full"
-                        asChild
-                      >
-                        <Link href={`/resume/${id}`}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          Preview
-                        </Link>
-                      </Button>
-                    </div>
+                        Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                <div>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">Edit Resume</h1>
+                  <p className="text-gray-700 mt-2 dark:text-white">
+                    Update your professional resume
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 items-center">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content - Scrollable Area */}
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Tab Navigation - Circular Design */}
+            <div className="flex justify-center mb-8">
+              <div className="flex items-center bg-gray-100 dark:bg-[#0C111D] rounded-full p-1 overflow-x-auto scrollbar-hide">
+                <button
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                    activeSection === "personal"
+                      ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                  onClick={() => setActiveSection("personal")}
+                >
+                  <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                    activeSection === "personal"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                  }`}>
+                    1
                   </div>
-                </CardContent>
-              </Card>
+                  <span className="hidden sm:inline">Personal Info</span>
+                  <span className="sm:hidden">Personal</span>
+                </button>
+                
+                <div className="w-2 md:w-8 h-0.5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                
+                <button
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                    activeSection === "work"
+                      ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                  onClick={() => setActiveSection("work")}
+                >
+                  <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                    activeSection === "work"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                  }`}>
+                    2
+                  </div>
+                  <span className="hidden sm:inline">Work Experience</span>
+                  <span className="sm:hidden">Work</span>
+                </button>
+                
+                <div className="w-2 md:w-8 h-0.5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                
+                <button
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                    activeSection === "education"
+                      ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                  onClick={() => setActiveSection("education")}
+                >
+                  <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                    activeSection === "education"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                  }`}>
+                    3
+                  </div>
+                  <span className="hidden sm:inline">Education</span>
+                  <span className="sm:hidden">Edu</span>
+                </button>
+                
+                <div className="w-2 md:w-8 h-0.5 bg-gray-300 dark:bg-gray-600 mx-1 self-center"></div>
+                
+                <button
+                  className={`px-4 py-2 md:px-6 md:py-3 rounded-full text-sm font-medium transition-all duration-300 flex items-center whitespace-nowrap ${
+                    activeSection === "skills"
+                      ? "bg-white dark:bg-[#0C111D] text-purple-600 shadow-sm"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+                  onClick={() => setActiveSection("skills")}
+                >
+                  <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center mr-1 md:mr-2 text-xs md:text-sm ${
+                    activeSection === "skills"
+                      ? "bg-purple-600 text-white"
+                      : "bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                  }`}>
+                    4
+                  </div>
+                  <span className="hidden sm:inline">Skills</span>
+                  <span className="sm:hidden">Skills</span>
+                </button>
+              </div>
             </div>
 
-            {/* Main Content */}
-            <div className="lg:col-span-3">
-              <form onSubmit={handleSubmit}>
-                {/* Personal Information Section */}
-                {activeSection === "personal" && (
-                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <User className="h-5 w-5 mr-2 text-purple-500" />
-                        Personal Information
-                      </CardTitle>
-                      <CardDescription>
-                        Update your personal details
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {/* Image Upload Section */}
-                      <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg">
-                        <Label htmlFor="image-upload">Profile Image</Label>
-                        <div className="flex items-center space-x-4">
-                          {/* Image Preview */}
-                          {imagePreview ? (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Main Content - Full Width */}
+              <div className="lg:col-span-4">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Personal Information Section */}
+                  {activeSection === "personal" && (
+                    <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <User className="h-5 w-5 mr-2 text-purple-500" />
+                          Personal Information
+                        </CardTitle>
+                        <CardDescription>
+                          Update your personal details
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Image Upload Section */}
+                        <div className="space-y-2 border border-dashed border-gray-300 p-4 rounded-lg">
+                          <Label htmlFor="image-upload">Profile Image</Label>
+                          <div className="flex items-center space-x-4">
+                            {/* Image Preview */}
+                            {imagePreview ? (
+                              <div className="relative">
+                                <div className="w-16 h-16 rounded-full object-cover border-2 border-gray-300 overflow-hidden">
+                                  <Image 
+                                    src={imagePreview} 
+                                    alt="Preview" 
+                                    width={64}
+                                    height={64}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={removeImage}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                                  aria-label="Remove image"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                                <User className="h-6 w-6 text-gray-500" />
+                              </div>
+                            )}
+                            
+                            {/* Upload Button */}
+                            <div>
+                              <label htmlFor="image-upload" className="cursor-pointer">
+                                <div className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
+                                  {isUploading ? "Uploading..." : "Upload Image"}
+                                </div>
+                                <input
+                                  id="image-upload"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  className="hidden"
+                                  disabled={isUploading}
+                                />
+                              </label>
+                              <p className="text-xs text-gray-500 mt-1">
+                                JPG, PNG, or GIF (max 5MB)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input
+                              id="firstName"
+                              name="firstName"
+                              value={resumeData.personalInfo?.firstName || ""}
+                              onChange={handlePersonalInfoChange}
+                              placeholder="John"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                              id="lastName"
+                              name="lastName"
+                              value={resumeData.personalInfo?.lastName || ""}
+                              onChange={handlePersonalInfoChange}
+                              placeholder="Doe"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="headline">Professional Headline</Label>
+                          <Input
+                            id="headline"
+                            name="headline"
+                            value={resumeData.personalInfo?.headline || ""}
+                            onChange={handlePersonalInfoChange}
+                            placeholder="Software Engineer, Product Manager, etc."
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
                             <div className="relative">
-                              <div className="w-16 h-16 rounded-full object-cover border-2 border-gray-300 overflow-hidden">
-                                <Image 
-                                  src={imagePreview} 
-                                  alt="Preview" 
-                                  width={64}
-                                  height={64}
-                                  className="w-full h-full object-cover"
+                              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                id="email"
+                                name="email"
+                                value={resumeData.personalInfo?.email || ""}
+                                onChange={handlePersonalInfoChange}
+                                placeholder="john.doe@example.com"
+                                className="pl-10"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="phone">Phone</Label>
+                            <div className="relative">
+                              <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                id="phone"
+                                name="phone"
+                                value={resumeData.personalInfo?.phone || ""}
+                                onChange={handlePersonalInfoChange}
+                                placeholder="(123) 456-7890"
+                                className="pl-10"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="location">Location</Label>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              id="location"
+                              name="location"
+                              value={resumeData.personalInfo?.location || ""}
+                              onChange={handlePersonalInfoChange}
+                              placeholder="City, Country"
+                              className="pl-10"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <Label htmlFor="summary">Professional Summary</Label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={generateSummaryWithAI}
+                              disabled={isGeneratingSummary}
+                              className="rounded-full text-xs"
+                            >
+                              {isGeneratingSummary ? (
+                                <>
+                                  <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Sparkles className="h-3 w-3 mr-1" />
+                                  Generate with AI
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          <RichTextEditor
+                            value={resumeData.personalInfo?.summary || ""}
+                            onChange={(value) => handlePersonalInfoChange({
+                              target: { name: "summary", value }
+                            } as React.ChangeEvent<HTMLTextAreaElement>)}
+                            placeholder="Write a brief summary of your professional background, skills, and career goals..."
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Work Experience Section */}
+                  {activeSection === "work" && (
+                    <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
+                          Work Experience
+                        </CardTitle>
+                        <CardDescription>
+                          Update your professional experience
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {(resumeData.workExperience || []).map((exp, index) => (
+                          <div key={exp.id} className="space-y-4 p-4 border border-border rounded-xl">
+                            <div className="flex justify-between items-center">
+                              <h3 className="font-medium">Experience #{index + 1}</h3>
+                              {(resumeData.workExperience || []).length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => removeWorkExperience(exp.id)}
+                                  className="rounded-full"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`company-${exp.id}`}>Company</Label>
+                                <Input
+                                  id={`company-${exp.id}`}
+                                  value={exp.company}
+                                  onChange={(e) => handleWorkExperienceChange(exp.id, "company", e.target.value)}
+                                  placeholder="Company Name"
                                 />
                               </div>
-                              <button
-                                type="button"
-                                onClick={removeImage}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                                aria-label="Remove image"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                              <User className="h-6 w-6 text-gray-500" />
-                            </div>
-                          )}
-                          
-                          {/* Upload Button */}
-                          <div>
-                            <label htmlFor="image-upload" className="cursor-pointer">
-                              <div className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors">
-                                {isUploading ? "Uploading..." : "Upload Image"}
+                              <div className="space-y-2">
+                                <Label htmlFor={`position-${exp.id}`}>Position</Label>
+                                <Input
+                                  id={`position-${exp.id}`}
+                                  value={exp.position}
+                                  onChange={(e) => handleWorkExperienceChange(exp.id, "position", e.target.value)}
+                                  placeholder="Job Title"
+                                />
                               </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`startDate-${exp.id}`}>Start Date</Label>
+                                <Input
+                                  id={`startDate-${exp.id}`}
+                                  type="month"
+                                  value={exp.startDate}
+                                  onChange={(e) => handleWorkExperienceChange(exp.id, "startDate", e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`endDate-${exp.id}`}>End Date</Label>
+                                <Input
+                                  id={`endDate-${exp.id}`}
+                                  type="month"
+                                  value={exp.endDate}
+                                  onChange={(e) => handleWorkExperienceChange(exp.id, "endDate", e.target.value)}
+                                  disabled={exp.current}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
                               <input
-                                id="image-upload"
-                                type="file"
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                                className="hidden"
-                                disabled={isUploading}
+                                type="checkbox"
+                                id={`current-${exp.id}`}
+                                checked={exp.current}
+                                onChange={(e) => handleWorkExperienceChange(exp.id, "current", e.target.checked)}
+                                className="rounded"
                               />
-                            </label>
-                            <p className="text-xs text-gray-500 mt-1">
-                              JPG, PNG, or GIF (max 5MB)
-                            </p>
+                              <Label htmlFor={`current-${exp.id}`}>I currently work here</Label>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <Label htmlFor={`description-${exp.id}`}>Description</Label>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => generateExperienceWithAI(exp.id)}
+                                  disabled={isGeneratingExperience[exp.id]}
+                                  className="rounded-full text-xs"
+                                >
+                                  {isGeneratingExperience[exp.id] ? (
+                                    <>
+                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Enhance with AI
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              <RichTextEditor
+                                value={exp.description}
+                                onChange={(value) => handleWorkExperienceChange(exp.id, "description", value)}
+                                placeholder="Describe your responsibilities and achievements..."
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="firstName">First Name</Label>
-                          <Input
-                            id="firstName"
-                            name="firstName"
-                            value={resumeData.personalInfo?.firstName || ""}
-                            onChange={handlePersonalInfoChange}
-                            placeholder="John"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="lastName">Last Name</Label>
-                          <Input
-                            id="lastName"
-                            name="lastName"
-                            value={resumeData.personalInfo?.lastName || ""}
-                            onChange={handlePersonalInfoChange}
-                            placeholder="Doe"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="headline">Professional Headline</Label>
-                        <Input
-                          id="headline"
-                          name="headline"
-                          value={resumeData.personalInfo?.headline || ""}
-                          onChange={handlePersonalInfoChange}
-                          placeholder="Software Engineer, Product Manager, etc."
-                        />
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              id="email"
-                              name="email"
-                              value={resumeData.personalInfo?.email || ""}
-                              onChange={handlePersonalInfoChange}
-                              placeholder="john.doe@example.com"
-                              className="pl-10"
-                            />
+                        ))}
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full rounded-full"
+                          onClick={addWorkExperience}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Another Experience
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Education Section */}
+                  {activeSection === "education" && (
+                    <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
+                          Education
+                        </CardTitle>
+                        <CardDescription>
+                          Update your educational background
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {(resumeData.education || []).map((edu, index) => (
+                          <div key={edu.id} className="space-y-4 p-4 border border-border rounded-xl">
+                            <div className="flex justify-between items-center">
+                              <h3 className="font-medium">Education #{index + 1}</h3>
+                              {(resumeData.education || []).length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => removeEducation(edu.id)}
+                                  className="rounded-full"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`institution-${edu.id}`}>Institution</Label>
+                                <Input
+                                  id={`institution-${edu.id}`}
+                                  value={edu.institution}
+                                  onChange={(e) => handleEducationChange(edu.id, "institution", e.target.value)}
+                                  placeholder="University Name"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
+                                <Input
+                                  id={`degree-${edu.id}`}
+                                  value={edu.degree}
+                                  onChange={(e) => handleEducationChange(edu.id, "degree", e.target.value)}
+                                  placeholder="Bachelor's, Master's, etc."
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
+                              <Input
+                                id={`field-${edu.id}`}
+                                value={edu.field}
+                                onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
+                                placeholder="Computer Science, Business, etc."
+                              />
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`eduStartDate-${edu.id}`}>Start Date</Label>
+                                <Input
+                                  id={`eduStartDate-${edu.id}`}
+                                  type="month"
+                                  value={edu.startDate}
+                                  onChange={(e) => handleEducationChange(edu.id, "startDate", e.target.value)}
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`eduEndDate-${edu.id}`}>End Date</Label>
+                                <Input
+                                  id={`eduEndDate-${edu.id}`}
+                                  type="month"
+                                  value={edu.endDate}
+                                  onChange={(e) => handleEducationChange(edu.id, "endDate", e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => generateEducationWithAI(edu.id)}
+                                  disabled={isGeneratingEducation[edu.id]}
+                                  className="rounded-full text-xs"
+                                >
+                                  {isGeneratingEducation[edu.id] ? (
+                                    <>
+                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Generate with AI
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              <RichTextEditor
+                                value={edu.description}
+                                onChange={(value) => handleEducationChange(edu.id, "description", value)}
+                                placeholder="Additional details about your education..."
+                              />
+                            </div>
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="phone">Phone</Label>
-                          <div className="relative">
-                            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              id="phone"
-                              name="phone"
-                              value={resumeData.personalInfo?.phone || ""}
-                              onChange={handlePersonalInfoChange}
-                              placeholder="(123) 456-7890"
-                              className="pl-10"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="location">Location</Label>
-                        <div className="relative">
-                          <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            id="location"
-                            name="location"
-                            value={resumeData.personalInfo?.location || ""}
-                            onChange={handlePersonalInfoChange}
-                            placeholder="City, Country"
-                            className="pl-10"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <Label htmlFor="summary">Professional Summary</Label>
+                        ))}
+                        
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="w-full rounded-full"
+                          onClick={addEducation}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Another Education
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Skills Section */}
+                  {activeSection === "skills" && (
+                    <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <FileText className="h-5 w-5 mr-2 text-indigo-500" />
+                          Skills
+                        </CardTitle>
+                        <CardDescription>
+                          Update your professional skills
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex justify-end">
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={generateSummaryWithAI}
-                            disabled={isGeneratingSummary}
+                            onClick={generateSkillsWithAI}
+                            disabled={isGeneratingSkills}
                             className="rounded-full text-xs"
                           >
-                            {isGeneratingSummary ? (
+                            {isGeneratingSkills ? (
                               <>
                                 <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
                                 Generating...
@@ -1048,353 +1544,47 @@ export default function EditResumePage() {
                             )}
                           </Button>
                         </div>
-                        <RichTextEditor
-                          value={resumeData.personalInfo?.summary || ""}
-                          onChange={(value) => handlePersonalInfoChange({
-                            target: { name: "summary", value }
-                          } as React.ChangeEvent<HTMLTextAreaElement>)}
-                          placeholder="Write a brief summary of your professional background, skills, and career goals..."
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Work Experience Section */}
-                {activeSection === "work" && (
-                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Briefcase className="h-5 w-5 mr-2 text-blue-500" />
-                        Work Experience
-                      </CardTitle>
-                      <CardDescription>
-                        Update your professional experience
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {(resumeData.workExperience || []).map((exp, index) => (
-                        <div key={exp.id} className="space-y-4 p-4 border border-border rounded-xl">
-                          <div className="flex justify-between items-center">
-                            <h3 className="font-medium">Experience #{index + 1}</h3>
-                            {(resumeData.workExperience || []).length > 1 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeWorkExperience(exp.id)}
-                                className="rounded-full"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor={`company-${exp.id}`}>Company</Label>
-                              <Input
-                                id={`company-${exp.id}`}
-                                value={exp.company}
-                                onChange={(e) => handleWorkExperienceChange(exp.id, "company", e.target.value)}
-                                placeholder="Company Name"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor={`position-${exp.id}`}>Position</Label>
-                              <Input
-                                id={`position-${exp.id}`}
-                                value={exp.position}
-                                onChange={(e) => handleWorkExperienceChange(exp.id, "position", e.target.value)}
-                                placeholder="Job Title"
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor={`startDate-${exp.id}`}>Start Date</Label>
-                              <Input
-                                id={`startDate-${exp.id}`}
-                                type="month"
-                                value={exp.startDate}
-                                onChange={(e) => handleWorkExperienceChange(exp.id, "startDate", e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor={`endDate-${exp.id}`}>End Date</Label>
-                              <Input
-                                id={`endDate-${exp.id}`}
-                                type="month"
-                                value={exp.endDate}
-                                onChange={(e) => handleWorkExperienceChange(exp.id, "endDate", e.target.value)}
-                                disabled={exp.current}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`current-${exp.id}`}
-                              checked={exp.current}
-                              onChange={(e) => handleWorkExperienceChange(exp.id, "current", e.target.checked)}
-                              className="rounded"
-                            />
-                            <Label htmlFor={`current-${exp.id}`}>I currently work here</Label>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <Label htmlFor={`description-${exp.id}`}>Description</Label>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => generateExperienceWithAI(exp.id)}
-                                disabled={isGeneratingExperience[exp.id]}
-                                className="rounded-full text-xs"
-                              >
-                                {isGeneratingExperience[exp.id] ? (
-                                  <>
-                                    <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="h-3 w-3 mr-1" />
-                                    Enhance with AI
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                            <RichTextEditor
-                              value={exp.description}
-                              onChange={(value) => handleWorkExperienceChange(exp.id, "description", value)}
-                              placeholder="Describe your responsibilities and achievements..."
-                            />
-                          </div>
-                        </div>
-                      ))}
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full rounded-full"
-                        onClick={addWorkExperience}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Another Experience
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Education Section */}
-                {activeSection === "education" && (
-                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <GraduationCap className="h-5 w-5 mr-2 text-green-500" />
-                        Education
-                      </CardTitle>
-                      <CardDescription>
-                        Update your educational background
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {(resumeData.education || []).map((edu, index) => (
-                        <div key={edu.id} className="space-y-4 p-4 border border-border rounded-xl">
-                          <div className="flex justify-between items-center">
-                            <h3 className="font-medium">Education #{index + 1}</h3>
-                            {(resumeData.education || []).length > 1 && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => removeEducation(edu.id)}
-                                className="rounded-full"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor={`institution-${edu.id}`}>Institution</Label>
-                              <Input
-                                id={`institution-${edu.id}`}
-                                value={edu.institution}
-                                onChange={(e) => handleEducationChange(edu.id, "institution", e.target.value)}
-                                placeholder="University Name"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
-                              <Input
-                                id={`degree-${edu.id}`}
-                                value={edu.degree}
-                                onChange={(e) => handleEducationChange(edu.id, "degree", e.target.value)}
-                                placeholder="Bachelor's, Master's, etc."
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
+                        {(resumeData.skills || []).map((skill, index) => (
+                          <div key={index} className="flex gap-2">
                             <Input
-                              id={`field-${edu.id}`}
-                              value={edu.field}
-                              onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
-                              placeholder="Computer Science, Business, etc."
+                              value={skill}
+                              onChange={(e) => handleSkillsChange(index, e.target.value)}
+                              placeholder="e.g. JavaScript, Project Management, etc."
                             />
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor={`eduStartDate-${edu.id}`}>Start Date</Label>
-                              <Input
-                                id={`eduStartDate-${edu.id}`}
-                                type="month"
-                                value={edu.startDate}
-                                onChange={(e) => handleEducationChange(edu.id, "startDate", e.target.value)}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor={`eduEndDate-${edu.id}`}>End Date</Label>
-                              <Input
-                                id={`eduEndDate-${edu.id}`}
-                                type="month"
-                                value={edu.endDate}
-                                onChange={(e) => handleEducationChange(edu.id, "endDate", e.target.value)}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
+                            {(resumeData.skills || []).length > 1 && (
                               <Button
                                 type="button"
                                 variant="outline"
-                                size="sm"
-                                onClick={() => generateEducationWithAI(edu.id)}
-                                disabled={isGeneratingEducation[edu.id]}
-                                className="rounded-full text-xs"
+                                size="icon"
+                                onClick={() => removeSkill(index)}
+                                className="rounded-full"
                               >
-                                {isGeneratingEducation[edu.id] ? (
-                                  <>
-                                    <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
-                                    Generating...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="h-3 w-3 mr-1" />
-                                    Generate with AI
-                                  </>
-                                )}
+                                <Trash2 className="h-4 w-4" />
                               </Button>
-                            </div>
-                            <RichTextEditor
-                              value={edu.description}
-                              onChange={(value) => handleEducationChange(edu.id, "description", value)}
-                              placeholder="Additional details about your education..."
-                            />
+                            )}
                           </div>
-                        </div>
-                      ))}
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full rounded-full"
-                        onClick={addEducation}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Another Education
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Skills Section */}
-                {activeSection === "skills" && (
-                  <Card className="bg-card border-0 shadow rounded-2xl overflow-hidden">
-                    <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <FileText className="h-5 w-5 mr-2 text-indigo-500" />
-                        Skills
-                      </CardTitle>
-                      <CardDescription>
-                        Update your professional skills
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex justify-end">
+                        ))}
+                        
                         <Button
                           type="button"
                           variant="outline"
-                          size="sm"
-                          onClick={generateSkillsWithAI}
-                          disabled={isGeneratingSkills}
-                          className="rounded-full text-xs"
+                          className="w-full rounded-full"
+                          onClick={addSkill}
                         >
-                          {isGeneratingSkills ? (
-                            <>
-                              <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              Generate with AI
-                            </>
-                          )}
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Another Skill
                         </Button>
-                      </div>
-                      {(resumeData.skills || []).map((skill, index) => (
-                        <div key={index} className="flex gap-2">
-                          <Input
-                            value={skill}
-                            onChange={(e) => handleSkillsChange(index, e.target.value)}
-                            placeholder="e.g. JavaScript, Project Management, etc."
-                          />
-                          {(resumeData.skills || []).length > 1 && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={() => removeSkill(index)}
-                              className="rounded-full"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full rounded-full"
-                        onClick={addSkill}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Another Skill
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
+                      </CardContent>
+                    </Card>
+                  )}
 
-                {/* Form Actions */}
-                <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
-                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  {/* Form Actions */}
+                  <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
                     <div className="flex flex-row gap-3 w-full">
                       <Button
                         type="button"
                         variant={activeSection === "personal" ? "outline" : "default"}
-                        className={`rounded-full flex-1 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                        className={`rounded-full w-1/2 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                         onClick={() => {
                           if (activeSection === "work") setActiveSection("personal");
                           else if (activeSection === "education") setActiveSection("work");
@@ -1406,7 +1596,7 @@ export default function EditResumePage() {
                       <Button
                         type="button"
                         variant={activeSection === "skills" ? "outline" : "default"}
-                        className={`rounded-full flex-1 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
+                        className={`rounded-full w-1/2 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                         onClick={() => {
                           if (activeSection === "personal") setActiveSection("work");
                           else if (activeSection === "work") setActiveSection("education");
@@ -1416,41 +1606,37 @@ export default function EditResumePage() {
                         Next
                       </Button>
                     </div>
-                    <Button
-                      type="button"
-                      variant="default"
-                      className="rounded-full sm:w-auto w-full bg-white text-purple-600 hover:bg-white/90"
-                      onClick={() => router.push("/dashboard")}
+                    <Button 
+                      type="submit" 
+                      className="rounded-full w-full sm:w-auto"
+                      disabled={saving}
                     >
-                      Cancel
+                      {saving ? (
+                        <>
+                          <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Update Resume
+                        </>
+                      )}
                     </Button>
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="rounded-full sm:w-auto w-full"
-                    disabled={saving}
-                  >
-                    {saving ? (
-                      <>
-                        <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Update Resume
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
       
       {/* Dynamic Dock Component */}
-      <DynamicDock currentPage="resume" showLogout={false} />
+      <div className="mt-auto w-full flex justify-center items-center">
+        <div className="w-full max-w-4xl flex justify-center">
+          <DynamicDock currentPage="resume" showLogout={false} />
+        </div>
+      </div>
     </ProtectedPage>
   );
 }

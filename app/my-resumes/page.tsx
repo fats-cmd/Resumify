@@ -82,8 +82,32 @@ export default function MyResumesPage() {
   const [loading, setLoading] = useState(true);
   const [resumesLoading, setResumesLoading] = useState(true);
   const [avatarError, setAvatarError] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Add state for sidebar visibility
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Add state for sidebar collapse
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Load sidebar collapsed state from localStorage on component mount
+  useEffect(() => {
+    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    if (savedCollapsedState !== null) {
+      setSidebarCollapsed(JSON.parse(savedCollapsedState));
+    }
+    
+    // Load sidebar open state from localStorage on component mount (for mobile)
+    const savedOpenState = localStorage.getItem('sidebarOpen');
+    if (savedOpenState !== null) {
+      setSidebarOpen(JSON.parse(savedOpenState));
+    }
+  }, []);
+
+  // Save sidebar collapsed state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
+
+  // Save sidebar open state to localStorage whenever it changes (for mobile)
+  useEffect(() => {
+    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+  }, [sidebarOpen]);
 
   // Fetch resumes
   useEffect(() => {
@@ -288,25 +312,28 @@ export default function MyResumesPage() {
         {/* Main Content Area */}
         <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-700 shadow-xl">
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center justify-end w-full mb-4">
+          <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
+            <div className="px-4 sm:px-6 lg:px-8 py-1">
+              <div className="flex items-center justify-end w-full">
+                <div className="lg:hidden absolute left-4">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
                   <button 
-                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1"
+                    className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
-                    <Menu className="h-6 w-6 text-white" />
+                    <Menu className="h-6 w-6 text-gray-900 dark:text-white" />
                   </button>
                   {loading ? (
-                    <div className="h-7 w-14 bg-white/30 rounded-full animate-pulse"></div>
+                    <div className="h-7 w-14 bg-gray-200 rounded-full animate-pulse"></div>
                   ) : (
                     <>
-                      <ThemeToggle className="bg-white/20 border-white/30 hover:bg-white/20" />
+                      <ThemeToggle className="bg-gray-200 border-gray-300 hover:bg-gray-300" />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="focus:outline-none focus:ring-2 focus:ring-white/50 rounded-full p-1">
+                          <button className="focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1">
                             {getUserAvatar()}
                           </button>
                         </DropdownMenuTrigger>
@@ -316,16 +343,16 @@ export default function MyResumesPage() {
                               {getUserAvatar()}
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium">
+                              <span className="text-sm font-medium dark:text-white">
                                 {user?.user_metadata?.full_name || 'User'}
                               </span>
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-muted-foreground dark:text-gray-300">
                                 {user?.email}
                               </span>
                             </div>
                           </div>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer">
+                          <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer dark:text-white">
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span>
                           </DropdownMenuItem>
@@ -343,23 +370,23 @@ export default function MyResumesPage() {
                 <div>
                   {loading ? (
                     <div className="space-y-2">
-                      <div className="h-8 w-48 bg-white/30 rounded animate-pulse"></div>
-                      <div className="h-4 w-64 bg-white/20 rounded animate-pulse"></div>
+                      <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-4 w-64 bg-gray-300 rounded animate-pulse"></div>
                     </div>
                   ) : (
                     <>
-                      <h1 className="text-3xl sm:text-4xl font-bold text-white">My Resumes</h1>
-                      <p className="text-white/80 mt-1">
-                        Manage your professional resumes
+                      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">My Resumes</h1>
+                      <p className="text-gray-700 mt-1 dark:text-gray-300">
+                        Manage your resumes and track their performance
                       </p>
                     </>
                   )}
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 items-center">
                   {loading ? (
-                    <div className="h-10 w-40 bg-white/30 rounded animate-pulse"></div>
+                    <div className="h-10 w-40 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
-                    <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
+                    <Button asChild className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg rounded-full font-medium border border-gray-200">
                       <Link href="/create">
                         <Plus className="h-4 w-4 mr-2" />
                         Create New Resume

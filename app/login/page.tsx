@@ -106,7 +106,7 @@ export default function LoginPage() {
               transition={{ duration: 0.5 }}
               className="w-full max-w-md"
             >
-              <Card className="bg-white/95 dark:bg-gray-900/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
+              <Card className="bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-2xl border-0 rounded-2xl overflow-hidden">
                 <CardHeader className="text-center space-y-2 pb-4">
                   <motion.div
                     initial={{ scale: 0.9 }}
@@ -154,7 +154,7 @@ export default function LoginPage() {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Enter your email"
-                          className="pl-10 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
+                          className="pl-10 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
                           required
                           disabled={isLoading}
                         />
@@ -178,7 +178,7 @@ export default function LoginPage() {
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="Enter your password"
-                          className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-gray-800/50 dark:text-white"
+                          className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
                           required
                           disabled={isLoading}
                         />
@@ -244,7 +244,7 @@ export default function LoginPage() {
                       <div className="w-full border-t border-gray-200 dark:border-gray-700" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-3 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or continue with</span>
+                      <span className="px-3 bg-white dark:bg-[#0C111D] text-gray-500 dark:text-gray-400">Or continue with</span>
                     </div>
                   </div>
 
