@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { DarkVeil } from "@/components/ui/dark-veil";
 import { Eye, EyeOff, Mail, Lock, ArrowLeft, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/supabase";
@@ -29,6 +29,8 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isFading, setIsFading] = useState(false);
+  const videoRef = useRef(null);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -104,7 +106,21 @@ export default function LoginPage() {
             <div className="flex flex-col lg:flex-row w-full max-w-6xl bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
               {/* Left Column - Image */}
               <div className="hidden lg:block lg:w-1/2 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-blue-600"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-800 to-blue-800"></div>
+                {/* Background video with blend mode and fade effect */}
+                <div className={`absolute inset-0 opacity-20 mix-blend-overlay transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-20'}`}>
+                  <video 
+                    ref={videoRef}
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                    className="w-full h-full object-cover"
+                  >
+                    <source src="/woman-creating-resume.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-white">
                   <div className="text-center mb-8">
                     <h2 className="text-4xl font-bold mb-4">Create Your Professional Resume</h2>
