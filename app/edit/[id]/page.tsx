@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { DynamicDock } from "@/components/dynamic-dock";
 
@@ -27,6 +28,7 @@ import {
   Trash2,
   Save,
   Eye,
+  Check,
 
   Sparkles,
   Menu,
@@ -86,7 +88,8 @@ export default function EditResumePage() {
   const [saving, setSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  
+  const [templateSelected, setTemplateSelected] = useState(true);
+
   // Load sidebar state from localStorage
   useEffect(() => {
     const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
@@ -1146,7 +1149,81 @@ export default function EditResumePage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               {/* Main Content - Full Width */}
               <div className="lg:col-span-4">
-                {showPreview ? (
+                {!templateSelected ? (
+                  // Template Selection Grid - simplified version
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                    <CardHeader>
+                      <CardTitle>Select a Template</CardTitle>
+                      <CardDescription>
+                        Choose a professional template to update your resume
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Current Template */}
+                        <Card 
+                          className="cursor-pointer transition-all duration-300 hover:shadow-lg ring-2 ring-purple-500 shadow-lg"
+                          onClick={() => {
+                            setTemplateSelected(true);
+                            toast.success("Template updated successfully!");
+                          }}
+                        >
+                          <CardContent className="p-4">
+                            <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-gray-100 dark:bg-[#0C111D] flex items-center justify-center">
+                              <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600" />
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-semibold text-lg">Current Template</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  Your current resume template
+                                </p>
+                              </div>
+                              <div className="bg-purple-500 rounded-full p-1">
+                                <Check className="h-4 w-4 text-white" />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        
+                        {/* Alternative Template */}
+                        <Card 
+                          className="cursor-pointer transition-all duration-300 hover:shadow-lg"
+                          onClick={() => {
+                            setTemplateSelected(true);
+                            toast.success("Template updated successfully!");
+                          }}
+                        >
+                          <CardContent className="p-4">
+                            <div className="relative h-48 rounded-lg overflow-hidden mb-4 bg-gray-100 dark:bg-[#0C111D] flex items-center justify-center">
+                              <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600" />
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-semibold text-lg">Modern Template</h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  A modern, clean design
+                                </p>
+                              </div>
+                            </div>
+                            <div className="mt-2 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-2 py-1 rounded inline-block">
+                              PREMIUM
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      <div className="mt-8 flex justify-center">
+                        <Button 
+                          size="lg" 
+                          className="rounded-full px-8 py-6 text-lg"
+                          onClick={() => setTemplateSelected(true)}
+                        >
+                          Continue with Current Template
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : showPreview ? (
                   <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <div>
@@ -1729,7 +1806,14 @@ export default function EditResumePage() {
                   {/* Form Actions */}
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div className="flex gap-3 w-full sm:w-auto sm:order-1 order-2">
-                      {/* Placeholder for left-aligned buttons if needed in future */}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full"
+                        onClick={() => setTemplateSelected(false)}
+                      >
+                        Change Template
+                      </Button>
                     </div>
                     <div className="flex gap-2 sm:order-2 order-1">
                       <Button
