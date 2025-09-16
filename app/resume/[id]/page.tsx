@@ -700,7 +700,7 @@ export default function ResumePage() {
           }
         }
       `}</style>
-      <div className="h-screen flex bg-background">
+      <div className="min-h-screen flex bg-background">
         {/* Sidebar */}
         <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
           sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
@@ -778,7 +778,7 @@ export default function ResumePage() {
         <div className={`flex-1 flex flex-col transition-all duration-300 ${
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
         }`}>
-          {/* Header with gradient - Fixed */}
+          {/* Header with gradient - Not Fixed */}
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D] flex-shrink-0">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
               <div className="flex items-center justify-end w-full">

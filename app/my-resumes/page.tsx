@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -19,13 +19,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getResumes, deleteResume, signOut } from "@/lib/supabase";
+import { getResumes, deleteResume, signOut, duplicateResume, saveResume } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
   FileText, 
   Plus, 
-  Download, 
   Eye, 
   Edit, 
   Trash2, 
@@ -34,15 +33,21 @@ import {
   LogOut,
   Settings,
   Menu,
-  X
+  X,
+  Copy,
+  Upload
 } from "lucide-react";
+import { LuPencil } from "react-icons/lu";
 import { motion } from "framer-motion";
-import { Resume } from "@/types/resume";
+import { Resume, ResumeData, WorkExperience, Education } from "@/types/resume";
 import { DynamicDock } from "@/components/dynamic-dock";
 
 // Skeleton component for loading states - improved to better reflect resume structure
 const SkeletonCard = () => (
-  <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+  <Card className="bg-card border-0 rounded-2xl overflow-hidden relative">
+    <div className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+      <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+    </div>
     <CardHeader className="pb-4">
       <div className="flex justify-between items-start">
         <div className="space-y-2">
@@ -54,16 +59,6 @@ const SkeletonCard = () => (
     </CardHeader>
     <CardContent>
       <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-4">
-          <div className="flex items-center">
-            <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse mr-2"></div>
-            <div className="h-4 w-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-          </div>
-          <div className="flex items-center">
-            <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse mr-2"></div>
-            <div className="h-4 w-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-          </div>
-        </div>
         <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
       </div>
       <div className="flex gap-2">
@@ -84,6 +79,7 @@ export default function MyResumesPage() {
   const [avatarError, setAvatarError] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load sidebar collapsed state from localStorage on component mount
   useEffect(() => {
@@ -166,6 +162,392 @@ export default function MyResumesPage() {
       console.error("Error deleting resume:", err);
       toast.error("Error deleting resume. Please try again.");
     }
+  };
+
+  // Add the duplicate resume function
+  const handleDuplicateResume = async (id: number) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await duplicateResume(id, user.id);
+      
+      if (error) {
+        console.error("Error duplicating resume:", error);
+        toast.error("Error duplicating resume. Please try again.");
+      } else {
+        // Add the duplicated resume to the local state
+        if (data && data[0]) {
+          setResumes([data[0], ...resumes]);
+          toast.success("Resume duplicated successfully!");
+        }
+      }
+    } catch (err) {
+      console.error("Error duplicating resume:", err);
+      toast.error("Error duplicating resume. Please try again.");
+    }
+  };
+
+  // Function to handle PDF import
+  const handleImportPDF = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Function to parse PDF and create resume
+  const handlePDFUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      console.log("No file selected");
+      return;
+    }
+
+    // Check if file is PDF
+    if (file.type !== 'application/pdf') {
+      console.log("File is not a PDF:", file.type);
+      toast.error('Please upload a PDF file');
+      return;
+    }
+
+    try {
+      console.log("Starting PDF import process for file:", file.name);
+      toast.info('Parsing PDF resume...');
+      
+      // Dynamically import pdfjs-dist to avoid server-side issues
+      console.log("Importing pdfjs-dist library...");
+      const pdfjsLib = await import('pdfjs-dist');
+      console.log("PDF.js library imported successfully");
+      
+      // Set the worker using a CDN with matching version
+      console.log("Setting worker source with matching version...");
+      // Use the same version for both API and worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs';
+      console.log("Worker source set successfully");
+      
+      // Read the PDF file
+      console.log("Creating FileReader...");
+      const fileReader = new FileReader();
+      
+      fileReader.onload = async (e) => {
+        try {
+          console.log("FileReader onload event triggered");
+          const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
+          console.log("File converted to Uint8Array, length:", typedarray.length);
+          
+          // Try to get the PDF document
+          console.log("Getting PDF document...");
+          const loadingTask = pdfjsLib.getDocument({ data: typedarray });
+          const pdf = await loadingTask.promise;
+          console.log("PDF document loaded successfully, pages:", pdf.numPages);
+          
+          let fullText = '';
+          // Extract text from all pages
+          for (let i = 1; i <= pdf.numPages; i++) {
+            try {
+              console.log(`Processing page ${i}...`);
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              console.log(`Page ${i} text content items:`, textContent.items.length);
+              
+              // Sort text items by their position to maintain reading order
+              const sortedItems = textContent.items
+                .filter(item => 'str' in item && (item as { str: string }).str)
+                .sort((a, b) => {
+                  // Sort by y-coordinate first (top to bottom), then by x-coordinate (left to right)
+                  const itemA = a as { str: string; transform?: number[] };
+                  const itemB = b as { str: string; transform?: number[] };
+                  
+                  if (itemA.transform && itemB.transform) {
+                    const aY = itemA.transform[5];
+                    const bY = itemB.transform[5];
+                    const aX = itemA.transform[4];
+                    const bX = itemB.transform[4];
+                    
+                    // If items are on the same line (within a small tolerance), sort by x
+                    if (Math.abs(aY - bY) < 5) {
+                      return aX - bX;
+                    }
+                    // Otherwise, sort by y (higher y values come first in PDF coordinates)
+                    return bY - aY;
+                  }
+                  return 0;
+                });
+              
+              // Join the sorted text items with appropriate spacing
+              let pageText = '';
+              let lastY: number | null = null;
+              let lastX = 0;
+              
+              for (const item of sortedItems) {
+                const typedItem = item as { str: string; transform?: number[] };
+                const str = typedItem.str;
+                if (typedItem.transform) {
+                  const y = typedItem.transform[5];
+                  const x = typedItem.transform[4];
+                  
+                  // Add line break if we've moved to a new line
+                  if (lastY !== null && Math.abs(lastY - y) > 5) {
+                    pageText += '\n';
+                  }
+                  // Add space if we've moved horizontally on the same line
+                  else if (lastY !== null && lastY === y && x > lastX + 5) {
+                    pageText += ' ';
+                  }
+                  
+                  pageText += str;
+                  lastY = y;
+                  lastX = x + str.length * 5; // Approximate character width
+                } else {
+                  pageText += str;
+                }
+              }
+              
+              console.log(`Page ${i} extracted text length:`, pageText.length);
+              fullText += pageText + '\n\n';
+            } catch (pageErr) {
+              console.error(`Error processing page ${i}:`, pageErr);
+              // Continue with other pages even if one fails
+            }
+          }
+          
+          console.log("Full extracted text length:", fullText.length);
+          console.log("First 500 characters of extracted text:", fullText.substring(0, 500));
+          
+          // Create a basic resume structure from the parsed text
+          console.log("Parsing text to resume data...");
+          const resumeData = parsePDFToResumeData(fullText);
+          console.log("Resume data parsed successfully:", resumeData);
+          
+          // Save the resume to the database
+          console.log("Saving resume to database...");
+          const { data, error } = await saveResume({
+            title: `${file.name.replace('.pdf', '')} (Imported)`,
+            data: resumeData,
+            status: 'Draft'
+          });
+          console.log("Save resume response:", { data, error });
+          
+          if (error) {
+            console.error("Error saving imported resume:", error);
+            toast.error("Error saving imported resume. Please try again.");
+          } else {
+            // Add the new resume to the local state
+            if (data && data[0]) {
+              setResumes([data[0], ...resumes]);
+              toast.success("Resume imported successfully!");
+            } else {
+              console.error("No data returned from saveResume");
+              toast.error("Failed to save resume. Please try again.");
+            }
+          }
+        } catch (err) {
+          console.error("Error processing PDF:", err);
+          toast.error("Error processing PDF. Please try again.");
+        }
+      };
+      
+      fileReader.onerror = (e) => {
+        console.error("Error reading file:", e);
+        toast.error("Error reading file. Please try again.");
+      };
+      
+      console.log("Reading file as ArrayBuffer...");
+      fileReader.readAsArrayBuffer(file);
+    } catch (err) {
+      console.error("Error importing PDF:", err);
+      toast.error("Error importing PDF. Please try again.");
+    }
+  };
+
+  // Function to parse PDF text into resume data structure
+  const parsePDFToResumeData = (text: string): ResumeData => {
+    console.log("Parsing PDF text to resume data, text length:", text.length);
+    console.log("First 500 characters of text:", text.substring(0, 500));
+    
+    // Split text into sections based on common resume headers
+    const sections = text.split(/\n{2,}/).filter(section => section.trim() !== '');
+    console.log("Sections found:", sections.length);
+    
+    // Initialize resume data
+    const personalInfo = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      location: '',
+      headline: '',
+      summary: ''
+    };
+    
+    const workExperience: WorkExperience[] = [];
+    const education: Education[] = [];
+    const skills: string[] = [];
+    
+    // Process each section
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i].trim();
+      const lines = section.split('\n').filter(line => line.trim() !== '');
+      
+      if (lines.length === 0) continue;
+      
+      const firstLine = lines[0].toLowerCase();
+      
+      // Personal information section (usually the first section)
+      if (i === 0) {
+        const nameLine = lines[0];
+        const nameParts = nameLine.split(' ');
+        personalInfo.firstName = nameParts[0] || '';
+        personalInfo.lastName = nameParts.slice(1).join(' ') || '';
+        
+        // Look for email, phone, and other personal info in the first few lines
+        for (let j = 1; j < Math.min(lines.length, 5); j++) {
+          const line = lines[j];
+          if (line.includes('@')) {
+            personalInfo.email = line;
+          } else if (line.replace(/\D/g, '').length >= 10) {
+            personalInfo.phone = line;
+          } else if (!personalInfo.headline && j === 1) {
+            personalInfo.headline = line;
+          }
+        }
+      }
+      // Work experience section
+      else if (firstLine.includes('experience') || firstLine.includes('work')) {
+        console.log("Processing work experience section");
+        // Parse work experience entries
+        let currentEntry: Partial<WorkExperience> | null = null;
+        
+        for (let j = 1; j < lines.length; j++) {
+          const line = lines[j].trim();
+          
+          // Skip empty lines
+          if (line === '') continue;
+          
+          // If line looks like a company/position (no special characters except spaces and common punctuation)
+          if (line.length > 3 && !line.startsWith('-') && !line.startsWith('•')) {
+            // Save previous entry if exists
+            if (currentEntry && currentEntry.company) {
+              workExperience.push({
+                id: workExperience.length + 1,
+                company: currentEntry.company,
+                position: currentEntry.position || '',
+                startDate: currentEntry.startDate || '',
+                endDate: currentEntry.endDate || '',
+                description: currentEntry.description || '',
+                current: currentEntry.current || false
+              });
+            }
+            
+            // Start new entry
+            currentEntry = {
+              company: line,
+              position: '',
+              description: ''
+            };
+          } else if (currentEntry) {
+            // Add to description
+            if (currentEntry.description) {
+              currentEntry.description += ' ' + line;
+            } else {
+              currentEntry.description = line;
+            }
+          }
+        }
+        
+        // Save last entry
+        if (currentEntry && currentEntry.company) {
+          workExperience.push({
+            id: workExperience.length + 1,
+            company: currentEntry.company,
+            position: currentEntry.position || '',
+            startDate: currentEntry.startDate || '',
+            endDate: currentEntry.endDate || '',
+            description: currentEntry.description || '',
+            current: currentEntry.current || false
+          });
+        }
+      }
+      // Education section
+      else if (firstLine.includes('education')) {
+        console.log("Processing education section");
+        // Parse education entries
+        let currentEntry: Partial<Education> | null = null;
+        
+        for (let j = 1; j < lines.length; j++) {
+          const line = lines[j].trim();
+          
+          // Skip empty lines
+          if (line === '') continue;
+          
+          // If line looks like an institution/degree
+          if (line.length > 3 && !line.startsWith('-') && !line.startsWith('•')) {
+            // Save previous entry if exists
+            if (currentEntry && currentEntry.institution) {
+              education.push({
+                id: education.length + 1,
+                institution: currentEntry.institution,
+                degree: currentEntry.degree || '',
+                field: currentEntry.field || '',
+                startDate: currentEntry.startDate || '',
+                endDate: currentEntry.endDate || '',
+                description: currentEntry.description || ''
+              });
+            }
+            
+            // Start new entry
+            currentEntry = {
+              institution: line,
+              degree: '',
+              description: ''
+            };
+          } else if (currentEntry) {
+            // Add to description
+            if (currentEntry.description) {
+              currentEntry.description += ' ' + line;
+            } else {
+              currentEntry.description = line;
+            }
+          }
+        }
+        
+        // Save last entry
+        if (currentEntry && currentEntry.institution) {
+          education.push({
+            id: education.length + 1,
+            institution: currentEntry.institution,
+            degree: currentEntry.degree || '',
+            field: currentEntry.field || '',
+            startDate: currentEntry.startDate || '',
+            endDate: currentEntry.endDate || '',
+            description: currentEntry.description || ''
+          });
+        }
+      }
+      // Skills section
+      else if (firstLine.includes('skills') || firstLine.includes('skill')) {
+        console.log("Processing skills section");
+        // Extract skills from the section
+        const skillsText = lines.slice(1).join(' ');
+        // Split by common delimiters
+        const skillItems = skillsText.split(/[,;•\-]/).map(skill => skill.trim()).filter(skill => skill !== '');
+        skills.push(...skillItems);
+      }
+    }
+    
+    console.log("Extracted personal info:", personalInfo);
+    console.log("Extracted work experience:", workExperience);
+    console.log("Extracted education:", education);
+    console.log("Extracted skills:", skills);
+    
+    const result = {
+      personalInfo,
+      workExperience,
+      education,
+      skills
+    };
+    
+    console.log("Final parsed resume data:", result);
+    return result;
   };
 
   const handleLogout = async () => {
@@ -315,8 +697,18 @@ export default function MyResumesPage() {
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
               <div className="flex items-center justify-end w-full">
-                <div className="lg:hidden absolute left-4">
+                <div className="lg:hidden absolute left-4 sm:left-6">
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                </div>
+                <div className="hidden lg:block absolute" 
+                  style={{ 
+                    left: sidebarCollapsed ? 'calc(4rem + 1rem)' : 'calc(20rem + 1rem)'
+                  }}>
+                  {/* Desktop view - show logo when sidebar is collapsed (sidebar logo is hidden) */}
+                  {/* Hide logo when sidebar is expanded (sidebar logo is visible) */}
+                  {sidebarCollapsed ? (
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white ps-4">Resumify</h1>
+                  ) : null}
                 </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
@@ -386,12 +778,21 @@ export default function MyResumesPage() {
                   {loading ? (
                     <div className="h-10 w-40 bg-gray-200 rounded animate-pulse"></div>
                   ) : (
-                    <Button asChild className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg rounded-full font-medium border border-gray-200">
-                      <Link href="/create">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New Resume
-                      </Link>
-                    </Button>
+                    <>
+                      <Button 
+                        onClick={handleImportPDF}
+                        className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg rounded-full font-medium border border-gray-200"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Import PDF Resume
+                      </Button>
+                      <Button asChild className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg rounded-full font-medium border border-gray-200">
+                        <Link href="/create">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create New Resume
+                        </Link>
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -420,14 +821,7 @@ export default function MyResumesPage() {
                   </div>
                   {loading ? (
                     <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                  ) : (
-                    <Button variant="outline" asChild className="border-input text-foreground hover:bg-accent hover:text-accent-foreground rounded-full">
-                      <Link href="/create">
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Resume
-                      </Link>
-                    </Button>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -450,7 +844,10 @@ export default function MyResumesPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.1 * index }}
                       >
-                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
+                          <Link href={`/edit/${resume.id}`} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <LuPencil className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          </Link>
                           <CardHeader className="pb-4">
                             <div className="flex justify-between items-start">
                               <div>
@@ -467,30 +864,18 @@ export default function MyResumesPage() {
                                   Last updated: {new Date(resume.updated_at).toLocaleDateString()}
                                 </CardDescription>
                               </div>
-                              <Badge 
-                                variant={resume.status === "Published" ? "default" : "secondary"}
-                                className={`rounded-full px-2 py-0.5 ${
-                                  resume.status === "Published" 
-                                    ? "bg-green-500/20 text-green-700 dark:text-green-300" 
-                                    : "bg-gray-500/20 text-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                {resume.status === "Published" ? "Published" : ""}
-                              </Badge>
+                              {resume.status === "Published" ? (
+                                <Badge 
+                                  variant="default"
+                                  className="rounded-full px-2 py-0.5 bg-green-500/20 text-green-700 dark:text-green-300"
+                                >
+                                  Published
+                                </Badge>
+                              ) : null}
                             </div>
                           </CardHeader>
                           <CardContent>
                             <div className="flex justify-between items-center mb-4">
-                              <div className="flex gap-4">
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  {resume.views || 0}
-                                </div>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                  <Download className="h-4 w-4 mr-1" />
-                                  {resume.downloads || 0}
-                                </div>
-                              </div>
                               <div className="text-sm text-muted-foreground flex items-center">
                                 <Clock className="h-4 w-4 mr-1" />
                                 Created {formatDateDifference(resume.created_at)}
@@ -508,6 +893,15 @@ export default function MyResumesPage() {
                                   <Edit className="h-4 w-4 mr-1" />
                                   Edit
                                 </Link>
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDuplicateResume(resume.id)}
+                                className="border-input text-foreground hover:bg-accent rounded-full"
+                              >
+                                <Copy className="h-4 w-4 mr-1" />
+                                Duplicate
                               </Button>
                               <Button 
                                 variant="outline" 
@@ -544,6 +938,15 @@ export default function MyResumesPage() {
               </div>
             </div>
           
+            {/* Hidden file input for PDF upload */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".pdf,application/pdf"
+              onChange={handlePDFUpload}
+              className="hidden"
+            />
+            
             {/* Dynamic Dock Component */}
             <div className="mt-auto px-4 sm:px-6 lg:px-8">
               <DynamicDock currentPage="my-resumes" showLogout={false} />

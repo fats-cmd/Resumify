@@ -1,6 +1,5 @@
 "use client";
 
-// Removed incorrect import: import { getTemplateById } from "@/lib/templates";
 import ModernSplitTemplate from "./templates/modern-split";
 import { ResumeData } from "@/types/resume";
 
