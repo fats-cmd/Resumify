@@ -348,3 +348,45 @@ export async function deleteResume(resumeId: number) {
     return { data: null, error: error as Error };
   }
 }
+
+// Add this new function for duplicating resumes
+export async function duplicateResume(resumeId: number, userId: string) {
+  try {
+    // First, get the original resume
+    const { data: originalResume, error: fetchError } = await supabase
+      .from('resumes')
+      .select('*')
+      .eq('id', resumeId)
+      .eq('user_id', userId)
+      .single();
+
+    if (fetchError) {
+      return { data: null, error: fetchError };
+    }
+
+    if (!originalResume) {
+      return { data: null, error: new Error('Resume not found') };
+    }
+
+    // Create a copy with a new title
+    const copyTitle = `${originalResume.title} (Copy)`;
+    
+    // Insert the duplicated resume
+    const { data: duplicatedResume, error: insertError } = await supabase
+      .from('resumes')
+      .insert([
+        {
+          user_id: userId,
+          title: copyTitle,
+          data: originalResume.data,
+          status: 'Draft' // Default to draft for duplicates
+        }
+      ])
+      .select();
+
+    return { data: duplicatedResume, error: insertError };
+  } catch (error) {
+    console.error('Duplicate resume error:', error);
+    return { data: null, error: error as Error };
+  }
+}

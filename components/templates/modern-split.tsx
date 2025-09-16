@@ -31,6 +31,12 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
     );
   }
 
+  // Ensure we have default values for all data arrays
+  const workItems = data.work || [];
+  const educationItems = data.educationItems || [];
+  const skillItems = data.skillItems || [];
+  const references = data.references || [];
+
   return (
     <div className="w-full h-full flex flex-col print:w-full print:h-auto">
       {/* Template Container - A4 size ratio */}
@@ -165,7 +171,7 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
               
               {/* References */}
               <div className="space-y-4 md:space-y-6 print:space-y-2">
-                {data.references?.map((reference, index) => (
+                {references.map((reference, index) => (
                   <div key={index} className="mb-3 md:mb-4 print:mb-2">
                     <div className="flex items-center mb-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2 md:w-2 md:h-2 md:mr-3 print:w-1 print:h-1 print:mr-2"></div>
@@ -200,7 +206,7 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
               
               {/* Education Items */}
               <div className="space-y-4 md:space-y-6 print:space-y-2">
-                {data.educationItems?.map((education, index) => (
+                {educationItems.map((education, index) => (
                   <div key={index} className="mb-3 md:mb-4 print:mb-2">
                     <div className="flex items-center mb-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-2 md:w-2 md:h-2 md:mr-3 print:w-1 print:h-1 print:mr-2"></div>
@@ -271,7 +277,7 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
               
               {/* Work Experience */}
               <div className="space-y-4 md:space-y-6 lg:space-y-8 pl-4 md:pl-6 lg:pl-8 print:space-y-2 print:pl-3">
-                {data.work?.map((work, index) => (
+                {workItems.map((work, index) => (
                   <div key={index} className="relative pl-4 border-l border-gray-200 md:pl-6 lg:pl-8 print:pl-3">
                     {/* Timeline dot */}
                     <div className="absolute left-[-4px] top-1 w-1.5 h-1.5 rounded-full bg-amber-500 md:left-[-5px] md:w-2 md:h-2 print:left-[-3px] print:w-1 print:h-1"></div>
@@ -313,7 +319,7 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
               
               {/* Skills List */}
               <div className="pl-4 grid grid-cols-1 gap-y-2 gap-x-4 md:pl-6 md:grid-cols-2 md:gap-y-3 md:gap-x-6 lg:pl-8 lg:grid-cols-2 lg:gap-y-4 lg:gap-x-8 print:pl-3 print:grid-cols-2 print:gap-y-1 print:gap-x-3">
-                {data.skillItems?.map((skill, index) => (
+                {skillItems.map((skill, index) => (
                   <div key={index}>
                     <div className="flex justify-between mb-1">
                       <span className="font-medium text-xs md:text-sm lg:text-base print:text-xs">{skill.name}</span>

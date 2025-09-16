@@ -162,16 +162,16 @@ export default function SignupPage() {
         </motion.div>
 
         <DarkVeil
-          className="min-h-screen w-full"
+          className="min-h-screen"
           hueShift={390}
           noiseIntensity={0.04}
           speed={0.3}
         >
-          <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+          <div className="min-h-screen flex items-center justify-center px-0 py-0">
             {/* Two-column layout */}
-            <div className="flex flex-col lg:flex-row w-full max-w-6xl bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
+            <div className="flex flex-col lg:flex-row w-full h-screen bg-white/95 dark:bg-[#0C111D]/90 backdrop-blur-xl shadow-none rounded-none overflow-hidden">
               {/* Left Column - Video */}
-              <div className="hidden lg:block lg:w-1/2 relative">
+              <div className="hidden lg:block lg:w-3/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-800 to-blue-800"></div>
                 {/* Background video with blend mode and fade effect */}
                 <div className={`absolute inset-0 opacity-20 mix-blend-overlay transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-20'}`}>
@@ -183,7 +183,7 @@ export default function SignupPage() {
                     playsInline
                     className="w-full h-full object-cover"
                   >
-                    <source src="/login-bg.mp4" type="video/mp4" />
+                    <source src="/woman-creating-resume.mp4" type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>
@@ -206,25 +206,31 @@ export default function SignupPage() {
               </div>
               
               {/* Right Column - Signup Form */}
-              <div className="w-full lg:w-1/2">
+              <div className="w-full lg:w-2/5 bg-white dark:bg-[#0C111D]">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="p-8 sm:p-12"
+                  className="p-6 sm:p-8 max-w-md mx-auto flex items-center justify-center h-full"
                 >
-                  <Card className="bg-transparent shadow-none border-0">
+                  <Card className="bg-transparent shadow-none border-0 w-full">
                     <CardHeader className="text-center space-y-2 pb-6">
                       <motion.div
                         initial={{ scale: 0.9 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.3, delay: 0.1 }}
                       >
-                        <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        {/* Logo */}
+                        <div className="mb-4 flex justify-center">
+                          <h1 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
+                            Resumify
+                          </h1>
+                        </div>
+                        <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                           Create Your Account
                         </CardTitle>
                       </motion.div>
-                      <CardDescription className="text-gray-600 dark:text-gray-300">
+                      <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                         Join Resumify and start building your perfect resume
                       </CardDescription>
                     </CardHeader>
@@ -248,27 +254,24 @@ export default function SignupPage() {
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.3, delay: 0.2 }}
-                          className="space-y-5" 
+                          className="space-y-3" 
                           onSubmit={handleSubmit}
                         >
                           {/* Full Name Field */}
                           <div className="space-y-2">
-                            <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Full Name
-                            </Label>
                             <motion.div 
                               whileFocus={{ scale: 1.02 }}
                               transition={{ type: "spring", stiffness: 300 }}
                               className="relative"
                             >
-                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                               <Input
                                 id="fullName"
                                 type="text"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                                 placeholder="Enter your full name"
-                                className="pl-10 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
+                                className="pl-9 h-12 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-lg transition-all dark:bg-[#0C111D]/50 dark:text-white text-sm"
                                 required
                                 disabled={isLoading}
                               />
@@ -277,22 +280,19 @@ export default function SignupPage() {
 
                           {/* Email Field */}
                           <div className="space-y-2">
-                            <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Email Address
-                            </Label>
                             <motion.div 
                               whileFocus={{ scale: 1.02 }}
                               transition={{ type: "spring", stiffness: 300 }}
                               className="relative"
                             >
-                              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                               <Input
                                 id="email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Enter your email"
-                                className="pl-10 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
+                                className="pl-9 h-12 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-lg transition-all dark:bg-[#0C111D]/50 dark:text-white text-sm"
                                 required
                                 disabled={isLoading}
                               />
@@ -301,22 +301,19 @@ export default function SignupPage() {
 
                           {/* Password Field */}
                           <div className="space-y-2">
-                            <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Password
-                            </Label>
                             <motion.div 
                               whileFocus={{ scale: 1.02 }}
                               transition={{ type: "spring", stiffness: 300 }}
                               className="relative"
                             >
-                              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                               <Input
                                 id="password"
                                 type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Create a password"
-                                className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
+                                className="pl-9 pr-9 h-12 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-lg transition-all dark:bg-[#0C111D]/50 dark:text-white text-sm"
                                 required
                                 disabled={isLoading}
                               />
@@ -328,9 +325,9 @@ export default function SignupPage() {
                                 disabled={isLoading}
                               >
                                 {showPassword ? (
-                                  <EyeOff className="h-5 w-5" />
+                                  <EyeOff className="h-4 w-4" />
                                 ) : (
-                                  <Eye className="h-5 w-5" />
+                                  <Eye className="h-4 w-4" />
                                 )}
                               </button>
                             </motion.div>
@@ -341,22 +338,19 @@ export default function SignupPage() {
 
                           {/* Confirm Password Field */}
                           <div className="space-y-2">
-                            <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Confirm Password
-                            </Label>
                             <motion.div 
                               whileFocus={{ scale: 1.02 }}
                               transition={{ type: "spring", stiffness: 300 }}
                               className="relative"
                             >
-                              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                               <Input
                                 id="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="Confirm your password"
-                                className="pl-10 pr-12 h-14 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-xl transition-all dark:bg-[#0C111D]/50 dark:text-white"
+                                className="pl-9 pr-9 h-12 border-gray-200 dark:border-gray-700 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 dark:focus:ring-purple-500/30 rounded-lg transition-all dark:bg-[#0C111D]/50 dark:text-white text-sm"
                                 required
                                 disabled={isLoading}
                               />
@@ -368,9 +362,9 @@ export default function SignupPage() {
                                 disabled={isLoading}
                               >
                                 {showConfirmPassword ? (
-                                  <EyeOff className="h-5 w-5" />
+                                  <EyeOff className="h-4 w-4" />
                                 ) : (
-                                  <Eye className="h-5 w-5" />
+                                  <Eye className="h-4 w-4" />
                                 )}
                               </button>
                             </motion.div>
@@ -388,18 +382,18 @@ export default function SignupPage() {
                                   className="rounded-full"
                                 />
                               </div>
-                              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 min-w-0">
                                 <Label 
                                   htmlFor="terms" 
-                                  className="cursor-pointer"
+                                  className="cursor-pointer flex flex-wrap items-center gap-x-1"
                                   onClick={() => !isLoading && setAgreeTerms(!agreeTerms)}
                                 >
-                                  I agree to the{" "}
-                                  <Link href="/terms" className="text-[10px] sm:text-xs md:text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
+                                  <span className="text-xs sm:text-sm whitespace-nowrap">I agree to the</span>
+                                  <Link href="/terms" className="text-xs sm:text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium whitespace-nowrap">
                                     Terms of Service
-                                  </Link>{" "}
-                                  and{" "}
-                                  <Link href="/privacy" className="text-[10px] sm:text-xs md:text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
+                                  </Link>
+                                  <span className="text-xs sm:text-sm whitespace-nowrap">and</span>
+                                  <Link href="/privacy" className="text-xs sm:text-sm text-purple-600 hover:text-purple-500 dark:text-purple-400 dark:hover:text-purple-300 font-medium whitespace-nowrap">
                                     Privacy Policy
                                   </Link>
                                 </Label>
@@ -422,7 +416,7 @@ export default function SignupPage() {
                                   className="cursor-pointer"
                                   onClick={() => !isLoading && setMarketingOptIn(!marketingOptIn)}
                                 >
-                                  Send me occasional product updates and marketing emails
+                                  <span className="text-xs sm:text-sm">Send me occasional product updates and marketing emails</span>
                                 </Label>
                               </div>
                             </div>
@@ -435,7 +429,7 @@ export default function SignupPage() {
                           >
                             <Button
                               type="submit"
-                              className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-70"
+                              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-70 text-sm"
                               disabled={isLoading}
                             >
                               {isLoading ? "Creating Account..." : "Create Account"}

@@ -20,8 +20,9 @@ import { Sidebar } from "@/components/sidebar";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { DashboardFooter } from "@/components/dashboard-footer";
 import TemplatePreview from "@/components/template-preview";
+import CreateResumeTour from "@/components/create-resume-tour";
 
-import { saveResume } from "@/lib/supabase";
+import { saveResume, supabase } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -255,6 +256,10 @@ const CreateResumeContent = () => {
   const handleTemplateSelect = (templateId: number | null) => {
     setSelectedTemplate(templateId);
     setTemplateSelected(true);
+    // Update URL with template parameter for better UX
+    if (templateId) {
+      router.push(`/create?template=${templateId}`, { scroll: false });
+    }
   };
 
   // Handle input changes for personal info
@@ -289,10 +294,26 @@ const CreateResumeContent = () => {
       };
       reader.readAsDataURL(file);
 
-      // In a real implementation, you would upload to Supabase storage here
-      // For now, we'll just use the preview URL
-      // You can implement the actual upload using the existing uploadProfileImage function
-      console.log("File selected for upload:", file.name);
+      // Upload to Supabase storage
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage
+        .from('resume-images')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error("Error uploading image to Supabase:", error);
+        toast.error("Error uploading image. Please try again.");
+        return;
+      }
+
+      // Get the public URL of the uploaded image
+      const { data: { publicUrl } } = supabase.storage
+        .from('resume-images')
+        .getPublicUrl(fileName);
+
+      // Set the public URL as the image preview
+      setImagePreview(publicUrl);
+      console.log("File uploaded successfully:", publicUrl);
     } catch (error) {
       console.error("Error uploading image:", error);
       toast.error("Error uploading image. Please try again.");
@@ -428,7 +449,7 @@ const CreateResumeContent = () => {
       return;
     }
     
-    // Add image to resume data if available
+    // Use the same data structure as TemplatePreview for consistency
     const resumeDataWithImage = {
       ...resumeData,
       basics: {
@@ -442,6 +463,27 @@ const CreateResumeContent = () => {
         } : undefined,
         image: imagePreview || undefined
       },
+      work: resumeData.workExperience.map((exp) => ({
+        name: exp.company,
+        position: exp.position,
+        startDate: exp.startDate,
+        endDate: exp.current ? undefined : exp.endDate,
+        summary: exp.description,
+        location: "",
+        highlights: exp.description ? [exp.description] : [],
+      })),
+      educationItems: resumeData.education.map((edu) => ({
+        institution: edu.institution,
+        area: edu.field,
+        studyType: edu.degree,
+        startDate: edu.startDate,
+        endDate: edu.endDate,
+      })),
+      skillItems: resumeData.skills.filter(skill => skill.trim() !== "").map((skill) => ({
+        name: skill.trim(),
+        level: "5", // Default to medium proficiency
+      })),
+      references: [], // Add empty references array
       // Add selected template ID to resume data
       templateId: selectedTemplate || undefined
     };
@@ -452,7 +494,7 @@ const CreateResumeContent = () => {
       
       const resumeTitle = `${resumeData.personalInfo.firstName} ${resumeData.personalInfo.lastName}'s Resume`;
       
-      const { data, error } = await saveResume({
+      const { error } = await saveResume({
         title: resumeTitle,
         data: resumeDataWithImage,
         status: "Draft"
@@ -461,11 +503,12 @@ const CreateResumeContent = () => {
       if (error) {
         console.error("Error saving resume:", error);
         toast.error("Error saving resume. Please try again.");
-      } else if (data && data.length > 0) {
-        toast.success("Resume saved successfully!");
-        router.push(`/edit/${data[0].id}`);
       } else {
-        toast.error("Error saving resume. Please try again.");
+        toast.success("Resume saved successfully!");
+        // Redirect to the edit page for the newly created resume
+        // Since we don't have the ID, we'll redirect to the dashboard
+        // A better approach would be to get the ID from the response
+        router.push("/my-resumes");
       }
     } catch (err) {
       console.error("Error saving resume:", err);
@@ -730,6 +773,7 @@ const CreateResumeContent = () => {
   return (
     <ProtectedPage>
       <div className="h-screen flex bg-background flex-col">
+        <CreateResumeTour />
         {/* Sidebar - Full Height */}
         <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
           sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
@@ -808,7 +852,7 @@ const CreateResumeContent = () => {
           sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
         }`}>
           {/* Header with gradient - Fixed */}
-          <div className="bg-[#F4F7FA] dark:bg-[#0C111D] flex-shrink-0">
+          <div className="bg-[#F4F7FA] dark:bg-[#0C111D] flex-shrink-0" id="create-header">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
               <div className="flex items-center justify-end w-full">
                 <div className="lg:hidden absolute left-4">
@@ -846,7 +890,7 @@ const CreateResumeContent = () => {
             <div className={templateSelected ? "lg:col-span-3" : "lg:col-span-4"}>
               {!templateSelected ? (
                 // Template Selection Grid
-                <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                <Card className="bg-card border-0 rounded-2xl overflow-hidden" id="template-selection">
                   <CardHeader>
                     <CardTitle>Select a Template</CardTitle>
                     <CardDescription>
@@ -909,7 +953,7 @@ const CreateResumeContent = () => {
                         size="lg" 
                         className="rounded-full px-8 py-6 text-lg"
                         disabled={selectedTemplate === null}
-                        onClick={() => selectedTemplate !== null && handleTemplateSelect(selectedTemplate)}
+                        onClick={() => selectedTemplate !== null && setTemplateSelected(true)}
                       >
                         Continue with Selected Template
                       </Button>
@@ -1034,7 +1078,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "personal" && (
-                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden" id="personal-info-section">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                           <CardTitle className="flex items-center">
@@ -1049,6 +1093,7 @@ const CreateResumeContent = () => {
                           variant="outline" 
                           className="rounded-full"
                           onClick={handlePreviewToggle}
+                          id="preview-button"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview Resume
@@ -1198,6 +1243,7 @@ const CreateResumeContent = () => {
                               onClick={generateSummaryWithAI}
                               disabled={isGeneratingSummary}
                               className="rounded-full text-xs"
+                              id="ai-assistant"
                             >
                               {isGeneratingSummary ? (
                                 <>
@@ -1228,7 +1274,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "work" && (
-                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden" id="work-experience-section">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                           <CardTitle className="flex items-center">
@@ -1243,6 +1289,7 @@ const CreateResumeContent = () => {
                           variant="outline" 
                           className="rounded-full"
                           onClick={handlePreviewToggle}
+                          id="preview-button"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview Resume
@@ -1370,7 +1417,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "education" && (
-                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden" id="education-section">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                           <CardTitle className="flex items-center">
@@ -1385,6 +1432,7 @@ const CreateResumeContent = () => {
                           variant="outline" 
                           className="rounded-full"
                           onClick={handlePreviewToggle}
+                          id="preview-button"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview Resume
@@ -1510,7 +1558,7 @@ const CreateResumeContent = () => {
                   {loading ? (
                     <SkeletonSection />
                   ) : activeSection === "skills" && (
-                    <Card className="bg-card border-0 rounded-2xl overflow-hidden">
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden" id="skills-section">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                           <CardTitle className="flex items-center">
@@ -1525,6 +1573,7 @@ const CreateResumeContent = () => {
                           variant="outline" 
                           className="rounded-full"
                           onClick={handlePreviewToggle}
+                          id="preview-button"
                         >
                           <Eye className="h-4 w-4 mr-2" />
                           Preview Resume
@@ -1616,14 +1665,9 @@ const CreateResumeContent = () => {
                           size="icon"
                           className={`rounded-full w-10 h-10 ${activeSection !== "personal" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                           onClick={() => {
-                            let newSection = activeSection; // Default to current section
-                            if (activeSection === "personal") newSection = "skills";
-                            else if (activeSection === "work") newSection = "personal";
-                            else if (activeSection === "education") newSection = "work";
-                            else if (activeSection === "skills") newSection = "education";
-                            
-                            console.log("Previous button clicked. Current section:", activeSection, "New section:", newSection);
-                            setActiveSection(newSection);
+                            if (activeSection === "work") setActiveSection("personal");
+                            else if (activeSection === "education") setActiveSection("work");
+                            else if (activeSection === "skills") setActiveSection("education");
                           }}
                         >
                           <ChevronLeft className="h-5 w-5" />
@@ -1634,14 +1678,9 @@ const CreateResumeContent = () => {
                           size="icon"
                           className={`rounded-full w-10 h-10 ${activeSection !== "skills" ? "bg-white text-purple-600 hover:bg-white/90" : ""}`}
                           onClick={() => {
-                            let newSection = activeSection; // Default to current section
-                            if (activeSection === "personal") newSection = "work";
-                            else if (activeSection === "work") newSection = "education";
-                            else if (activeSection === "education") newSection = "skills";
-                            else if (activeSection === "skills") newSection = "personal";
-                            
-                            console.log("Next button clicked. Current section:", activeSection, "New section:", newSection);
-                            setActiveSection(newSection);
+                            if (activeSection === "personal") setActiveSection("work");
+                            else if (activeSection === "work") setActiveSection("education");
+                            else if (activeSection === "education") setActiveSection("skills");
                           }}
                         >
                           <ChevronRight className="h-5 w-5" />
@@ -1651,6 +1690,7 @@ const CreateResumeContent = () => {
                         type="submit" 
                         className="rounded-full w-full sm:w-auto sm:order-3 order-3"
                         disabled={saving}
+                        id="save-resume"
                       >
                         {saving ? (
                           <>

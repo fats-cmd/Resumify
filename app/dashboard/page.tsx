@@ -13,6 +13,7 @@ import { DynamicDock } from "@/components/dynamic-dock";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sidebar } from "@/components/sidebar";
 import { DashboardFooter } from "@/components/dashboard-footer";
+import TourGuide from "@/components/tour-guide";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getResumes, deleteResume, signOut } from "@/lib/supabase";
+import { getResumes, deleteResume, signOut, duplicateResume } from "@/lib/supabase";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -36,14 +37,19 @@ import {
   LogOut,
   Settings,
   Menu,
-  X
+  X,
+  Copy
 } from "lucide-react";
+import { LuPencil } from "react-icons/lu";
 import { motion } from "framer-motion";
 import { Resume } from "@/types/resume";
 
 // Skeleton component for loading states - improved to better reflect resume structure
 const SkeletonCard = () => (
-  <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+  <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
+    <div className="absolute top-4 right-4 p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+      <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+    </div>
     <CardHeader className="pb-4">
       <div className="flex justify-between items-start">
         <div className="space-y-2">
@@ -234,6 +240,36 @@ export default function DashboardPage() {
     }
   };
 
+  // Add the duplicate resume function
+  const handleDuplicateResume = async (id: number) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await duplicateResume(id, user.id);
+      
+      if (error) {
+        console.error("Error duplicating resume:", error);
+        toast.error("Error duplicating resume. Please try again.");
+      } else {
+        // Add the duplicated resume to the local state
+        if (data && data[0]) {
+          setResumes([data[0], ...resumes]);
+          
+          // Update stats
+          setStats({
+            ...stats,
+            totalResumes: stats.totalResumes + 1
+          });
+          
+          toast.success("Resume duplicated successfully!");
+        }
+      }
+    } catch (err) {
+      console.error("Error duplicating resume:", err);
+      toast.error("Error duplicating resume. Please try again.");
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const { error } = await signOut();
@@ -301,6 +337,7 @@ export default function DashboardPage() {
   return (
     <ProtectedPage>
       <div className="h-screen flex bg-background">
+        <TourGuide />
         {/* Sidebar - Full Height */}
         <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
           sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
@@ -355,7 +392,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="h-full">
+              <div className="h-full" id="sidebar-menu">
                 <Sidebar 
                   currentPage="dashboard" 
                   onClose={() => setSidebarOpen(false)} 
@@ -383,8 +420,19 @@ export default function DashboardPage() {
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
               <div className="flex items-center justify-end w-full">
-                <div className="lg:hidden absolute left-4">
+                <div className="lg:hidden absolute left-4 sm:left-6">
+                  {/* Mobile view - always show logo on mobile */}
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                </div>
+                <div className="hidden lg:block absolute" 
+                  style={{ 
+                    left: sidebarCollapsed ? 'calc(4rem + 1rem)' : 'calc(20rem + 1rem)'
+                  }}>
+                  {/* Desktop view - show logo when sidebar is collapsed (sidebar logo is hidden) */}
+                  {/* Hide logo when sidebar is expanded (sidebar logo is visible) */}
+                  {sidebarCollapsed ? (
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white ps-4">Resumify</h1>
+                  ) : null}
                 </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
@@ -453,14 +501,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col sm:flex-row gap-2 items-center">
                   {loading ? (
                     <div className="h-10 w-40 bg-gray-200 rounded animate-pulse"></div>
-                  ) : (
-                    <Button asChild className="bg-white text-purple-600 hover:bg-gray-100 shadow-lg rounded-full font-medium border border-gray-200">
-                      <Link href="/create">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New Resume
-                      </Link>
-                    </Button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -469,7 +510,7 @@ export default function DashboardPage() {
           {/* Main Content */}
           <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
               {/* Stats Cards */}
-              <div className="mb-12">
+              <div className="mb-12" id="stats-cards">
                 {loading ? (
                   <StatsSkeleton />
                 ) : (
@@ -554,7 +595,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Resumes Section */}
-              <div className="mb-12">
+              <div className="mb-12" id="resume-list">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                   <div>
                     {loading ? (
@@ -571,14 +612,7 @@ export default function DashboardPage() {
                   </div>
                   {loading ? (
                     <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                  ) : (
-                    <Button variant="outline" asChild className="border-input text-foreground hover:bg-accent hover:text-accent-foreground rounded-full">
-                      <Link href="/create">
-                        <Plus className="h-4 w-4 mr-2" />
-                        New Resume
-                      </Link>
-                    </Button>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -601,7 +635,10 @@ export default function DashboardPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.1 * index }}
                       >
-                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300">
+                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
+                          <Link href={`/edit/${resume.id}`} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <LuPencil className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          </Link>
                           <CardHeader className="pb-4">
                             <div className="flex justify-between items-start">
                               <div>
@@ -618,36 +655,24 @@ export default function DashboardPage() {
                                   Last updated: {new Date(resume.updated_at).toLocaleDateString()}
                                 </CardDescription>
                               </div>
-                              <Badge 
-                                variant={resume.status === "Published" ? "default" : "secondary"}
-                                className={`rounded-full px-2 py-0.5 ${
-                                  resume.status === "Published" 
-                                    ? "bg-green-500/20 text-green-700 dark:text-green-300" 
-                                    : "bg-gray-500/20 text-gray-700 dark:text-gray-300"
-                                }`}
-                              >
-                                {resume.status === "Published" ? "Published" : ""}
-                              </Badge>
+                              {resume.status === "Published" ? (
+                                <Badge 
+                                  variant="default"
+                                  className="rounded-full px-2 py-0.5 bg-green-500/20 text-green-700 dark:text-green-300"
+                                >
+                                  Published
+                                </Badge>
+                              ) : null}
                             </div>
                           </CardHeader>
                           <CardContent>
                             <div className="flex justify-between items-center mb-4">
-                              <div className="flex gap-4">
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  {resume.views || 0}
-                                </div>
-                                <div className="flex items-center text-sm text-muted-foreground">
-                                  <Download className="h-4 w-4 mr-1" />
-                                  {resume.downloads || 0}
-                                </div>
-                              </div>
                               <div className="text-sm text-muted-foreground flex items-center">
                                 <Clock className="h-4 w-4 mr-1" />
                                 Created {formatDateDifference(resume.created_at)}
                               </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2" id="resume-actions">
                               <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
                                 <Link href={`/resume/${resume.id}`}>
                                   <Eye className="h-4 w-4 mr-1" />
@@ -659,6 +684,15 @@ export default function DashboardPage() {
                                   <Edit className="h-4 w-4 mr-1" />
                                   Edit
                                 </Link>
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleDuplicateResume(resume.id)}
+                                className="border-input text-foreground hover:bg-accent rounded-full"
+                              >
+                                <Copy className="h-4 w-4 mr-1" />
+                                Duplicate
                               </Button>
                               <Button 
                                 variant="outline" 
@@ -682,7 +716,7 @@ export default function DashboardPage() {
                         <p className="text-muted-foreground mb-6 text-center max-w-md">
                           Get started by creating your first professional resume.
                         </p>
-                        <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full">
+                        <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full" id="create-resume-btn">
                           <Link href="/create">
                             <Plus className="h-4 w-4 mr-2" />
                             Create Resume

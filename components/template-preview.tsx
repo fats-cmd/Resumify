@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { getTemplateComponent } from "@/components/template-registry";
 import { ResumeData } from "@/types/resume";
 
@@ -69,6 +70,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
       endDate: exp.current ? undefined : exp.endDate,
       summary: exp.description,
       location: "",
+      highlights: exp.description ? [exp.description] : [],
     }));
 
     const educationItems = data.education.map((edu) => ({
@@ -79,8 +81,8 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
       endDate: edu.endDate,
     }));
 
-    const skillItems = data.skills.map((skill) => ({
-      name: skill,
+    const skillItems = data.skills.filter(skill => skill.trim() !== "").map((skill) => ({
+      name: skill.trim(),
       level: "5", // Default to medium proficiency
     }));
 
@@ -118,9 +120,11 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
           <div className="text-center mb-6">
             {transformedData?.basics?.image ? (
               <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4">
-                <img 
+                <Image 
                   src={transformedData.basics.image} 
                   alt={transformedData.basics.name || "Profile"} 
+                  width={96}
+                  height={96}
                   className="w-full h-full object-cover"
                 />
               </div>
