@@ -2,6 +2,7 @@
 
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,9 +223,13 @@ export default function SignupPage() {
                       >
                         {/* Logo */}
                         <div className="mb-4 flex justify-center">
-                          <h1 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
-                            Resumify
-                          </h1>
+                          <Image
+                            src="/logo/resumify-logo.png"
+                            alt="Resumify Logo"
+                            width={120}
+                            height={30}
+                            className="object-contain"
+                          />
                         </div>
                         <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                           Create Your Account

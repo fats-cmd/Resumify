@@ -698,7 +698,13 @@ export default function MyResumesPage() {
             <div className="px-4 sm:px-6 lg:px-8 py-1">
               <div className="flex items-center justify-end w-full">
                 <div className="lg:hidden absolute left-4 sm:left-6">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Resumify</h1>
+                  <Image
+                    src="/logo/resumify-logo.png"
+                    alt="Resumify Logo"
+                    width={120}
+                    height={30}
+                    className="object-contain"
+                  />
                 </div>
                 <div className="hidden lg:block absolute" 
                   style={{ 
@@ -707,7 +713,13 @@ export default function MyResumesPage() {
                   {/* Desktop view - show logo when sidebar is collapsed (sidebar logo is hidden) */}
                   {/* Hide logo when sidebar is expanded (sidebar logo is visible) */}
                   {sidebarCollapsed ? (
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white ps-4">Resumify</h1>
+                    <Image
+                      src="/logo/resumify-logo.png"
+                      alt="Resumify Logo"
+                      width={120}
+                      height={30}
+                      className="object-contain ps-4"
+                    />
                   ) : null}
                 </div>
                 <div className="flex items-center space-x-3">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -360,7 +361,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold">Resumify</h3>
+              <Image
+                src="/logo/resumify-logo.png"
+                alt="Resumify Logo"
+                width={120}
+                height={30}
+                className="object-contain"
+              />
               <p className="text-muted-foreground">
                 Crafting resumes that get results
               </p>

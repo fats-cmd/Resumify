@@ -316,9 +316,13 @@ export function Navbar() {
     return (
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl mx-auto navbar-gradient backdrop-blur-md rounded-full px-4 sm:px-6 py-3 flex items-center justify-between z-50 shadow-sm dark:shadow-lg navbar-glow transition-all duration-500 ease-out transform-gpu will-change-transform">
         <Link href="/" className="font-bold text-lg sm:text-xl flex items-center">
-          <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
-            Resumify
-          </span>
+          <Image
+            src="/logo/resumify-logo.png"
+            alt="Resumify Logo"
+            width={120}
+            height={30}
+            className="object-contain"
+          />
         </Link>
         <div className="hidden sm:flex items-center gap-4">
           <ThemeToggle />
@@ -341,9 +345,13 @@ export function Navbar() {
     <>
       <nav className={navClass}>
         <Link href="/" className="font-bold text-lg sm:text-xl flex items-center">
-          <span className="text-white dark:text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:dark:text-transparent">
-            Resumify
-          </span>
+          <Image
+            src="/logo/resumify-logo.png"
+            alt="Resumify Logo"
+            width={120}
+            height={30}
+            className="object-contain"
+          />
         </Link>
         
         {/* Desktop Menu - Centered Navigation Links */}
