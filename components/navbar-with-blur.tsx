@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
@@ -42,9 +43,13 @@ export function NavbarWithBlur() {
     return (
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-7xl mx-auto navbar-gradient backdrop-blur-md border rounded-full px-6 py-3 flex items-center justify-between z-50 shadow-lg navbar-glow">
         <Link href="/" className="font-bold text-xl flex items-center">
-          <span className="text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:text-transparent">
-            Resumify
-          </span>
+          <Image
+            src="/logo/resumify-logo.png"
+            alt="Resumify Logo"
+            width={120}
+            height={30}
+            className="object-contain"
+          />
         </Link>
         <div className="flex items-center gap-4">
           <ThemeToggle />
@@ -62,12 +67,12 @@ export function NavbarWithBlur() {
   return (
     <nav className={navClass}>
       <Link href="/" className="font-bold text-xl flex items-center">
-        <BlurText
-          text="Resumify"
-          className="text-white dark:bg-gradient-to-r dark:from-primary dark:to-primary/70 dark:bg-clip-text dark:text-transparent"
-          variant="character"
-          duration={0.8}
-          delay={0.2}
+        <Image
+          src="/logo/resumify-logo.png"
+          alt="Resumify Logo"
+          width={120}
+          height={30}
+          className="object-contain"
         />
       </Link>
 

@@ -20,6 +20,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/supabase";
 import RedirectIfAuthenticated from "@/components/redirect-if-authenticated";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -156,9 +157,13 @@ export default function LoginPage() {
                       >
                         {/* Logo */}
                         <div className="mb-4 flex justify-center">
-                          <h1 className="text-2xl sm:text-3xl font-bold text-black dark:text-white">
-                            Resumify
-                          </h1>
+                          <Image
+                            src="/logo/resumify-logo.png"
+                            alt="Resumify Logo"
+                            width={120}
+                            height={30}
+                            className="object-contain"
+                          />
                         </div>
                         <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                           Welcome Back

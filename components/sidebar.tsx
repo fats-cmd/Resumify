@@ -82,7 +82,15 @@ export function Sidebar({ currentPage, onClose, isCollapsed = false, onToggleCol
     }`}>
       {/* Header with Resumify logo and toggle button */}
       <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-6 pt-6`}>
-        {!isCollapsed && <h1 className="text-2xl font-bold text-white">Resumify</h1>}
+        {!isCollapsed ? (
+          <Image
+            src="/logo/resumify-logo.png"
+            alt="Resumify Logo"
+            width={120}
+            height={30}
+            className="object-contain"
+          />
+        ) : null}
         
         {/* Container for toggle/exit buttons */}
         <div className="flex items-center">
