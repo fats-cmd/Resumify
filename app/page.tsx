@@ -359,7 +359,7 @@ export default function Home() {
       </section>
 
       {/* Wobble Card Section */}
-      <section className="container py-20">
+      <section className="bg-purple-100 dark:bg-purple-950 py-20 px-5 sm:px-0">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-screen-xl mx-auto w-full">
           <WobbleCard
             containerClassName="col-span-1 lg:col-span-2 h-full bg-purple-900 min-h-[500px] lg:min-h-[300px]"
@@ -375,7 +375,7 @@ export default function Home() {
             </div>
             <Image
               src="/create-resume-img.png"
-              width={500}
+              width={550}
               height={500}
               alt="Resume creation"
               className="absolute -right-4 lg:-right-[40%] grayscale filter -bottom-10 object-contain rounded-2xl"
