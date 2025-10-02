@@ -374,7 +374,7 @@ export default function Home() {
               </p>
             </div>
             <Image
-              src="/placeholder.svg"
+              src="/create-resume-img.png"
               width={500}
               height={500}
               alt="Resume creation"
@@ -399,7 +399,7 @@ export default function Home() {
               </p>
             </div>
             <Image
-              src="/placeholder.svg"
+              src="/template-preview-img.png"
               width={500}
               height={500}
               alt="Successful career"
