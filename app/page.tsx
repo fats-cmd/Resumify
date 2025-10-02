@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { WobbleCard } from "@/components/ui/wobble-card";
+
 import {
   Card,
   CardContent,
@@ -246,7 +248,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-24 bg-gradient-to-b from-background to-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6 mb-20">
             <h2 className="text-4xl font-bold tracking-tight sm:text-5xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
               Why Choose Resumify?
@@ -353,6 +355,57 @@ export default function Home() {
           <Button size="lg" className="mt-4">
             <Link href="/create">Get Started for Free</Link>
           </Button>
+        </div>
+      </section>
+
+      {/* Wobble Card Section */}
+      <section className="container py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-screen-xl mx-auto w-full">
+          <WobbleCard
+            containerClassName="col-span-1 lg:col-span-2 h-full bg-purple-900 min-h-[500px] lg:min-h-[300px]"
+            className=""
+          >
+            <div className="max-w-xs">
+              <h2 className="text-left text-balance text-base md:text-xl lg:text-3xl font-semibold tracking-[-0.015em] text-white">
+                Create Your Perfect Resume
+              </h2>
+              <p className="mt-4 text-left text-base/6 text-neutral-200">
+                Build a professional resume in minutes with our easy-to-use editor and modern templates.
+              </p>
+            </div>
+            <Image
+              src="/placeholder.svg"
+              width={500}
+              height={500}
+              alt="Resume creation"
+              className="absolute -right-4 lg:-right-[40%] grayscale filter -bottom-10 object-contain rounded-2xl"
+            />
+          </WobbleCard>
+          <WobbleCard containerClassName="col-span-1 min-h-[300px] bg-blue-900">
+            <h2 className="max-w-80 text-left text-balance text-base md:text-xl lg:text-3xl font-semibold tracking-[-0.015em] text-white">
+              ATS Optimized
+            </h2>
+            <p className="mt-4 max-w-[26rem] text-left text-base/6 text-neutral-200">
+              Pass through Applicant Tracking Systems with our optimized formatting.
+            </p>
+          </WobbleCard>
+          <WobbleCard containerClassName="col-span-1 lg:col-span-3 bg-indigo-900 min-h-[500px] lg:min-h-[600px] xl:min-h-[300px]">
+            <div className="max-w-sm">
+              <h2 className="max-w-sm md:max-w-lg text-left text-balance text-base md:text-xl lg:text-3xl font-semibold tracking-[-0.015em] text-white">
+                Land Your Dream Job
+              </h2>
+              <p className="mt-4 max-w-[26rem] text-left text-base/6 text-neutral-200">
+                Join thousands of job seekers who have landed interviews with Resumify resumes.
+              </p>
+            </div>
+            <Image
+              src="/placeholder.svg"
+              width={500}
+              height={500}
+              alt="Successful career"
+              className="absolute -right-10 md:-right-[40%] lg:-right-[20%] -bottom-10 object-contain rounded-2xl"
+            />
+          </WobbleCard>
         </div>
       </section>
 
