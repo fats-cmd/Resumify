@@ -167,18 +167,28 @@ export async function generateWorkExperienceDescriptions(workExperience: ResumeD
     const descriptions: string[] = [];
     
     for (const experience of workExperience) {
-      const prompt = `Enhance the following work experience description to be more professional and impactful:
+      const prompt = `Transform the following work experience into a professional and impactful set of achievements. Return ONLY an HTML unordered list (<ul> with <li> elements) with 3-5 detailed bullet points, nothing else:
+
         Company: ${experience.company}
         Position: ${experience.position}
         Description: ${experience.description}
         
-        Improve this description to highlight achievements, use action verbs, and quantify results where possible.
-        Keep it concise (2-4 bullet points) and professional.
-        Return ONLY the enhanced description without any introductory text, labels, or explanations.
-        Do not include any markdown or special formatting, just plain text with each point separated by a newline.`;
+        For each bullet point, include:
+        1. Specific action taken (use strong action verbs)
+        2. Scope/scale of responsibility
+        3. Technologies/tools used (if applicable)
+        4. Quantifiable results and business impact
+        5. Timeframe (if significant)
+        
+        Structure each point using the STAR method (Situation, Task, Action, Result) in a single, impactful sentence.
+        
+        Example of the expected format (return exactly like this, but with the actual content):
+        <ul>
+          <li>Led a cross-functional team of 5 developers in designing and implementing a React-based dashboard that improved data visualization, resulting in a 45% increase in user engagement and $250K in annual operational savings</li>
+          <li>Spearheaded the migration of legacy systems to AWS cloud infrastructure, reducing server costs by 60% and improving system reliability to 99.99% uptime while mentoring 3 junior engineers through the transition</li>
+          <li>Developed and executed a comprehensive performance optimization strategy that decreased page load times by 70% through implementation of code-splitting, lazy loading, and CDN integration, directly contributing to a 25% increase in conversion rates</li>
+        </ul>`;
 
-      console.log("Sending request to Groq API for work experience"); // Debug log
-      
       const chatCompletion = await groq.chat.completions.create({
         messages: [
           {
@@ -260,9 +270,15 @@ export async function generateEducationDescriptions(education: ResumeData["educa
         Field of Study: ${edu.field || 'Not specified'}
         
         Create a compelling description that highlights achievements, relevant coursework, projects, or skills gained during this educational experience.
+        Return 2-3 bullet points that are concise and professional.
+        Format as an HTML unordered list (<ul> with <li> elements).
         Focus on quantifiable accomplishments and specific skills developed.
-        Keep it concise (2-3 bullet points) and professional.
-        Do not include any markdown or special formatting, just plain text with each point separated by a newline.`;
+        Example format:
+        <ul>
+          <li>Graduated with honors (GPA: 3.8/4.0) while leading the Computer Science Club</li>
+          <li>Completed capstone project on [topic] that improved [result] by X%</li>
+          <li>Gained expertise in [relevant skills] through hands-on coursework and projects</li>
+        </ul>`;
 
       console.log("Sending request to Groq API for education description"); // Debug log
       

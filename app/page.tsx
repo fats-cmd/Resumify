@@ -313,48 +313,6 @@ export default function Home() {
               );
             })}
           </div>
-
-          {/* Additional stats or social proof */}
-          <div className="mt-20 pt-16 border-t border-border/50">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-primary">10K+</div>
-                <div className="text-sm text-muted-foreground">
-                  Resumes Created
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-primary">95%</div>
-                <div className="text-sm text-muted-foreground">
-                  ATS Pass Rate
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-primary">50+</div>
-                <div className="text-sm text-muted-foreground">Templates</div>
-              </div>
-              <div className="space-y-2">
-                <div className="text-3xl font-bold text-primary">24/7</div>
-                <div className="text-sm text-muted-foreground">Support</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-primary/5">
-        <div className="max-w-3xl mx-auto text-center space-y-6 px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight">
-            Ready to Land Your Dream Job?
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            Create a professional resume in minutes and start applying to your
-            dream companies today.
-          </p>
-          <Button size="lg" className="mt-4">
-            <Link href="/create">Get Started for Free</Link>
-          </Button>
         </div>
       </section>
 
@@ -408,9 +366,23 @@ export default function Home() {
           </WobbleCard>
         </div>
       </section>
-
+  {/* CTA Section */}
+      <section className="py-20 bg-purple-950/75">
+        <div className="max-w-3xl mx-auto text-center space-y-6 px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold tracking-tight text-white">
+            Ready to Land Your Dream Job?
+          </h2>
+          <p className="text-xl text-muted dark:text-white/55">
+            Create a professional resume in minutes and start applying to your
+            dream companies today.
+          </p>
+          <Button size="lg" className="mt-4">
+            <Link href="/create">Get Started for Free</Link>
+          </Button>
+        </div>
+      </section>
       {/* Footer */}
-      <footer className="border-t bg-background">
+      <footer className="bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="space-y-2">
@@ -450,7 +422,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="mt-8 pt-8 border-t-[0.1px] border-t-gray-700 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground">
               {new Date().getFullYear()} Resumify. All rights reserved.
             </p>
