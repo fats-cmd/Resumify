@@ -10,6 +10,10 @@ interface ModernSplitTemplateProps {
 
 const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
   console.log("ModernSplitTemplate received data:", data);
+  console.log("ModernSplitTemplate basics:", data.basics);
+  console.log("ModernSplitTemplate work:", data.work);
+  console.log("ModernSplitTemplate educationItems:", data.educationItems);
+  console.log("ModernSplitTemplate skillItems:", data.skillItems);
   
   // Check if required data is present
   if (!data) {

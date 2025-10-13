@@ -47,9 +47,12 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
   
   // Ensure templateId is a valid number
   const validTemplateId = templateId && typeof templateId === 'number' && templateId > 0 ? templateId : null;
+  console.log("TemplatePreview validTemplateId:", validTemplateId);
   
   // Convert the resume data to the format expected by the template
   const transformResumeData = (data: FormResumeData): ResumeData => {
+    console.log("Transforming resume data:", data);
+    
     // Transform from form data to template-compatible format
     const basics = {
       name: `${data.personalInfo.firstName} ${data.personalInfo.lastName}`.trim(),
@@ -106,6 +109,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
   };
 
   const transformedData = transformResumeData(resumeData);
+  console.log("Transformed data:", transformedData);
   
   // If no template is selected (null or undefined), show a message but still allow preview with default styling
   if (!validTemplateId) {
@@ -226,6 +230,8 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
 
   // Render the template component with error boundary
   try {
+    console.log("Rendering template component:", TemplateComponent);
+    console.log("Template component data:", transformedData);
     return (
       <div className="rounded-lg shadow-lg overflow-hidden print:shadow-none print:rounded-none">
         <div className="overflow-auto print:overflow-visible">
@@ -240,6 +246,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
         <h2 className="text-xl font-bold mb-4">Template Rendering Error</h2>
         <p>An error occurred while rendering the template.</p>
         <p className="text-sm mt-2">Template ID: {validTemplateId}</p>
+        <p className="text-sm mt-2">Error: {error instanceof Error ? error.message : 'Unknown error'}</p>
       </div>
     );
   }

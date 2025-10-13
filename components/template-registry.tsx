@@ -35,6 +35,7 @@ export const getTemplateComponent = (id: number): React.ComponentType<TemplateCo
   console.log("Getting template component for ID:", id);
   const template = getTemplateById(id);
   console.log("Template component result:", template ? "Found" : "Not found");
+  console.log("Template component:", template?.component);
   return template ? template.component : null;
 };
 
