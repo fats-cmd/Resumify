@@ -24,6 +24,37 @@ import {
   Gift,
 } from "lucide-react";
 
+// Add testimonials data
+const testimonials = [
+  {
+    quote: "Resumify helped me land my dream job at Google! The ATS optimization feature really made a difference in getting past the automated screening.",
+    name: "Sarah Johnson",
+    designation: "Software Engineer at Google",
+    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+  },
+  {
+    quote: "I've tried many resume builders, but Resumify stands out with its beautiful templates and intuitive editor. Created my resume in under 30 minutes!",
+    name: "Michael Chen",
+    designation: "Product Manager at Microsoft",
+    src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+  },
+  {
+    quote: "As a recent graduate, I had no idea where to start with my resume. Resumify's AI suggestions helped me craft compelling descriptions that impressed recruiters.",
+    name: "Emma Rodriguez",
+    designation: "Marketing Specialist at Amazon",
+    src: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+  },
+  {
+    quote: "The template variety is incredible. I was able to find a design that perfectly matched my personal brand and industry requirements.",
+    name: "David Kim",
+    designation: "UX Designer at Apple",
+    src: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+  },
+];
+
+// Import the AnimatedTestimonials component
+import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
+
 const features = [
   {
     title: "Professional Templates",
@@ -316,6 +347,8 @@ export default function Home() {
         </div>
       </section>
 
+     
+
       {/* Wobble Card Section */}
       <section className="bg-purple-100 dark:bg-purple-950 py-20 px-5 sm:px-0">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 max-w-screen-xl mx-auto w-full">
@@ -366,6 +399,22 @@ export default function Home() {
           </WobbleCard>
         </div>
       </section>
+
+       {/* Testimonials Section */}
+      <section className="py-20 bg-gradient-to-b from-muted/30 to-background">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-6 mb-16">
+            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              What Our Users Say
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Don&apos;t just take our word for it. Hear from professionals who have transformed their careers with Resumify.
+            </p>
+          </div>
+          <AnimatedTestimonials testimonials={testimonials} autoplay={true} />
+        </div>
+      </section>
+      
   {/* CTA Section */}
       <section className="py-20 bg-purple-950/75">
         <div className="max-w-3xl mx-auto text-center space-y-6 px-4 sm:px-6 lg:px-8">
