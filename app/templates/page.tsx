@@ -44,8 +44,8 @@ const templateCategories = [
       {
         id: 1,
         name: "Classic Professional",
-        description: "Timeless design with clear structure and readability",
-        previewImage: "/placeholder.svg",
+        description: "Professional blue and white layout with clear sections and timeline design",
+        previewImage: "/classic-professional-preview.svg",
         isPremium: false,
         isFeatured: true
       },
