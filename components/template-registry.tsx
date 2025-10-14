@@ -1,6 +1,7 @@
 "use client";
 
 import ModernSplitTemplate from "./templates/modern-split";
+import ClassicProfessionalTemplate from "./templates/classic-professional";
 import { ResumeData } from "@/types/resume";
 
 export type TemplateComponentProps = {
@@ -15,6 +16,11 @@ type TemplateDefinition = {
 
 // Define all available templates
 const templates: TemplateDefinition[] = [
+  {
+    id: 1,
+    name: "Classic Professional",
+    component: ClassicProfessionalTemplate
+  },
   {
     id: 8,
     name: "Modern Split",
