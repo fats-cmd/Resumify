@@ -7,7 +7,13 @@ import Image from "next/image";
 import { useAuth } from "@/components/auth-provider";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -21,24 +27,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getResumes, deleteResume, signOut, duplicateResume } from "@/lib/supabase";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { 
-  FileText, 
-  Plus, 
-  Download, 
-  Eye, 
-  Edit, 
-  Trash2, 
-  BarChart3, 
-  Clock, 
+import { getResumes, deleteResume, duplicateResume } from "@/lib/supabase";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  FileText,
+  Plus,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  BarChart3,
+  Clock,
   Star,
   LogOut,
   Settings,
   Menu,
   X,
-  Copy
+  Copy,
 } from "lucide-react";
 import { LuPencil } from "react-icons/lu";
 import { motion } from "framer-motion";
@@ -86,7 +92,10 @@ const SkeletonCard = () => (
 const StatsSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
     {[...Array(4)].map((_, index) => (
-      <Card key={index} className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+      <Card
+        key={index}
+        className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow"
+      >
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
           <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"></div>
@@ -101,14 +110,14 @@ const StatsSkeleton = () => (
 );
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, signOut, isLoggingOut } = useAuth();
   const router = useRouter();
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [stats, setStats] = useState({
     totalResumes: 0,
     publishedResumes: 0,
     totalViews: 0,
-    totalDownloads: 0
+    totalDownloads: 0,
   });
   const [loading, setLoading] = useState(true);
   const [resumesLoading, setResumesLoading] = useState(true);
@@ -118,13 +127,13 @@ export default function DashboardPage() {
 
   // Load sidebar collapsed state from localStorage on component mount
   useEffect(() => {
-    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    const savedCollapsedState = localStorage.getItem("sidebarCollapsed");
     if (savedCollapsedState !== null) {
       setSidebarCollapsed(JSON.parse(savedCollapsedState));
     }
-    
+
     // Load sidebar open state from localStorage on component mount (for mobile)
-    const savedOpenState = localStorage.getItem('sidebarOpen');
+    const savedOpenState = localStorage.getItem("sidebarOpen");
     if (savedOpenState !== null) {
       setSidebarOpen(JSON.parse(savedOpenState));
     }
@@ -132,72 +141,50 @@ export default function DashboardPage() {
 
   // Save sidebar collapsed state to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   // Save sidebar open state to localStorage whenever it changes (for mobile)
   useEffect(() => {
-    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
   // Fetch resumes and stats
   useEffect(() => {
     const fetchResumes = async () => {
       if (!user) return;
-      
+
       try {
         setResumesLoading(true);
-        // Add a minimum loading time to ensure skeleton is visible
-        const startTime = Date.now();
-        
         const { data, error } = await getResumes(user.id);
-        
-        // Ensure skeleton shows for at least 800ms for better UX
-        const elapsed = Date.now() - startTime;
-        const minLoadingTime = 800;
-        if (elapsed < minLoadingTime) {
-          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
-        }
-        
+
         if (error) {
           console.error("Error fetching resumes:", error);
-          // Provide more detailed error information
-          if (error.message) {
-            console.error("Error message:", error.message);
-          }
-          if (error.name) {
-            console.error("Error name:", error.name);
-          }
-          if (error.stack) {
-            console.error("Error stack:", error.stack);
-          }
           toast.error("Failed to load resumes. Please try again later.");
         } else {
-          setResumes(data || []);
-          
-          // Calculate stats based on fetched resumes
-          const totalResumes = data?.length || 0;
-          const publishedResumes = data?.filter((resume: Resume) => resume.status === "Published").length || 0;
-          const totalViews = data?.reduce((sum: number, resume: Resume) => sum + (resume.views || 0), 0) || 0;
-          const totalDownloads = data?.reduce((sum: number, resume: Resume) => sum + (resume.downloads || 0), 0) || 0;
-          
-          setStats({
-            totalResumes,
-            publishedResumes,
-            totalViews,
-            totalDownloads
-          });
+          // Calculate stats and batch state updates
+          const resumeData = data || [];
+          const newStats = {
+            totalResumes: resumeData.length,
+            publishedResumes: resumeData.filter(
+              (resume: Resume) => resume.status === "Published",
+            ).length,
+            totalViews: resumeData.reduce(
+              (sum: number, resume: Resume) => sum + (resume.views || 0),
+              0,
+            ),
+            totalDownloads: resumeData.reduce(
+              (sum: number, resume: Resume) => sum + (resume.downloads || 0),
+              0,
+            ),
+          };
+
+          // Batch state updates
+          setResumes(resumeData);
+          setStats(newStats);
         }
       } catch (err) {
         console.error("Error fetching resumes:", err);
-        // Provide more detailed error information for caught exceptions
-        if (err instanceof Error) {
-          console.error("Caught error details:", {
-            message: err.message,
-            name: err.name,
-            stack: err.stack
-          });
-        }
         toast.error("Failed to load resumes. Please try again later.");
       } finally {
         setResumesLoading(false);
@@ -215,23 +202,24 @@ export default function DashboardPage() {
   const handleDeleteResume = async (id: number) => {
     try {
       const { error } = await deleteResume(id);
-      
+
       if (error) {
         console.error("Error deleting resume:", error);
         toast.error("Error deleting resume. Please try again.");
       } else {
         // Remove the resume from the local state
-        setResumes(resumes.filter(resume => resume.id !== id));
-        
+        setResumes(resumes.filter((resume) => resume.id !== id));
+
         // Update stats
         setStats({
           ...stats,
           totalResumes: stats.totalResumes - 1,
-          publishedResumes: resumes.find(r => r.id === id)?.status === "Published" 
-            ? stats.publishedResumes - 1 
-            : stats.publishedResumes
+          publishedResumes:
+            resumes.find((r) => r.id === id)?.status === "Published"
+              ? stats.publishedResumes - 1
+              : stats.publishedResumes,
         });
-        
+
         toast.success("Resume deleted successfully!");
       }
     } catch (err) {
@@ -243,10 +231,10 @@ export default function DashboardPage() {
   // Add the duplicate resume function
   const handleDuplicateResume = async (id: number) => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await duplicateResume(id, user.id);
-      
+
       if (error) {
         console.error("Error duplicating resume:", error);
         toast.error("Error duplicating resume. Please try again.");
@@ -254,13 +242,13 @@ export default function DashboardPage() {
         // Add the duplicated resume to the local state
         if (data && data[0]) {
           setResumes([data[0], ...resumes]);
-          
+
           // Update stats
           setStats({
             ...stats,
-            totalResumes: stats.totalResumes + 1
+            totalResumes: stats.totalResumes + 1,
           });
-          
+
           toast.success("Resume duplicated successfully!");
         }
       }
@@ -271,8 +259,10 @@ export default function DashboardPage() {
   };
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent double logout
+
     try {
-      const { error } = await signOut();
+      const { error } = await signOut?.();
       if (error) {
         console.error("Error signing out:", error);
         toast.error("Error signing out. Please try again.");
@@ -289,22 +279,24 @@ export default function DashboardPage() {
   // Get user's profile image or generate initials
   const getUserAvatar = () => {
     if (!user) return null;
-    
+
     // Check if user has an avatar URL (uploaded image or custom avatar)
     const avatarUrl = user.user_metadata?.avatar_url;
     const customAvatar = user.user_metadata?.custom_image_avatar;
-    
+
     // Add cache-busting parameter to avatar URL
-    const cacheBustedAvatarUrl = avatarUrl ? `${avatarUrl}?t=${Date.now()}` : null;
+    const cacheBustedAvatarUrl = avatarUrl
+      ? `${avatarUrl}?t=${Date.now()}`
+      : null;
     const displayAvatar = cacheBustedAvatarUrl || customAvatar;
-    
+
     if (displayAvatar && !avatarError) {
       // Extract the base URL without cache-busting parameter for the Image component
-      const [baseUrl] = displayAvatar.split('?t=');
+      const [baseUrl] = displayAvatar.split("?t=");
       return (
-        <Image 
-          src={baseUrl} 
-          alt="Profile" 
+        <Image
+          src={baseUrl}
+          alt="Profile"
           width={32}
           height={32}
           className="rounded-full object-cover border-2 border-white/20"
@@ -313,20 +305,22 @@ export default function DashboardPage() {
         />
       );
     }
-    
+
     // Generate initials from user's name or email
     const fullName = user.user_metadata?.full_name;
-    const email = user.email || '';
-    let initials = '';
-    
+    const email = user.email || "";
+    let initials = "";
+
     if (fullName) {
-      const names = fullName.split(' ');
-      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
+      const names = fullName.split(" ");
+      initials =
+        names[0].charAt(0) +
+        (names.length > 1 ? names[names.length - 1].charAt(0) : "");
     } else if (email) {
-      const emailParts = email.split('@');
+      const emailParts = email.split("@");
       initials = emailParts[0].charAt(0);
     }
-    
+
     return (
       <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-sm font-medium">
         {initials.toUpperCase()}
@@ -339,9 +333,11 @@ export default function DashboardPage() {
       <div className="h-screen flex bg-background">
         <TourGuide />
         {/* Sidebar - Full Height */}
-        <div className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
-          sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'
-        }`}>
+        <div
+          className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
+            sidebarCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-80"
+          }`}
+        >
           <div className="h-full overflow-y-auto">
             {loading ? (
               // Sidebar Skeleton Loading
@@ -353,7 +349,7 @@ export default function DashboardPage() {
                   </div>
                   {/* Exit button for mobile */}
                   <div className="lg:hidden">
-                    <button 
+                    <button
                       onClick={() => setSidebarOpen(false)}
                       className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                       aria-label="Close sidebar"
@@ -369,14 +365,14 @@ export default function DashboardPage() {
                     <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                     <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                   </div>
-                  
+
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
                     <div className="space-y-3">
                       <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="flex-shrink-0">
@@ -393,29 +389,33 @@ export default function DashboardPage() {
               </Card>
             ) : (
               <div className="h-full" id="sidebar-menu">
-                <Sidebar 
-                  currentPage="dashboard" 
-                  onClose={() => setSidebarOpen(false)} 
+                <Sidebar
+                  currentPage="dashboard"
+                  onClose={() => setSidebarOpen(false)}
                   isCollapsed={sidebarCollapsed}
-                  onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+                  onToggleCollapse={() =>
+                    setSidebarCollapsed(!sidebarCollapsed)
+                  }
                 />
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Overlay for mobile when sidebar is open */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
 
         {/* Main Content Area */}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${
-          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'
-        }`}>
+        <div
+          className={`flex-1 flex flex-col transition-all duration-300 ${
+            sidebarCollapsed ? "lg:ml-16" : "lg:ml-80"
+          }`}
+        >
           {/* Header with gradient */}
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
@@ -430,10 +430,14 @@ export default function DashboardPage() {
                     className="object-contain"
                   />
                 </div>
-                <div className="hidden lg:block absolute" 
-                  style={{ 
-                    left: sidebarCollapsed ? 'calc(4rem + 1rem)' : 'calc(20rem + 1rem)'
-                  }}>
+                <div
+                  className="hidden lg:block absolute"
+                  style={{
+                    left: sidebarCollapsed
+                      ? "calc(4rem + 1rem)"
+                      : "calc(20rem + 1rem)",
+                  }}
+                >
                   {/* Desktop view - show logo when sidebar is collapsed (sidebar logo is hidden) */}
                   {/* Hide logo when sidebar is expanded (sidebar logo is visible) */}
                   {sidebarCollapsed ? (
@@ -448,7 +452,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
-                  <button 
+                  <button
                     className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
@@ -465,14 +469,16 @@ export default function DashboardPage() {
                             {getUserAvatar()}
                           </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                        <DropdownMenuContent
+                          className="w-56 mr-4 mt-2"
+                          align="end"
+                          forceMount
+                        >
                           <div className="flex items-center px-2 py-2">
-                            <div className="mr-2">
-                              {getUserAvatar()}
-                            </div>
+                            <div className="mr-2">{getUserAvatar()}</div>
                             <div className="flex flex-col">
                               <span className="text-sm font-medium dark:text-white">
-                                {user?.user_metadata?.full_name || 'User'}
+                                {user?.user_metadata?.full_name || "User"}
                               </span>
                               <span className="text-xs text-muted-foreground dark:text-gray-300">
                                 {user?.email}
@@ -480,13 +486,22 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer dark:text-white">
+                          <DropdownMenuItem
+                            onClick={() => router.push("/settings")}
+                            className="cursor-pointer dark:text-white"
+                          >
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20">
+                          <DropdownMenuItem
+                            onClick={handleLogout}
+                            disabled={isLoggingOut}
+                            className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 disabled:opacity-50"
+                          >
                             <LogOut className="mr-2 h-4 w-4" />
-                            <span>Log out</span>
+                            <span>
+                              {isLoggingOut ? "Logging out..." : "Log out"}
+                            </span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -503,9 +518,15 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <>
-                      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">Dashboard</h1>
+                      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">
+                        Dashboard
+                      </h1>
                       <p className="text-gray-700 mt-1 dark:text-gray-300">
-                        Welcome back, {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}!
+                        Welcome back,{" "}
+                        {user?.user_metadata?.full_name ||
+                          user?.email?.split("@")[0] ||
+                          "User"}
+                        !
                       </p>
                     </>
                   )}
@@ -521,233 +542,285 @@ export default function DashboardPage() {
 
           {/* Main Content */}
           <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
-              {/* Stats Cards */}
-              <div className="mb-12" id="stats-cards">
-                {loading ? (
-                  <StatsSkeleton />
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Total Resumes</CardTitle>
-                          <div className="rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-2">
-                            <FileText className="h-5 w-5 text-white" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-foreground">{stats.totalResumes}</div>
-                          <p className="text-xs text-muted-foreground mt-1">Resumes created</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.1 }}
-                    >
-                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Published</CardTitle>
-                          <div className="rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 p-2">
-                            <BarChart3 className="h-5 w-5 text-white" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-foreground">{stats.publishedResumes}</div>
-                          <p className="text-xs text-muted-foreground mt-1">Active resumes</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.2 }}
-                    >
-                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
-                          <div className="rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-2">
-                            <Eye className="h-5 w-5 text-white" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-foreground">{stats.totalViews}</div>
-                          <p className="text-xs text-muted-foreground mt-1">Profile views</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.3 }}
-                    >
-                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                          <CardTitle className="text-sm font-medium text-muted-foreground">Downloads</CardTitle>
-                          <div className="rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 p-2">
-                            <Download className="h-5 w-5 text-white" />
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="text-3xl font-bold text-foreground">{stats.totalDownloads}</div>
-                          <p className="text-xs text-muted-foreground mt-1">Resume downloads</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </div>
-                )}
-              </div>
-
-              {/* Resumes Section */}
-              <div className="mb-12" id="resume-list">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                  <div>
-                    {loading ? (
-                      <div className="space-y-2">
-                        <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                        <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                      </div>
-                    ) : (
-                      <>
-                        <h2 className="text-2xl font-bold text-foreground">Your Resumes</h2>
-                        <p className="text-muted-foreground">Manage and track your resumes</p>
-                      </>
-                    )}
-                  </div>
-                  {loading ? (
-                    <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-                  ) : null}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {resumesLoading ? (
-                    [...Array(3)].map((_, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 * index }}
-                      >
-                        <SkeletonCard />
-                      </motion.div>
-                    ))
-                  ) : resumes.length > 0 ? (
-                    resumes.map((resume, index) => (
-                      <motion.div
-                        key={resume.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 * index }}
-                      >
-                        <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
-                          <Link href={`/edit/${resume.id}`} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                            <LuPencil className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                          </Link>
-                          <CardHeader className="pb-4">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                  {resume.title}
-                                  {resume.is_featured && (
-                                    <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 rounded-full px-2 py-0.5">
-                                      <Star className="h-3 w-3 mr-1 fill-current" />
-                                      Featured
-                                    </Badge>
-                                  )}
-                                </CardTitle>
-                                <CardDescription className="text-muted-foreground mt-1">
-                                  Last updated: {new Date(resume.updated_at).toLocaleDateString()}
-                                </CardDescription>
-                              </div>
-                              {resume.status === "Published" ? (
-                                <Badge 
-                                  variant="default"
-                                  className="rounded-full px-2 py-0.5 bg-green-500/20 text-green-700 dark:text-green-300"
-                                >
-                                  Published
-                                </Badge>
-                              ) : null}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex justify-between items-center mb-4">
-                              <div className="text-sm text-muted-foreground flex items-center">
-                                <Clock className="h-4 w-4 mr-1" />
-                                Created {formatDateDifference(resume.created_at)}
-                              </div>
-                            </div>
-                            <div className="flex gap-2" id="resume-actions">
-                              <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
-                                <Link href={`/resume/${resume.id}`}>
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  View
-                                </Link>
-                              </Button>
-                              <Button variant="outline" size="sm" asChild className="border-input text-foreground hover:bg-accent rounded-full">
-                                <Link href={`/edit/${resume.id}`}>
-                                  <Edit className="h-4 w-4 mr-1" />
-                                  Edit
-                                </Link>
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDuplicateResume(resume.id)}
-                                className="border-input text-foreground hover:bg-accent rounded-full"
-                              >
-                                <Copy className="h-4 w-4 mr-1" />
-                                Duplicate
-                              </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleDeleteResume(resume.id)}
-                                className="border-red-500/30 text-red-700 hover:bg-red-500/10 dark:text-red-300 rounded-full"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                      </motion.div>
-                    ))
-                  ) : (
-                    <Card className="bg-card border-0 rounded-2xl overflow-hidden lg:col-span-2">
-                      <CardContent className="flex flex-col items-center justify-center py-16">
-                        <FileText className="h-16 w-16 text-muted-foreground mb-6" />
-                        <h3 className="text-2xl font-bold mb-2">No resumes yet</h3>
-                        <p className="text-muted-foreground mb-6 text-center max-w-md">
-                          Get started by creating your first professional resume.
+            {/* Stats Cards */}
+            <div className="mb-12" id="stats-cards">
+              {loading ? (
+                <StatsSkeleton />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Total Resumes
+                        </CardTitle>
+                        <div className="rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-2">
+                          <FileText className="h-5 w-5 text-white" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-foreground">
+                          {stats.totalResumes}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Resumes created
                         </p>
-                        <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full" id="create-resume-btn">
-                          <Link href="/create">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Create Resume
-                          </Link>
-                        </Button>
                       </CardContent>
                     </Card>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                  >
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Published
+                        </CardTitle>
+                        <div className="rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 p-2">
+                          <BarChart3 className="h-5 w-5 text-white" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-foreground">
+                          {stats.publishedResumes}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Active resumes
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                  >
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Total Views
+                        </CardTitle>
+                        <div className="rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-2">
+                          <Eye className="h-5 w-5 text-white" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-foreground">
+                          {stats.totalViews}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Profile views
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.3 }}
+                  >
+                    <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">
+                          Downloads
+                        </CardTitle>
+                        <div className="rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 p-2">
+                          <Download className="h-5 w-5 text-white" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-3xl font-bold text-foreground">
+                          {stats.totalDownloads}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Resume downloads
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </div>
+              )}
+            </div>
+
+            {/* Resumes Section */}
+            <div className="mb-12" id="resume-list">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                  {loading ? (
+                    <div className="space-y-2">
+                      <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <h2 className="text-2xl font-bold text-foreground">
+                        Your Resumes
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Manage and track your resumes
+                      </p>
+                    </>
                   )}
                 </div>
+                {loading ? (
+                  <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                ) : null}
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {resumesLoading ? (
+                  [...Array(3)].map((_, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                    >
+                      <SkeletonCard />
+                    </motion.div>
+                  ))
+                ) : resumes.length > 0 ? (
+                  resumes.map((resume, index) => (
+                    <motion.div
+                      key={resume.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                    >
+                      <Card className="bg-card border-0 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 relative">
+                        <Link
+                          href={`/edit/${resume.id}`}
+                          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        >
+                          <LuPencil className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        </Link>
+                        <CardHeader className="pb-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle className="flex items-center gap-2 text-lg">
+                                {resume.title}
+                                {resume.is_featured && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 rounded-full px-2 py-0.5"
+                                  >
+                                    <Star className="h-3 w-3 mr-1 fill-current" />
+                                    Featured
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <CardDescription className="text-muted-foreground mt-1">
+                                Last updated:{" "}
+                                {new Date(
+                                  resume.updated_at,
+                                ).toLocaleDateString()}
+                              </CardDescription>
+                            </div>
+                            {resume.status === "Published" ? (
+                              <Badge
+                                variant="default"
+                                className="rounded-full px-2 py-0.5 bg-green-500/20 text-green-700 dark:text-green-300"
+                              >
+                                Published
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex justify-between items-center mb-4">
+                            <div className="text-sm text-muted-foreground flex items-center">
+                              <Clock className="h-4 w-4 mr-1" />
+                              Created {formatDateDifference(resume.created_at)}
+                            </div>
+                          </div>
+                          <div className="flex gap-2" id="resume-actions">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                              className="border-input text-foreground hover:bg-accent rounded-full"
+                            >
+                              <Link href={`/resume/${resume.id}`}>
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                              className="border-input text-foreground hover:bg-accent rounded-full"
+                            >
+                              <Link href={`/edit/${resume.id}`}>
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDuplicateResume(resume.id)}
+                              className="border-input text-foreground hover:bg-accent rounded-full"
+                            >
+                              <Copy className="h-4 w-4 mr-1" />
+                              Duplicate
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteResume(resume.id)}
+                              className="border-red-500/30 text-red-700 hover:bg-red-500/10 dark:text-red-300 rounded-full"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))
+                ) : (
+                  <Card className="bg-card border-0 rounded-2xl overflow-hidden lg:col-span-2">
+                    <CardContent className="flex flex-col items-center justify-center py-16">
+                      <FileText className="h-16 w-16 text-muted-foreground mb-6" />
+                      <h3 className="text-2xl font-bold mb-2">
+                        No resumes yet
+                      </h3>
+                      <p className="text-muted-foreground mb-6 text-center max-w-md">
+                        Get started by creating your first professional resume.
+                      </p>
+                      <Button
+                        asChild
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-full"
+                        id="create-resume-btn"
+                      >
+                        <Link href="/create">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Resume
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
-          
-            {/* Dynamic Dock Component */}
-            <div className="mt-auto px-4 sm:px-6 lg:px-8">
-              <DynamicDock currentPage="dashboard" showLogout={false} />
-            </div>
-            
-            {/* Footer - now using the reusable component */}
-            <DashboardFooter />
+          </div>
+
+          {/* Dynamic Dock Component */}
+          <div className="mt-auto px-4 sm:px-6 lg:px-8">
+            <DynamicDock currentPage="dashboard" showLogout={false} />
+          </div>
+
+          {/* Footer - now using the reusable component */}
+          <DashboardFooter />
         </div>
       </div>
     </ProtectedPage>
@@ -759,30 +832,30 @@ const formatDateDifference = (dateString: string): string => {
   // Handle invalid date strings
   const date = new Date(dateString);
   if (isNaN(date.getTime())) {
-    return 'Unknown time';
+    return "Unknown time";
   }
-  
+
   const now = new Date();
   const diffTime = now.getTime() - date.getTime();
-  
+
   // Handle future dates
   if (diffTime < 0) {
     return date.toLocaleDateString();
   }
-  
+
   const diffSeconds = Math.floor(diffTime / 1000);
   const diffMinutes = Math.floor(diffTime / (1000 * 60));
   const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
+
   if (diffSeconds < 60) {
-    return 'Just now';
+    return "Just now";
   } else if (diffMinutes < 60) {
-    return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+    return `${diffMinutes} minute${diffMinutes !== 1 ? "s" : ""} ago`;
   } else if (diffHours < 24) {
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+    return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
   } else if (diffDays < 30) {
-    return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
   } else {
     return date.toLocaleDateString();
   }

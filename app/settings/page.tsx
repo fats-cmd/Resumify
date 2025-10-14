@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -14,9 +20,17 @@ import { Sidebar } from "@/components/sidebar";
 import { DashboardFooter } from "@/components/dashboard-footer";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { useAuth } from "@/components/auth-provider";
-import { getUser, signOut, updateProfile, uploadProfileImage, updatePassword } from "@/lib/supabase";
-import { toast } from 'react-toastify';
-import { getPasswordStrength, PasswordStrengthMeter } from "@/components/ui/password-strength-meter";
+import {
+  getUser,
+  updateProfile,
+  uploadProfileImage,
+  updatePassword,
+} from "@/lib/supabase";
+import { toast } from "react-toastify";
+import {
+  getPasswordStrength,
+  PasswordStrengthMeter,
+} from "@/components/ui/password-strength-meter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +38,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  User, 
-  Shield, 
-  Bell, 
-  LogOut, 
+import {
+  User,
+  Shield,
+  Bell,
+  LogOut,
   Camera,
   Lock,
   Eye,
@@ -36,20 +50,24 @@ import {
   X,
   Upload,
   Menu,
-  Settings
+  Settings,
 } from "lucide-react";
 
 // Custom avatar images
 const customAvatarImages = [
-  { id: 'avatar1', src: '/avatar/uifaces-cartoon-avatar.jpg', name: 'Nova' },
-  { id: 'avatar2', src: '/avatar/uifaces-cartoon-avatar(1).jpg', name: 'Axel' },
-  { id: 'avatar3', src: '/avatar/uifaces-cartoon-avatar(2).jpg', name: 'Kai' },
-  { id: 'avatar4', src: '/avatar/uifaces-cartoon-avatar(3).jpg', name: 'Quinn' },
+  { id: "avatar1", src: "/avatar/uifaces-cartoon-avatar.jpg", name: "Nova" },
+  { id: "avatar2", src: "/avatar/uifaces-cartoon-avatar(1).jpg", name: "Axel" },
+  { id: "avatar3", src: "/avatar/uifaces-cartoon-avatar(2).jpg", name: "Kai" },
+  {
+    id: "avatar4",
+    src: "/avatar/uifaces-cartoon-avatar(3).jpg",
+    name: "Quinn",
+  },
 ];
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, signOut, isLoggingOut } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -58,7 +76,9 @@ export default function SettingsPage() {
   const [marketingEmails, setMarketingEmails] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedCustomAvatar, setSelectedCustomAvatar] = useState<string | null>(null);
+  const [selectedCustomAvatar, setSelectedCustomAvatar] = useState<
+    string | null
+  >(null);
   const [showRemoveImageDialog, setShowRemoveImageDialog] = useState(false);
   const [showAvatarSelection, setShowAvatarSelection] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
@@ -76,13 +96,13 @@ export default function SettingsPage() {
 
   // Load sidebar collapsed state from localStorage on component mount
   useEffect(() => {
-    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    const savedCollapsedState = localStorage.getItem("sidebarCollapsed");
     if (savedCollapsedState !== null) {
       setSidebarCollapsed(JSON.parse(savedCollapsedState));
     }
-    
+
     // Load sidebar open state from localStorage on component mount (for mobile)
-    const savedOpenState = localStorage.getItem('sidebarOpen');
+    const savedOpenState = localStorage.getItem("sidebarOpen");
     if (savedOpenState !== null) {
       setSidebarOpen(JSON.parse(savedOpenState));
     }
@@ -90,24 +110,24 @@ export default function SettingsPage() {
 
   // Save sidebar collapsed state to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   // Save sidebar open state to localStorage whenever it changes (for mobile)
   useEffect(() => {
-    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
-      
+
       try {
         const startTime = Date.now();
-        
+
         const { user: userData, error } = await getUser();
-        
+
         if (error) {
           console.error("Error fetching user:", error);
           toast.error("Error fetching user data. Please try again.");
@@ -115,7 +135,7 @@ export default function SettingsPage() {
           setFullName(userData.user_metadata?.full_name || "");
           setEmail(userData.email || "");
           setAvatarUrl(userData.user_metadata?.avatar_url || null);
-          
+
           const customImageAvatar = userData.user_metadata?.custom_image_avatar;
           if (customImageAvatar) {
             setSelectedCustomAvatar(customImageAvatar);
@@ -123,12 +143,14 @@ export default function SettingsPage() {
             setSelectedCustomAvatar(null);
           }
         }
-        
+
         const elapsed = Date.now() - startTime;
         const minLoadingTime = 800;
-        
+
         if (elapsed < minLoadingTime) {
-          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
+          await new Promise((resolve) =>
+            setTimeout(resolve, minLoadingTime - elapsed),
+          );
         }
       } catch (err) {
         console.error("Error fetching user:", err);
@@ -145,33 +167,33 @@ export default function SettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user) {
       toast.error("You must be logged in to save settings.");
       return;
     }
-    
+
     setSaving(true);
-    
+
     try {
-      const updateData: { 
-        full_name: string; 
+      const updateData: {
+        full_name: string;
         avatar_url?: string | null;
         custom_image_avatar?: string | null;
       } = {
         full_name: fullName,
       };
-      
+
       if (avatarUrl) {
         updateData.avatar_url = avatarUrl;
       }
-      
+
       if (selectedCustomAvatar) {
         updateData.custom_image_avatar = selectedCustomAvatar;
       }
-      
+
       const { error } = await updateProfile(updateData);
-      
+
       if (error) {
         console.error("Error updating profile:", error);
         toast.error("Error updating profile. Please try again.");
@@ -188,39 +210,43 @@ export default function SettingsPage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user || !e.target.files || e.target.files.length === 0) return;
-    
+
     const file = e.target.files[0];
-    
-    if (!file.type.startsWith('image/')) {
+
+    if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file.");
       return;
     }
-    
+
     if (file.size > 2 * 1024 * 1024) {
       toast.error("File size must be less than 2MB.");
       return;
     }
-    
+
     setUploading(true);
-    
+
     try {
       const { publicUrl, error } = await uploadProfileImage(file, user.id);
-      
+
       if (error) {
         console.error("Error uploading profile image:", error);
         toast.error("Error uploading profile image. Please try again.");
       } else {
-        const cacheBustedUrl = publicUrl ? `${publicUrl}?t=${Date.now()}` : null;
-        
+        const cacheBustedUrl = publicUrl
+          ? `${publicUrl}?t=${Date.now()}`
+          : null;
+
         const { user: updatedUser, error: fetchError } = await getUser();
-        
+
         if (fetchError) {
           console.error("Error fetching updated user data:", fetchError);
           toast.error("Profile image uploaded but failed to refresh data.");
         } else if (updatedUser) {
           const userAvatarUrl = updatedUser.user_metadata?.avatar_url;
-          const cacheBustedUserUrl = userAvatarUrl ? `${userAvatarUrl}?t=${Date.now()}` : null;
-          
+          const cacheBustedUserUrl = userAvatarUrl
+            ? `${userAvatarUrl}?t=${Date.now()}`
+            : null;
+
           setAvatarUrl(cacheBustedUserUrl || cacheBustedUrl);
           setSelectedCustomAvatar(null);
           toast.success("Profile image updated successfully!");
@@ -236,7 +262,7 @@ export default function SettingsPage() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -249,14 +275,14 @@ export default function SettingsPage() {
 
   const removeProfileImage = async () => {
     if (!user) return;
-    
+
     try {
       const { error } = await updateProfile({
         full_name: fullName,
         avatar_url: null,
-        custom_image_avatar: null
+        custom_image_avatar: null,
       });
-      
+
       if (error) {
         console.error("Error removing profile image:", error);
         toast.error("Error removing profile image. Please try again.");
@@ -275,14 +301,14 @@ export default function SettingsPage() {
 
   const handleSelectCustomImageAvatar = async (avatarSrc: string) => {
     if (!user) return;
-    
+
     try {
       const { error } = await updateProfile({
         full_name: fullName,
         custom_image_avatar: avatarSrc,
-        avatar_url: null
+        avatar_url: null,
       });
-      
+
       if (error) {
         console.error("Error updating profile:", error);
         toast.error("Error updating profile. Please try again.");
@@ -300,38 +326,40 @@ export default function SettingsPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!currentPassword) {
       toast.error("Please enter your current password.");
       return;
     }
-    
+
     if (!newPassword) {
       toast.error("Please enter a new password.");
       return;
     }
-    
+
     const strength = getPasswordStrength(newPassword);
     if (strength.score < 3) {
-      toast.error("Please choose a stronger password. Password should be at least fair strength.");
+      toast.error(
+        "Please choose a stronger password. Password should be at least fair strength.",
+      );
       return;
     }
-    
+
     if (newPassword !== confirmPassword) {
       toast.error("New password and confirmation do not match.");
       return;
     }
-    
+
     if (currentPassword === newPassword) {
       toast.error("New password must be different from current password.");
       return;
     }
-    
+
     setChangingPassword(true);
-    
+
     try {
       const { error } = await updatePassword(newPassword);
-      
+
       if (error) {
         console.error("Error changing password:", error);
         if (error.message.includes("Invalid login credentials")) {
@@ -355,8 +383,10 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent double logout
+
     try {
-      const { error } = await signOut();
+      const { error } = await signOut?.();
       if (error) {
         console.error("Error signing out:", error);
         toast.error("Error signing out. Please try again.");
@@ -372,41 +402,45 @@ export default function SettingsPage() {
 
   const getUserInitials = () => {
     if (!user) return "U";
-    
+
     const fullName = user.user_metadata?.full_name;
-    const email = user.email || '';
-    let initials = '';
-    
+    const email = user.email || "";
+    let initials = "";
+
     if (fullName) {
-      const names = fullName.split(' ');
-      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
+      const names = fullName.split(" ");
+      initials =
+        names[0].charAt(0) +
+        (names.length > 1 ? names[names.length - 1].charAt(0) : "");
     } else if (email) {
-      const emailParts = email.split('@');
+      const emailParts = email.split("@");
       initials = emailParts[0].charAt(0);
     }
-    
+
     return initials.toUpperCase();
   };
 
   // Get user's profile image or generate initials
   const getUserAvatar = () => {
     if (!user) return null;
-    
+
     // Check if user has an avatar URL (uploaded image or custom avatar)
     const avatarUrl = user.user_metadata?.avatar_url;
     const customAvatar = user.user_metadata?.custom_image_avatar;
-    
+
     // Add cache-busting parameter to avatar URL
-    const cacheBustedAvatarUrl = avatarUrl ? `${avatarUrl}?t=${Date.now()}` : null;
+    const cacheBustedAvatarUrl = avatarUrl
+      ? `${avatarUrl}?t=${Date.now()}`
+      : null;
     const displayAvatar = cacheBustedAvatarUrl || customAvatar;
-    
+
     if (displayAvatar && !avatarError) {
       // Extract the base URL without cache-busting parameter for the Image component
-      const [baseUrl] = displayAvatar.split('?t=');
+      const [baseUrl] = displayAvatar.split("?t=");
       return (
-        <Image 
-          src={baseUrl} 
-          alt="Profile" 
+        <Image
+          src={baseUrl}
+          alt="Profile"
           width={32}
           height={32}
           className="rounded-full object-cover border-2 border-white/20"
@@ -415,20 +449,22 @@ export default function SettingsPage() {
         />
       );
     }
-    
+
     // Generate initials from user's name or email
     const fullName = user.user_metadata?.full_name;
-    const email = user.email || '';
-    let initials = '';
-    
+    const email = user.email || "";
+    let initials = "";
+
     if (fullName) {
-      const names = fullName.split(' ');
-      initials = names[0].charAt(0) + (names.length > 1 ? names[names.length - 1].charAt(0) : '');
+      const names = fullName.split(" ");
+      initials =
+        names[0].charAt(0) +
+        (names.length > 1 ? names[names.length - 1].charAt(0) : "");
     } else if (email) {
-      const emailParts = email.split('@');
+      const emailParts = email.split("@");
       initials = emailParts[0].charAt(0);
     }
-    
+
     return (
       <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-sm font-medium">
         {initials.toUpperCase()}
@@ -438,11 +474,11 @@ export default function SettingsPage() {
 
   const renderAvatar = () => {
     if (avatarUrl) {
-      const [baseUrl] = avatarUrl.split('?t=');
+      const [baseUrl] = avatarUrl.split("?t=");
       return (
-        <Image 
-          src={baseUrl} 
-          alt="Profile" 
+        <Image
+          src={baseUrl}
+          alt="Profile"
           width={96}
           height={96}
           className="w-full h-full object-cover"
@@ -450,12 +486,12 @@ export default function SettingsPage() {
         />
       );
     }
-    
+
     if (selectedCustomAvatar) {
       return (
-        <Image 
-          src={selectedCustomAvatar} 
-          alt="Custom Avatar" 
+        <Image
+          src={selectedCustomAvatar}
+          alt="Custom Avatar"
           width={96}
           height={96}
           className="w-full h-full object-cover"
@@ -463,11 +499,9 @@ export default function SettingsPage() {
         />
       );
     }
-    
+
     return (
-      <span className="text-white text-2xl font-bold">
-        {getUserInitials()}
-      </span>
+      <span className="text-white text-2xl font-bold">{getUserInitials()}</span>
     );
   };
 
@@ -475,7 +509,9 @@ export default function SettingsPage() {
     <ProtectedPage>
       <div className="h-screen flex bg-background">
         {/* Sidebar - Full Height */}
-        <div className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'} bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}>
+        <div
+          className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-80"} bg-background transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}
+        >
           <div className="h-full overflow-y-auto">
             {loading ? (
               <Card className="bg-card border-0 rounded-2xl overflow-hidden h-full">
@@ -485,7 +521,7 @@ export default function SettingsPage() {
                     <div className="h-4 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mt-1" />
                   </div>
                   <div className="lg:hidden">
-                    <button 
+                    <button
                       onClick={() => setSidebarOpen(false)}
                       className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                       aria-label="Close sidebar"
@@ -501,14 +537,14 @@ export default function SettingsPage() {
                     <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                     <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                   </div>
-                  
+
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-3" />
                     <div className="space-y-3">
                       <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
                     </div>
                   </div>
-                  
+
                   <div className="mt-6 pt-6 border-t border-border">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="flex-shrink-0">
@@ -525,22 +561,31 @@ export default function SettingsPage() {
               </Card>
             ) : (
               <div className="h-full">
-                <Sidebar currentPage="settings" onClose={() => setSidebarOpen(false)} isCollapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
+                <Sidebar
+                  currentPage="settings"
+                  onClose={() => setSidebarOpen(false)}
+                  isCollapsed={sidebarCollapsed}
+                  onToggleCollapse={() =>
+                    setSidebarCollapsed(!sidebarCollapsed)
+                  }
+                />
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Overlay for mobile when sidebar is open */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
 
         {/* Main Content Area */}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
+        <div
+          className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "lg:ml-80"}`}
+        >
           {/* Header with gradient */}
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
@@ -554,10 +599,14 @@ export default function SettingsPage() {
                     className="object-contain"
                   />
                 </div>
-                <div className="hidden lg:block absolute" 
-                  style={{ 
-                    left: sidebarCollapsed ? 'calc(4rem + 1rem)' : 'calc(20rem + 1rem)'
-                  }}>
+                <div
+                  className="hidden lg:block absolute"
+                  style={{
+                    left: sidebarCollapsed
+                      ? "calc(4rem + 1rem)"
+                      : "calc(20rem + 1rem)",
+                  }}
+                >
                   {/* Desktop view - show logo when sidebar is collapsed (sidebar logo is hidden) */}
                   {/* Hide logo when sidebar is expanded (sidebar logo is visible) */}
                   {sidebarCollapsed ? (
@@ -572,7 +621,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
-                  <button 
+                  <button
                     className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
@@ -585,14 +634,16 @@ export default function SettingsPage() {
                         {getUserAvatar()}
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                    <DropdownMenuContent
+                      className="w-56 mr-4 mt-2"
+                      align="end"
+                      forceMount
+                    >
                       <div className="flex items-center px-2 py-2">
-                        <div className="mr-2">
-                          {getUserAvatar()}
-                        </div>
+                        <div className="mr-2">{getUserAvatar()}</div>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium dark:text-white">
-                            {user?.user_metadata?.full_name || 'User'}
+                            {user?.user_metadata?.full_name || "User"}
                           </span>
                           <span className="text-xs text-muted-foreground dark:text-gray-300">
                             {user?.email}
@@ -600,13 +651,22 @@ export default function SettingsPage() {
                         </div>
                       </div>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer dark:text-white">
+                      <DropdownMenuItem
+                        onClick={() => router.push("/settings")}
+                        className="cursor-pointer dark:text-white"
+                      >
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 dark:text-red-400">
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        disabled={isLoggingOut}
+                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 dark:text-red-400 disabled:opacity-50"
+                      >
                         <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
+                        <span>
+                          {isLoggingOut ? "Logging out..." : "Log out"}
+                        </span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -614,7 +674,9 @@ export default function SettingsPage() {
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">Settings</h1>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">
+                    Settings
+                  </h1>
                   <p className="text-gray-900/80 mt-1 dark:text-gray-300">
                     Manage your account preferences and profile
                   </p>
@@ -647,7 +709,9 @@ export default function SettingsPage() {
                         type="button"
                         variant="outline"
                         size="icon"
-                        onClick={() => setShowAvatarSelection(!showAvatarSelection)}
+                        onClick={() =>
+                          setShowAvatarSelection(!showAvatarSelection)
+                        }
                         className="absolute -bottom-2 -right-2 rounded-full bg-white dark:bg-[#0C111D] border-2 border-white dark:border-gray-900 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800"
                         aria-label="Choose avatar"
                       >
@@ -666,13 +730,13 @@ export default function SettingsPage() {
                         </Button>
                       )}
                     </div>
-                    
+
                     {showAvatarSelection && (
                       <div className="mt-4 w-full">
                         <p className="text-sm text-muted-foreground mb-3 text-center">
                           Choose an avatar or upload your own image
                         </p>
-                        
+
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-96 overflow-y-auto p-2">
                           <Button
                             type="button"
@@ -683,33 +747,41 @@ export default function SettingsPage() {
                             <Upload className="h-6 w-6" />
                             <span className="text-xs mt-1">Upload</span>
                           </Button>
-                          
+
                           {customAvatarImages.map((avatar) => (
                             <Button
                               key={avatar.id}
                               type="button"
-                              variant={selectedCustomAvatar === avatar.src ? "default" : "outline"}
+                              variant={
+                                selectedCustomAvatar === avatar.src
+                                  ? "default"
+                                  : "outline"
+                              }
                               className={`h-20 flex flex-col items-center justify-center rounded-xl p-1 ${
-                                selectedCustomAvatar === avatar.src 
-                                  ? "ring-2 ring-purple-500" 
+                                selectedCustomAvatar === avatar.src
+                                  ? "ring-2 ring-purple-500"
                                   : ""
                               }`}
-                              onClick={() => handleSelectCustomImageAvatar(avatar.src)}
+                              onClick={() =>
+                                handleSelectCustomImageAvatar(avatar.src)
+                              }
                             >
                               <div className="w-12 h-12 rounded-full overflow-hidden">
-                                <Image 
-                                  src={avatar.src} 
-                                  alt={avatar.name} 
+                                <Image
+                                  src={avatar.src}
+                                  alt={avatar.name}
                                   width={48}
                                   height={48}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <span className="text-xs mt-1 truncate w-full px-1">{avatar.name}</span>
+                              <span className="text-xs mt-1 truncate w-full px-1">
+                                {avatar.name}
+                              </span>
                             </Button>
                           ))}
                         </div>
-                        
+
                         <input
                           type="file"
                           ref={fileInputRef}
@@ -719,17 +791,19 @@ export default function SettingsPage() {
                         />
                       </div>
                     )}
-                    
+
                     <p className="text-sm text-muted-foreground mt-4 text-center">
                       {avatarUrl || selectedCustomAvatar
                         ? "Click the camera icon to change your avatar or upload an image"
                         : "Click the camera icon to choose an avatar or upload an image"}
                     </p>
                     {uploading && (
-                      <p className="text-sm text-purple-600 mt-2">Uploading...</p>
+                      <p className="text-sm text-purple-600 mt-2">
+                        Uploading...
+                      </p>
                     )}
                   </div>
-                  
+
                   <form onSubmit={handleSave} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Full Name</Label>
@@ -741,7 +815,7 @@ export default function SettingsPage() {
                         disabled={loading || saving}
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="email">Email Address</Label>
                       <Input
@@ -753,11 +827,16 @@ export default function SettingsPage() {
                         disabled={true}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Email cannot be changed. Contact support if you need to update your email address.
+                        Email cannot be changed. Contact support if you need to
+                        update your email address.
                       </p>
                     </div>
-                    
-                    <Button type="submit" disabled={loading || saving} className="w-full">
+
+                    <Button
+                      type="submit"
+                      disabled={loading || saving}
+                      className="w-full"
+                    >
                       {saving ? "Saving..." : "Save Changes"}
                     </Button>
                   </form>
@@ -777,9 +856,9 @@ export default function SettingsPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button 
+                    <Button
                       onClick={() => setShowChangePasswordModal(true)}
-                      variant="outline" 
+                      variant="outline"
                       className="w-full justify-start"
                     >
                       <Lock className="h-4 w-4 mr-2" />
@@ -808,7 +887,7 @@ export default function SettingsPage() {
                           onCheckedChange={setNotifications}
                         />
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span>Marketing Emails</span>
                         <Switch
@@ -825,28 +904,29 @@ export default function SettingsPage() {
               {/* Logout Section */}
               <Card className="bg-card border-0 rounded-2xl overflow-hidden">
                 <CardContent className="pt-6">
-                  <Button 
+                  <Button
                     onClick={handleLogout}
-                    variant="outline" 
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50"
+                    disabled={isLoggingOut}
+                    variant="outline"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 border-red-200 dark:border-red-900/50 disabled:opacity-50"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Log out
+                    {isLoggingOut ? "Logging out..." : "Log out"}
                   </Button>
                 </CardContent>
               </Card>
             </div>
           </div>
-          
+
           {/* Dynamic Dock Component */}
           <div className="mt-auto px-4 sm:px-6 lg:px-8">
             <DynamicDock currentPage="settings" showLogout={false} />
           </div>
-          
+
           {/* Footer - now using the reusable component */}
           <DashboardFooter />
         </div>
-        
+
         {/* Remove Image Confirmation Dialog */}
         {showRemoveImageDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -862,7 +942,8 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-6">
-                  This will remove your current profile image and revert to showing your initials.
+                  This will remove your current profile image and revert to
+                  showing your initials.
                 </p>
                 <div className="flex gap-3">
                   <Button
@@ -886,7 +967,7 @@ export default function SettingsPage() {
             </Card>
           </div>
         )}
-        
+
         {/* Change Password Modal */}
         {showChangePasswordModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -914,7 +995,9 @@ export default function SettingsPage() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        onClick={() =>
+                          setShowCurrentPassword(!showCurrentPassword)
+                        }
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       >
                         {showCurrentPassword ? (
@@ -925,7 +1008,7 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">New Password</Label>
                     <div className="relative">
@@ -950,9 +1033,11 @@ export default function SettingsPage() {
                     </div>
                     <PasswordStrengthMeter password={newPassword} />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                    <Label htmlFor="confirmPassword">
+                      Confirm New Password
+                    </Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
@@ -963,7 +1048,9 @@ export default function SettingsPage() {
                       />
                       <button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
                         className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       >
                         {showConfirmPassword ? (
@@ -974,7 +1061,7 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3 pt-2">
                     <Button
                       type="button"
