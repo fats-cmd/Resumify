@@ -1,48 +1,90 @@
-import { createClient, SignUpWithPasswordCredentials } from '@supabase/supabase-js';
-import { ResumeData, Resume } from '@/types/resume';
-import { handleAuthError } from '@/lib/auth-utils';
+import {
+  createClient,
+  SignUpWithPasswordCredentials,
+} from "@supabase/supabase-js";
+import { ResumeData, Resume } from "@/types/resume";
+import { handleAuthError } from "@/lib/auth-utils";
+
+// Cache interface for resume data
+interface ResumeCache {
+  data: Resume[];
+  timestamp: number;
+  userId: string;
+}
+
+// Simple in-memory cache (5 minutes TTL)
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+let resumeCache: ResumeCache | null = null;
+
+// Helper function to check if cache is valid
+const isCacheValid = (cache: ResumeCache | null, userId: string): boolean => {
+  if (!cache) return false;
+  if (cache.userId !== userId) return false;
+  const isExpired = Date.now() - cache.timestamp > CACHE_TTL;
+  return !isExpired;
+};
+
+// Helper function to invalidate cache
+const invalidateCache = () => {
+  resumeCache = null;
+};
 
 // These environment variables need to be set in your .env.local file
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key is missing. Authentication features will not work properly.');
+  console.warn(
+    "Supabase URL or Anon Key is missing. Authentication features will not work properly.",
+  );
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Authentication helper functions
-export async function signUp(email: string, password: string, fullName?: string) {
+export async function signUp(
+  email: string,
+  password: string,
+  fullName?: string,
+) {
   try {
     // If fullName is provided, include it in the user metadata
-    const options: SignUpWithPasswordCredentials['options'] = fullName ? {
-      data: {
-        full_name: fullName,
-      },
-    } : undefined;
-    
+    const options: SignUpWithPasswordCredentials["options"] = fullName
+      ? {
+          data: {
+            full_name: fullName,
+          },
+        }
+      : undefined;
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options,
     });
-    
+
     // Check if this might be a case of an existing user
     // When Confirm email is enabled, Supabase returns an obfuscated user object
     // for existing confirmed users for security reasons
-    if (data && data.user && !data.user.identities?.length && !data.user.confirmed_at) {
+    if (
+      data &&
+      data.user &&
+      !data.user.identities?.length &&
+      !data.user.confirmed_at
+    ) {
       // This indicates the user might already exist
       // We'll return a custom error message to handle this case
-      return { 
-        data: null, 
-        error: new Error('This email is already registered. Please use a different email or try logging in instead.') 
+      return {
+        data: null,
+        error: new Error(
+          "This email is already registered. Please use a different email or try logging in instead.",
+        ),
       };
     }
-    
+
     return { data, error };
   } catch (error) {
-    console.error('Sign up error:', error);
+    console.error("Sign up error:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -53,10 +95,10 @@ export async function signIn(email: string, password: string) {
       email,
       password,
     });
-    
+
     return { data, error };
   } catch (error) {
-    console.error('Sign in error:', error);
+    console.error("Sign in error:", error);
     // Handle auth errors
     if (error instanceof Error) {
       handleAuthError(error);
@@ -67,10 +109,27 @@ export async function signIn(email: string, password: string) {
 
 export async function signOut() {
   try {
+    // Check if there's an active session before attempting to sign out
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    // If no session exists, user is already logged out
+    if (!session) {
+      return { error: null };
+    }
+
     const { error } = await supabase.auth.signOut();
     return { error };
   } catch (error) {
-    console.error('Sign out error:', error);
+    console.error("Sign out error:", error);
+    // If it's a session missing error, treat it as successful logout
+    if (
+      error instanceof Error &&
+      error.message.includes("Auth session missing")
+    ) {
+      return { error: null };
+    }
     return { error: error as Error };
   }
 }
@@ -80,10 +139,10 @@ export async function resetPassword(email: string) {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    
+
     return { data, error };
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.error("Reset password error:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -93,10 +152,10 @@ export async function updatePassword(password: string) {
     const { data, error } = await supabase.auth.updateUser({
       password,
     });
-    
+
     return { data, error };
   } catch (error) {
-    console.error('Update password error:', error);
+    console.error("Update password error:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -106,7 +165,7 @@ export async function getUserSession() {
     const { data, error } = await supabase.auth.getSession();
     return { session: data.session, error };
   } catch (error) {
-    console.error('Get user session error:', error);
+    console.error("Get user session error:", error);
     // Handle auth errors
     if (error instanceof Error) {
       handleAuthError(error);
@@ -117,10 +176,13 @@ export async function getUserSession() {
 
 export async function getUser() {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
     return { user, error };
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error("Get user error:", error);
     // Handle auth errors
     if (error instanceof Error) {
       handleAuthError(error);
@@ -129,43 +191,62 @@ export async function getUser() {
   }
 }
 
-export async function updateProfile({ full_name, avatar_url, custom_image_avatar }: { full_name: string; avatar_url?: string | null; custom_image_avatar?: string | null }) {
+export async function updateProfile({
+  full_name,
+  avatar_url,
+  custom_image_avatar,
+}: {
+  full_name: string;
+  avatar_url?: string | null;
+  custom_image_avatar?: string | null;
+}) {
   try {
-    const updateData: { full_name: string; avatar_url?: string | null; custom_image_avatar?: string | null } = { full_name };
-    
+    const updateData: {
+      full_name: string;
+      avatar_url?: string | null;
+      custom_image_avatar?: string | null;
+    } = { full_name };
+
     // Only include avatar_url in the update if it's explicitly provided
     if (avatar_url !== undefined) {
       updateData.avatar_url = avatar_url;
     }
-    
+
     // Only include custom_image_avatar in the update if it's explicitly provided
     if (custom_image_avatar !== undefined) {
       updateData.custom_image_avatar = custom_image_avatar;
     }
-    
-    const { data: { user }, error } = await supabase.auth.updateUser({
+
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.updateUser({
       data: updateData,
     });
-    
+
     return { user, error };
   } catch (error) {
-    console.error('Update profile error:', error);
+    console.error("Update profile error:", error);
     return { user: null, error: error as Error };
   }
 }
 
 // Add storage functions for profile image handling
-async function optimizeImage(file: File, maxWidth = 400, quality = 0.8): Promise<Blob> {
+async function optimizeImage(
+  file: File,
+  maxWidth = 400,
+  quality = 0.8,
+): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
     if (!ctx) {
-      reject(new Error('Could not get canvas context'));
+      reject(new Error("Could not get canvas context"));
       return;
     }
-    
+
     img.onload = () => {
       // Calculate new dimensions maintaining aspect ratio
       let { width, height } = img;
@@ -173,29 +254,29 @@ async function optimizeImage(file: File, maxWidth = 400, quality = 0.8): Promise
         height = (height * maxWidth) / width;
         width = maxWidth;
       }
-      
+
       // Set canvas dimensions
       canvas.width = width;
       canvas.height = height;
-      
+
       // Draw image on canvas
       ctx.drawImage(img, 0, 0, width, height);
-      
+
       // Convert to blob with compression
       canvas.toBlob(
         (blob) => {
           if (blob) {
             resolve(blob);
           } else {
-            reject(new Error('Could not convert canvas to blob'));
+            reject(new Error("Could not convert canvas to blob"));
           }
         },
-        'image/jpeg',
-        quality
+        "image/jpeg",
+        quality,
       );
     };
-    
-    img.onerror = () => reject(new Error('Could not load image'));
+
+    img.onerror = () => reject(new Error("Could not load image"));
     img.src = URL.createObjectURL(file);
   });
 }
@@ -205,42 +286,43 @@ export async function uploadProfileImage(file: File, userId: string) {
     // Optimize the image before uploading
     const optimizedBlob = await optimizeImage(file);
     const optimizedFile = new File([optimizedBlob], file.name, {
-      type: 'image/jpeg',
+      type: "image/jpeg",
     });
-    
-    const fileExt = 'jpg'; // We're converting to JPEG
+
+    const fileExt = "jpg"; // We're converting to JPEG
     const fileName = `${userId}/profile.${fileExt}`;
-    
+
     const { error } = await supabase.storage
-      .from('profile-images')
+      .from("profile-images")
       .upload(fileName, optimizedFile, {
         upsert: true,
-        contentType: 'image/jpeg',
+        contentType: "image/jpeg",
       });
-    
+
     if (error) {
       throw error;
     }
-    
+
     // Get the public URL for the uploaded image
-    const { data: { publicUrl } } = supabase.storage
-      .from('profile-images')
-      .getPublicUrl(fileName);
-    
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("profile-images").getPublicUrl(fileName);
+
     // Update user profile with the image URL
-    const { data: userData, error: updateError } = await supabase.auth.updateUser({
-      data: {
-        avatar_url: publicUrl,
-      },
-    });
-    
+    const { data: userData, error: updateError } =
+      await supabase.auth.updateUser({
+        data: {
+          avatar_url: publicUrl,
+        },
+      });
+
     if (updateError) {
       throw updateError;
     }
-    
+
     return { publicUrl, user: userData.user, error: null };
   } catch (error) {
-    console.error('Error uploading profile image:', error);
+    console.error("Error uploading profile image:", error);
     return { publicUrl: null, user: null, error: error as Error };
   }
 }
@@ -248,70 +330,94 @@ export async function uploadProfileImage(file: File, userId: string) {
 export async function getProfileImageUrl(userId: string) {
   try {
     const fileName = `${userId}/profile`;
-    const { data: { publicUrl } } = supabase.storage
-      .from('profile-images')
-      .getPublicUrl(fileName);
-    
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("profile-images").getPublicUrl(fileName);
+
     // Add cache-busting parameter
-    const cacheBustedUrl = publicUrl ? `${publicUrl}?t=${Date.now()}` : publicUrl;
-    
+    const cacheBustedUrl = publicUrl
+      ? `${publicUrl}?t=${Date.now()}`
+      : publicUrl;
+
     return { publicUrl: cacheBustedUrl, error: null };
   } catch (error) {
-    console.error('Error getting profile image URL:', error);
+    console.error("Error getting profile image URL:", error);
     return { publicUrl: null, error: error as Error };
   }
 }
 
 // Resume helper functions
-export async function saveResume({ title, data, status }: { title: string; data: ResumeData; status: string }) {
+export async function saveResume({
+  title,
+  data,
+  status,
+}: {
+  title: string;
+  data: ResumeData;
+  status: string;
+}) {
   try {
     if (!supabase.auth.getUser()) {
-      return { data: null, error: new Error('User not authenticated') };
+      return { data: null, error: new Error("User not authenticated") };
     }
-    
+
     const { data: user, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      return { data: null, error: userError || new Error('User not found') };
+      return { data: null, error: userError || new Error("User not found") };
     }
 
     const { data: savedResume, error } = await supabase
-      .from('resumes')
+      .from("resumes")
       .insert([
         {
           user_id: user.user.id,
           title: title,
           data: data,
-          status: status
-        }
+          status: status,
+        },
       ])
       .select();
 
+    // Invalidate cache after successful save
+    if (!error) {
+      invalidateCache();
+    }
+
     return { data: savedResume, error };
   } catch (error) {
-    console.error('Save resume error:', error);
+    console.error("Save resume error:", error);
     return { data: null, error: error as Error };
   }
 }
 
 export async function getResumes(userId: string) {
   try {
+    // Check cache first
+    if (isCacheValid(resumeCache, userId)) {
+      return { data: resumeCache!.data, error: null };
+    }
+
     const { data, error } = await supabase
-      .from('resumes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
+      .from("resumes")
+      .select(
+        "id, title, data, status, views, downloads, is_featured, created_at, updated_at",
+      )
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+      .limit(100);
+
+    // Cache the successful response
+    if (!error && data) {
+      resumeCache = {
+        data: data as Resume[],
+        timestamp: Date.now(),
+        userId: userId,
+      };
+    }
 
     return { data: data as Resume[] | null, error };
   } catch (error) {
-    console.error('Get resumes error:', error);
-    // Provide more detailed error information
-    if (error instanceof Error) {
-      console.error('Error details:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      });
-    }
+    console.error("Get resumes error:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -319,18 +425,23 @@ export async function getResumes(userId: string) {
 export async function updateResume(resumeId: number, resumeData: ResumeData) {
   try {
     const { data, error } = await supabase
-      .from('resumes')
+      .from("resumes")
       .update({
         title: `${resumeData.personalInfo?.firstName} ${resumeData.personalInfo?.lastName} Resume`,
         data: resumeData,
         // Note: updated_at will be automatically set by the database due to DEFAULT NOW()
       })
-      .eq('id', resumeId)
+      .eq("id", resumeId)
       .select();
+
+    // Invalidate cache after successful update
+    if (!error) {
+      invalidateCache();
+    }
 
     return { data, error };
   } catch (error) {
-    console.error('Update resume error:', error);
+    console.error("Update resume error:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -338,13 +449,18 @@ export async function updateResume(resumeId: number, resumeData: ResumeData) {
 export async function deleteResume(resumeId: number) {
   try {
     const { data, error } = await supabase
-      .from('resumes')
+      .from("resumes")
       .delete()
-      .eq('id', resumeId);
+      .eq("id", resumeId);
+
+    // Invalidate cache after successful delete
+    if (!error) {
+      invalidateCache();
+    }
 
     return { data, error };
   } catch (error) {
-    console.error('Delete resume error:', error);
+    console.error("Delete resume error:", error);
     return { data: null, error: error as Error };
   }
 }
@@ -354,10 +470,10 @@ export async function duplicateResume(resumeId: number, userId: string) {
   try {
     // First, get the original resume
     const { data: originalResume, error: fetchError } = await supabase
-      .from('resumes')
-      .select('*')
-      .eq('id', resumeId)
-      .eq('user_id', userId)
+      .from("resumes")
+      .select("*")
+      .eq("id", resumeId)
+      .eq("user_id", userId)
       .single();
 
     if (fetchError) {
@@ -365,28 +481,33 @@ export async function duplicateResume(resumeId: number, userId: string) {
     }
 
     if (!originalResume) {
-      return { data: null, error: new Error('Resume not found') };
+      return { data: null, error: new Error("Resume not found") };
     }
 
     // Create a copy with a new title
     const copyTitle = `${originalResume.title} (Copy)`;
-    
+
     // Insert the duplicated resume
     const { data: duplicatedResume, error: insertError } = await supabase
-      .from('resumes')
+      .from("resumes")
       .insert([
         {
           user_id: userId,
           title: copyTitle,
           data: originalResume.data,
-          status: 'Draft' // Default to draft for duplicates
-        }
+          status: "Draft", // Default to draft for duplicates
+        },
       ])
       .select();
 
+    // Invalidate cache after successful duplicate
+    if (!insertError) {
+      invalidateCache();
+    }
+
     return { data: duplicatedResume, error: insertError };
   } catch (error) {
-    console.error('Duplicate resume error:', error);
+    console.error("Duplicate resume error:", error);
     return { data: null, error: error as Error };
   }
 }
