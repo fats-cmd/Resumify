@@ -60,8 +60,8 @@ const templateData = [
   {
     id: 1,
     name: "Classic Professional",
-    description: "Timeless design with clear structure and readability",
-    previewImage: "/placeholder.svg",
+    description: "Professional blue and white layout with clear sections and timeline design",
+    previewImage: "/classic-professional-preview.svg",
     isPremium: false,
     isFeatured: true
   },
@@ -248,17 +248,25 @@ const CreateResumeContent = () => {
   useEffect(() => {
     if (templateId) {
       setSelectedTemplate(templateId);
-      setTemplateSelected(true);
+      // Don't automatically proceed to form when coming from URL
+      // User still needs to click continue button
     }
   }, [templateId]);
 
   // Handle template selection
   const handleTemplateSelect = (templateId: number | null) => {
     setSelectedTemplate(templateId);
-    setTemplateSelected(true);
+    // Don't automatically proceed to form - user needs to click continue button
     // Update URL with template parameter for better UX
     if (templateId) {
       router.push(`/create?template=${templateId}`, { scroll: false });
+    }
+  };
+
+  // Handle continue with selected template
+  const handleContinueWithTemplate = () => {
+    if (selectedTemplate !== null) {
+      setTemplateSelected(true);
     }
   };
 
@@ -959,7 +967,7 @@ const CreateResumeContent = () => {
                         size="lg" 
                         className="rounded-full px-8 py-6 text-lg"
                         disabled={selectedTemplate === null}
-                        onClick={() => selectedTemplate !== null && setTemplateSelected(true)}
+                        onClick={handleContinueWithTemplate}
                       >
                         Continue with Selected Template
                       </Button>

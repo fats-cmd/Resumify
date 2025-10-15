@@ -22,16 +22,9 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DynamicDock } from "@/components/dynamic-dock";
 import { signOut } from "@/lib/supabase";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { 
-  Star,
-  Settings,
-  LogOut,
-  Plus,
-  FileText,
-  Menu
-} from "lucide-react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { Star, Settings, LogOut, Plus, FileText, Menu } from "lucide-react";
 import { motion } from "framer-motion";
 
 // Template data - in a real app, this would come from an API
@@ -44,10 +37,11 @@ const templateCategories = [
       {
         id: 1,
         name: "Classic Professional",
-        description: "Professional blue and white layout with clear sections and timeline design",
+        description:
+          "Professional blue and white layout with clear sections and timeline design",
         previewImage: "/classic-professional-preview.svg",
         isPremium: false,
-        isFeatured: true
+        isFeatured: true,
       },
       {
         id: 2,
@@ -55,7 +49,7 @@ const templateCategories = [
         description: "Sleek layout with bold typography and clean lines",
         previewImage: "/placeholder.svg",
         isPremium: true,
-        isFeatured: true
+        isFeatured: true,
       },
       {
         id: 3,
@@ -63,24 +57,26 @@ const templateCategories = [
         description: "Professional with creative elements and unique layout",
         previewImage: "/placeholder.svg",
         isPremium: true,
-        isFeatured: false
+        isFeatured: false,
       },
       {
         id: 8,
         name: "Modern Split",
-        description: "Bold two-column layout with accent colors and clean organization",
+        description:
+          "Bold two-column layout with accent colors and clean organization",
         previewImage: "/modern-split-preview.svg",
         isPremium: false,
-        isFeatured: true
+        isFeatured: true,
       },
       // Adding more templates to test pagination
       {
         id: 9,
         name: "Corporate Elite",
-        description: "Sophisticated design for senior executives and corporate professionals",
+        description:
+          "Sophisticated design for senior executives and corporate professionals",
         previewImage: "/placeholder.svg",
         isPremium: true,
-        isFeatured: true
+        isFeatured: true,
       },
       {
         id: 10,
@@ -88,25 +84,27 @@ const templateCategories = [
         description: "Clean, uncluttered design that emphasizes your content",
         previewImage: "/placeholder.svg",
         isPremium: false,
-        isFeatured: false
+        isFeatured: false,
       },
       {
         id: 11,
         name: "Tech Professional",
-        description: "Modern design tailored for technology and IT professionals",
+        description:
+          "Modern design tailored for technology and IT professionals",
         previewImage: "/placeholder.svg",
         isPremium: true,
-        isFeatured: false
+        isFeatured: false,
       },
       {
         id: 12,
         name: "Finance Executive",
-        description: "Professional design for banking, finance, and consulting industries",
+        description:
+          "Professional design for banking, finance, and consulting industries",
         previewImage: "/placeholder.svg",
         isPremium: true,
-        isFeatured: true
-      }
-    ]
+        isFeatured: true,
+      },
+    ],
   },
   {
     id: "creative",
@@ -119,7 +117,7 @@ const templateCategories = [
         description: "Clean layout with ample white space and focus on content",
         previewImage: "/placeholder.svg",
         isPremium: false,
-        isFeatured: true
+        isFeatured: true,
       },
       {
         id: 5,
@@ -127,9 +125,9 @@ const templateCategories = [
         description: "Colorful design with strong visual elements",
         previewImage: "/placeholder.svg",
         isPremium: true,
-        isFeatured: false
-      }
-    ]
+        isFeatured: false,
+      },
+    ],
   },
   {
     id: "entry-level",
@@ -142,7 +140,7 @@ const templateCategories = [
         description: "Focus on education and skills with clean layout",
         previewImage: "/placeholder.svg",
         isPremium: false,
-        isFeatured: true
+        isFeatured: true,
       },
       {
         id: 7,
@@ -150,10 +148,10 @@ const templateCategories = [
         description: "Balanced design highlighting potential and enthusiasm",
         previewImage: "/placeholder.svg",
         isPremium: false,
-        isFeatured: false
-      }
-    ]
-  }
+        isFeatured: false,
+      },
+    ],
+  },
 ];
 
 export default function TemplatesPage() {
@@ -167,13 +165,13 @@ export default function TemplatesPage() {
 
   // Load sidebar collapsed state from localStorage on component mount
   useEffect(() => {
-    const savedCollapsedState = localStorage.getItem('sidebarCollapsed');
+    const savedCollapsedState = localStorage.getItem("sidebarCollapsed");
     if (savedCollapsedState !== null) {
       setSidebarCollapsed(JSON.parse(savedCollapsedState));
     }
-    
+
     // Load sidebar open state from localStorage on component mount (for mobile)
-    const savedOpenState = localStorage.getItem('sidebarOpen');
+    const savedOpenState = localStorage.getItem("sidebarOpen");
     if (savedOpenState !== null) {
       setSidebarOpen(JSON.parse(savedOpenState));
     }
@@ -181,12 +179,12 @@ export default function TemplatesPage() {
 
   // Save sidebar collapsed state to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
 
   // Save sidebar open state to localStorage whenever it changes (for mobile)
   useEffect(() => {
-    localStorage.setItem('sidebarOpen', JSON.stringify(sidebarOpen));
+    localStorage.setItem("sidebarOpen", JSON.stringify(sidebarOpen));
   }, [sidebarOpen]);
 
   const handleLogout = async () => {
@@ -210,37 +208,41 @@ export default function TemplatesPage() {
     if (!user) {
       return (
         <div className="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-          <span className="text-gray-600 dark:text-gray-300 text-sm font-medium">?</span>
+          <span className="text-gray-600 dark:text-gray-300 text-sm font-medium">
+            ?
+          </span>
         </div>
       );
     }
-    
+
     // Check if user has an avatar URL (trying multiple possible locations)
     // Handle cache-busted URLs by extracting the base URL
-    let avatarUrl = user.user_metadata?.avatar_url || 
-                   user.user_metadata?.picture || 
-                   user.identities?.[0]?.identity_data?.avatar_url;
-    
+    let avatarUrl =
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture ||
+      user.identities?.[0]?.identity_data?.avatar_url;
+
     // If avatarUrl contains a cache-busting parameter, extract the base URL
-    if (avatarUrl && avatarUrl.includes('?t=')) {
-      avatarUrl = avatarUrl.split('?t=')[0];
+    if (avatarUrl && avatarUrl.includes("?t=")) {
+      avatarUrl = avatarUrl.split("?t=")[0];
     }
-    
+
     if (avatarUrl) {
       return (
         <div className="relative w-8 h-8">
-          <Image 
-            src={avatarUrl} 
-            alt="Profile" 
+          <Image
+            src={avatarUrl}
+            alt="Profile"
             fill
             className="rounded-full object-cover border-2 border-white/20"
             sizes="32px"
             priority
             onError={(e) => {
               // Fallback to initials if image fails to load
-              e.currentTarget.style.display = 'none';
-              const initialsContainer = e.currentTarget.nextSibling as HTMLElement;
-              if (initialsContainer) initialsContainer.style.display = 'flex';
+              e.currentTarget.style.display = "none";
+              const initialsContainer = e.currentTarget
+                .nextSibling as HTMLElement;
+              if (initialsContainer) initialsContainer.style.display = "flex";
             }}
           />
           {/* Fallback initials that shows only if image fails to load */}
@@ -250,15 +252,15 @@ export default function TemplatesPage() {
         </div>
       );
     }
-    
+
     // Check for custom image avatar
     const customImageAvatar = user.user_metadata?.custom_image_avatar;
     if (customImageAvatar) {
       return (
         <div className="relative w-8 h-8">
-          <Image 
-            src={customImageAvatar} 
-            alt="Profile" 
+          <Image
+            src={customImageAvatar}
+            alt="Profile"
             fill
             className="rounded-full object-cover border-2 border-white/20"
             sizes="32px"
@@ -267,7 +269,7 @@ export default function TemplatesPage() {
         </div>
       );
     }
-    
+
     // Fallback to initials if no avatar URL
     return (
       <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white text-sm font-medium">
@@ -275,39 +277,44 @@ export default function TemplatesPage() {
       </div>
     );
   };
-  
+
   // Helper function to get user initials
   const getUserInitials = () => {
-    if (!user) return '?';
-    
+    if (!user) return "?";
+
     // Try to get name from user_metadata or identity data
-    const fullName = user.user_metadata?.full_name || 
-                    user.user_metadata?.name ||
-                    user.identities?.[0]?.identity_data?.name ||
-                    '';
-    
-    const email = user.email || '';
-    
+    const fullName =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.identities?.[0]?.identity_data?.name ||
+      "";
+
+    const email = user.email || "";
+
     if (fullName) {
       const names = fullName.trim().split(/\s+/);
       if (names.length >= 2) {
-        return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+        return (
+          names[0].charAt(0) + names[names.length - 1].charAt(0)
+        ).toUpperCase();
       }
       return names[0].charAt(0).toUpperCase();
-    } 
-    
+    }
+
     if (email) {
       return email.charAt(0).toUpperCase();
     }
-    
-    return '?';
+
+    return "?";
   };
 
   // Get current templates based on selected category and pagination
   const getCurrentTemplates = () => {
-    const currentCategory = templateCategories.find(cat => cat.id === selectedCategory);
+    const currentCategory = templateCategories.find(
+      (cat) => cat.id === selectedCategory,
+    );
     const templates = currentCategory?.templates || [];
-    
+
     // Calculate pagination
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -328,24 +335,33 @@ export default function TemplatesPage() {
     <ProtectedPage>
       <div className="h-screen flex bg-background">
         {/* Sidebar - Full Height */}
-        <div className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-16 lg:w-16' : 'w-64 lg:w-80'} bg-background transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}>
+        <div
+          className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-80"} bg-background transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-all duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen`}
+        >
           <div className="h-full overflow-y-auto">
             <div className="h-full">
-              <Sidebar currentPage="templates" onClose={() => setSidebarOpen(false)} isCollapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
+              <Sidebar
+                currentPage="templates"
+                onClose={() => setSidebarOpen(false)}
+                isCollapsed={sidebarCollapsed}
+                onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+              />
             </div>
           </div>
         </div>
-        
+
         {/* Overlay for mobile when sidebar is open */}
         {sidebarOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
 
         {/* Main Content Area */}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-80'}`}>
+        <div
+          className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? "lg:ml-16" : "lg:ml-80"}`}
+        >
           {/* Header with gradient */}
           <div className="bg-[#F4F7FA] dark:bg-[#0C111D]">
             <div className="px-4 sm:px-6 lg:px-8 py-1">
@@ -359,10 +375,14 @@ export default function TemplatesPage() {
                     className="object-contain"
                   />
                 </div>
-                <div className="hidden lg:block absolute" 
-                  style={{ 
-                    left: sidebarCollapsed ? 'calc(4rem + 1rem)' : 'calc(20rem + 1rem)'
-                  }}>
+                <div
+                  className="hidden lg:block absolute"
+                  style={{
+                    left: sidebarCollapsed
+                      ? "calc(4rem + 1rem)"
+                      : "calc(20rem + 1rem)",
+                  }}
+                >
                   {/* Desktop view - show logo when sidebar is collapsed (sidebar logo is hidden) */}
                   {/* Hide logo when sidebar is expanded (sidebar logo is visible) */}
                   {sidebarCollapsed ? (
@@ -377,7 +397,7 @@ export default function TemplatesPage() {
                 </div>
                 <div className="flex items-center space-x-3">
                   {/* Hamburger menu button for mobile */}
-                  <button 
+                  <button
                     className="lg:hidden focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1"
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                   >
@@ -390,14 +410,16 @@ export default function TemplatesPage() {
                         {getUserAvatar()}
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56 mr-4 mt-2" align="end" forceMount>
+                    <DropdownMenuContent
+                      className="w-56 mr-4 mt-2"
+                      align="end"
+                      forceMount
+                    >
                       <div className="flex items-center px-2 py-2">
-                        <div className="mr-2">
-                          {getUserAvatar()}
-                        </div>
+                        <div className="mr-2">{getUserAvatar()}</div>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium dark:text-white">
-                            {user?.user_metadata?.full_name || 'User'}
+                            {user?.user_metadata?.full_name || "User"}
                           </span>
                           <span className="text-xs text-muted-foreground dark:text-gray-300">
                             {user?.email}
@@ -405,11 +427,17 @@ export default function TemplatesPage() {
                         </div>
                       </div>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => router.push('/settings')} className="cursor-pointer dark:text-white">
+                      <DropdownMenuItem
+                        onClick={() => router.push("/settings")}
+                        className="cursor-pointer dark:text-white"
+                      >
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 dark:text-red-400">
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 dark:text-red-400"
+                      >
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                       </DropdownMenuItem>
@@ -419,13 +447,19 @@ export default function TemplatesPage() {
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">Resume Templates</h1>
+                  <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white sm:mt-0 mt-4">
+                    Resume Templates
+                  </h1>
                   <p className="text-gray-600 mt-1 dark:text-gray-300">
-                    Choose from our professionally designed templates to create your perfect resume
+                    Choose from our professionally designed templates to create
+                    your perfect resume
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 items-center">
-                  <Button asChild className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium">
+                  <Button
+                    asChild
+                    className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium"
+                  >
                     <Link href="/create">
                       <Plus className="h-4 w-4 mr-2" />
                       Create New Resume
@@ -438,241 +472,283 @@ export default function TemplatesPage() {
 
           {/* Main Content */}
           <div className="flex-1 px-4 sm:px-6 lg:px-8 py-12">
-              {/* Category Filter using shadcn Tabs */}
-              <Tabs value={selectedCategory} onValueChange={handleCategoryChange} className="mb-8">
-                <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 h-auto">
-                  {templateCategories.map((category) => (
-                    <TabsTrigger 
-                      key={category.id} 
-                      value={category.id}
-                      className="rounded-full py-2.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
-                    >
-                      {category.name}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-
-              {/* Category Description */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  {templateCategories.find(cat => cat.id === selectedCategory)?.name} Templates
-                </h2>
-                <p className="text-muted-foreground">
-                  {templateCategories.find(cat => cat.id === selectedCategory)?.description}
-                </p>
-              </div>
-
-              {/* Templates Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {getCurrentTemplates().map((template, index) => (
-                  <motion.div
-                    key={template.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ 
-                      duration: 0.4, 
-                      delay: index * 0.07,
-                      ease: [0.16, 1, 0.3, 1]
-                    }}
-                    whileHover={{ 
-                      y: -8,
-                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
-                    }}
-                    className="h-full relative group"
+            {/* Category Filter using shadcn Tabs */}
+            <Tabs
+              value={selectedCategory}
+              onValueChange={handleCategoryChange}
+              className="mb-8"
+            >
+              <TabsList className="grid w-full grid-cols-3 bg-muted rounded-full p-1 h-auto">
+                {templateCategories.map((category) => (
+                  <TabsTrigger
+                    key={category.id}
+                    value={category.id}
+                    className="rounded-full py-2.5 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300"
                   >
-                    {/* Premium Badge */}
-                    {template.isPremium && (
-                      <div className="absolute -top-3 -right-3 z-10">
-                        <div className="relative">
-                          <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
-                          <span className="relative px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold rounded-full flex items-center">
-                            <Star className="h-3 w-3 mr-1 fill-current" />
-                            PREMIUM
+                    {category.name}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+
+            {/* Category Description */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                {
+                  templateCategories.find((cat) => cat.id === selectedCategory)
+                    ?.name
+                }{" "}
+                Templates
+              </h2>
+              <p className="text-muted-foreground">
+                {
+                  templateCategories.find((cat) => cat.id === selectedCategory)
+                    ?.description
+                }
+              </p>
+            </div>
+
+            {/* Templates Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+              {getCurrentTemplates().map((template, index) => (
+                <motion.div
+                  key={template.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    delay: index * 0.07,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  whileHover={{
+                    y: -8,
+                    boxShadow:
+                      "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+                  }}
+                  className="h-full relative group"
+                >
+                  {/* Premium Badge */}
+                  {template.isPremium && (
+                    <div className="absolute -top-3 -right-3 z-10">
+                      <div className="relative">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-200"></div>
+                        <span className="relative px-3 py-1 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs font-semibold rounded-full flex items-center">
+                          <Star className="h-3 w-3 mr-1 fill-current" />
+                          PREMIUM
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <Card className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col group-hover:border-purple-200 dark:group-hover:border-purple-900/50 relative">
+                    {/* Preview Image */}
+                    <div className="relative overflow-hidden rounded-t-2xl h-48 sm:h-52 md:h-56 lg:h-60 xl:h-64 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                      <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3 md:p-4">
+                        {template.previewImage ? (
+                          <Image
+                            src={template.previewImage}
+                            alt={template.name}
+                            width={400}
+                            height={400}
+                            className="w-full h-full object-contain transition-all duration-700 group-hover:scale-105 rounded-lg max-w-full"
+                            style={{
+                              boxShadow:
+                                "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                            }}
+                            onError={(e) => {
+                              // Fallback to placeholder if image fails to load
+                              e.currentTarget.src = "/placeholder.svg";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-[#0C111D]">
+                            <FileText className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 text-gray-300 dark:text-gray-600" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Template Info */}
+                    <div className="p-3 sm:p-4 lg:p-5 flex-1 flex flex-col">
+                      <div className="flex justify-between items-start">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                          {template.name}
+                        </h3>
+                        {template.isFeatured && (
+                          <Badge
+                            variant="secondary"
+                            className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                          >
+                            Popular
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {template.description}
+                      </p>
+
+                      <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                        <div className="hidden sm:flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="flex -space-x-2">
+                            {[1, 2, 3].map((i) => (
+                              <div
+                                key={i}
+                                className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 border-2 border-white dark:border-gray-800"
+                                style={{ zIndex: 3 - i }}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 hidden lg:inline">
+                            {Math.floor(Math.random() * 100) + 1}K+ users
                           </span>
                         </div>
-                      </div>
-                    )}
-                    
-                    <Card className="bg-card border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col group-hover:border-purple-200 dark:group-hover:border-purple-900/50 relative">
-                      {/* Preview Image */}
-                      <div className="relative overflow-hidden rounded-t-2xl h-56 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
-                        <div className="absolute inset-0 flex items-center justify-center p-4">
-                          {template.previewImage ? (
-                            <Image 
-                              src={template.previewImage} 
-                              alt={template.name}
-                              width={400}
-                              height={400}
-                              className="object-contain transition-all duration-700 group-hover:scale-105 rounded-lg"
-                              style={{
-                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                              }}
-                              onError={(e) => {
-                                // Fallback to placeholder if image fails to load
-                                e.currentTarget.src = "/placeholder.svg";
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-[#0C111D]">
-                              <FileText className="h-16 w-16 text-gray-300 dark:text-gray-600" />
-                            </div>
-                          )}
-                        </div>
-                        
-                      </div>
-                      
-                      {/* Template Info */}
-                      <div className="p-5 flex-1 flex flex-col">
-                        <div className="flex justify-between items-start">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
-                            {template.name}
-                          </h3>
-                          {template.isFeatured && (
-                            <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                              Popular
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                          {template.description}
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                          <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <div className="flex -space-x-2">
-                              {[1, 2, 3].map((i) => (
-                                <div 
-                                  key={i}
-                                  className="h-6 w-6 rounded-full bg-gradient-to-br from-purple-400 to-blue-500 border-2 border-white dark:border-gray-800"
-                                  style={{ zIndex: 3 - i }}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {Math.floor(Math.random() * 100) + 1}K+ users
-                            </span>
-                          </div>
-                          
-                          <Button 
-                            asChild
-                            size="sm" 
-                            className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 transition-all"
-                          >
-                            <Link href={`/create?template=${template.id}`}>
-                              {template.isPremium ? (
-                                <span className="flex items-center">
-                                  <Star className="h-3.5 w-3.5 mr-1.5 fill-current" />
+
+                        <Button
+                          asChild
+                          size="sm"
+                          className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md shadow-purple-500/20 hover:shadow-lg hover:shadow-purple-500/30 transition-all text-xs sm:text-sm px-3 sm:px-4"
+                        >
+                          <Link href={`/create?template=${template.id}`}>
+                            {template.isPremium ? (
+                              <span className="flex items-center">
+                                <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1 sm:mr-1.5 fill-current" />
+                                <span className="hidden sm:inline">
                                   Use Premium
                                 </span>
-                              ) : 'Use Free'}
-                            </Link>
-                          </Button>
-                        </div>
+                                <span className="sm:hidden">Premium</span>
+                              </span>
+                            ) : (
+                              <>
+                                <span className="hidden sm:inline">
+                                  Use Free
+                                </span>
+                                <span className="sm:hidden">Free</span>
+                              </>
+                            )}
+                          </Link>
+                        </Button>
                       </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
 
-              {/* Pagination Controls */}
-              {(() => {
-                const currentCategory = templateCategories.find(cat => cat.id === selectedCategory);
-                const templates = currentCategory?.templates || [];
-                const totalPages = Math.ceil(templates.length / itemsPerPage);
-                
-                if (totalPages <= 1) return null;
-                
-                return (
-                  <div className="flex justify-center mt-12">
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="rounded-full"
-                      >
-                        Previous
-                      </Button>
-                      
-                      {[...Array(totalPages)].map((_, index) => {
-                        const page = index + 1;
-                        // Show first, last, current, and nearby pages
-                        if (
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1)
-                        ) {
-                          return (
-                            <Button
-                              key={page}
-                              variant={currentPage === page ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handlePageChange(page)}
-                              className={`rounded-full ${currentPage === page ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' : ''}`}
-                            >
-                              {page}
-                            </Button>
-                          );
-                        }
-                        
-                        // Show ellipsis for skipped pages
-                        if (page === currentPage - 2 || page === currentPage + 2) {
-                          return (
-                            <span key={page} className="px-2 py-1 text-muted-foreground">
-                              ...
-                            </span>
-                          );
-                        }
-                        
-                        return null;
-                      })}
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="rounded-full"
-                      >
-                        Next
-                      </Button>
+            {/* Pagination Controls */}
+            {(() => {
+              const currentCategory = templateCategories.find(
+                (cat) => cat.id === selectedCategory,
+              );
+              const templates = currentCategory?.templates || [];
+              const totalPages = Math.ceil(templates.length / itemsPerPage);
+
+              if (totalPages <= 1) return null;
+
+              return (
+                <div className="flex justify-center mt-12">
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handlePageChange(Math.max(currentPage - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className="rounded-full"
+                    >
+                      Previous
+                    </Button>
+
+                    {[...Array(totalPages)].map((_, index) => {
+                      const page = index + 1;
+                      // Show first, last, current, and nearby pages
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <Button
+                            key={page}
+                            variant={
+                              currentPage === page ? "default" : "outline"
+                            }
+                            size="sm"
+                            onClick={() => handlePageChange(page)}
+                            className={`rounded-full ${currentPage === page ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" : ""}`}
+                          >
+                            {page}
+                          </Button>
+                        );
+                      }
+
+                      // Show ellipsis for skipped pages
+                      if (
+                        page === currentPage - 2 ||
+                        page === currentPage + 2
+                      ) {
+                        return (
+                          <span
+                            key={page}
+                            className="px-2 py-1 text-muted-foreground"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+
+                      return null;
+                    })}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        handlePageChange(Math.min(currentPage + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="rounded-full"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Premium CTA Section */}
+            <div className="mt-16">
+              <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 rounded-3xl overflow-hidden shadow-2xl">
+                <CardContent className="p-8 text-center">
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-white/20 p-3 rounded-full">
+                      <Star className="h-8 w-8 text-white fill-white" />
                     </div>
                   </div>
-                );
-              })()}
-
-              {/* Premium CTA Section */}
-              <div className="mt-16">
-                <Card className="bg-gradient-to-r from-purple-600 to-blue-600 border-0 rounded-3xl overflow-hidden shadow-2xl">
-                  <CardContent className="p-8 text-center">
-                    <div className="flex justify-center mb-4">
-                      <div className="bg-white/20 p-3 rounded-full">
-                        <Star className="h-8 w-8 text-white fill-white" />
-                      </div>
-                    </div>
-                    <h2 className="text-2xl font-bold text-white mb-2">Unlock All Premium Templates</h2>
-                    <p className="text-purple-100 mb-6 max-w-2xl mx-auto">
-                      Get access to all our premium templates and create a resume that truly stands out from the competition.
-                    </p>
-                    <Button 
-                      variant="secondary" 
-                      className="bg-white text-purple-600 hover:bg-white/90 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-base"
-                      onClick={() => router.push('/settings')}
-                    >
-                      Upgrade to Premium
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+                  <h2 className="text-2xl font-bold text-white mb-2">
+                    Unlock All Premium Templates
+                  </h2>
+                  <p className="text-purple-100 mb-6 max-w-2xl mx-auto">
+                    Get access to all our premium templates and create a resume
+                    that truly stands out from the competition.
+                  </p>
+                  <Button
+                    variant="secondary"
+                    className="bg-white text-purple-600 hover:bg-white/90 rounded-full font-medium shadow-lg hover:shadow-xl transition-all duration-300 px-8 py-3 text-base"
+                    onClick={() => router.push("/settings")}
+                  >
+                    Upgrade to Premium
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-          
+
           {/* Dynamic Dock Component */}
           <div className="mt-auto px-4 sm:px-6 lg:px-8">
             <DynamicDock currentPage="templates" showLogout={false} />
           </div>
-          
+
           {/* Footer - now using the reusable component */}
           <DashboardFooter />
         </div>
