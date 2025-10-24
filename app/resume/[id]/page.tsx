@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Image from "next/image";
 import ProtectedPage from "@/components/protected-page";
@@ -42,7 +42,6 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Resume, ResumeData } from "@/types/resume";
 import TemplatePreview from "@/components/template-preview";
 import { Sidebar } from "@/components/sidebar";
@@ -150,9 +149,7 @@ export default function ResumePage() {
   const [showPreview, setShowPreview] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const resumeRef = useRef<HTMLDivElement>(null);
 
-  // Load sidebar state from localStorage
   useEffect(() => {
     const savedCollapsedState = localStorage.getItem("sidebarCollapsed");
     if (savedCollapsedState !== null) {
@@ -304,21 +301,44 @@ export default function ResumePage() {
   //     }
   //   }
   // };
-  const handleDownload = async () => {
-    const response = await fetch(`/api/resume/${id}/pdf`);
-    if (!response.ok) {
-      // handle error
+  // React-PDF based PDF generation (high-quality vector PDF)
+  const handleDownloadReactPDF = async () => {
+    if (!resumeData) {
+      toast.error("Resume data not available for PDF generation.");
       return;
     }
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `resume-${id}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+
+    try {
+      toast.info("Generating high-quality PDF...");
+
+      // Import react-pdf components dynamically
+      const { ResumePDF } = await import("@/components/resume-pdf");
+      const { pdf } = await import("@react-pdf/renderer");
+
+      // Generate PDF blob from React component
+      const blob = await pdf(<ResumePDF data={resumeData} templateId={validTemplateId} />).toBlob();
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+
+      // Generate filename
+      const firstName = (resumeData.personalInfo?.firstName || 'Resume').replace(/[^a-zA-Z0-9]/g, '_');
+      const lastName = (resumeData.personalInfo?.lastName || 'User').replace(/[^a-zA-Z0-9]/g, '_');
+      a.download = `${firstName}_${lastName}_Resume_VectorPDF.pdf`;
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("High-quality PDF generated successfully!");
+
+    } catch (error) {
+      console.error("React-PDF generation error:", error);
+      toast.error("Failed to generate PDF. Please try the standard download.");
+    }
   };
 
   const handlePrint = () => {
@@ -1378,7 +1398,7 @@ export default function ResumePage() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 items-center">
                   <Button
-                    onClick={handleDownload}
+                    onClick={handleDownloadReactPDF}
                     className="bg-white text-purple-600 hover:bg-white/90 shadow-lg rounded-full font-medium"
                   >
                     <Download className="h-4 w-4 mr-2" />

@@ -49,6 +49,15 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 // Template data - simplified version for the create page
 const templateData = [
+  // Free Templates First
+  {
+    id: 1,
+    name: "Classic Professional",
+    description: "Professional blue and white layout with clear sections and timeline design",
+    previewImage: "/classic-professional-preview.svg",
+    isPremium: false,
+    isFeatured: true
+  },
   {
     id: 8,
     name: "Modern Split",
@@ -58,13 +67,14 @@ const templateData = [
     isFeatured: true
   },
   {
-    id: 1,
-    name: "Classic Professional",
-    description: "Professional blue and white layout with clear sections and timeline design",
-    previewImage: "/classic-professional-preview.svg",
+    id: 10,
+    name: "Minimalist Pro",
+    description: "Clean, minimalist design with olive sidebar and professional layout",
+    previewImage: "/minimalist-pro-preview.svg",
     isPremium: false,
-    isFeatured: true
+    isFeatured: false
   },
+  // Premium Templates
   {
     id: 2,
     name: "Modern Executive",
@@ -88,14 +98,6 @@ const templateData = [
     previewImage: "/placeholder.svg",
     isPremium: true,
     isFeatured: true
-  },
-  {
-    id: 10,
-    name: "Minimalist Pro",
-    description: "Clean, uncluttered design that emphasizes your content",
-    previewImage: "/placeholder.svg",
-    isPremium: false,
-    isFeatured: false
   }
 ];
 
