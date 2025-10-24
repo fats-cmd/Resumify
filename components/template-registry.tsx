@@ -2,6 +2,7 @@
 
 import ModernSplitTemplate from "./templates/modern-split";
 import ClassicProfessionalTemplate from "./templates/classic-professional";
+import MinimalistProTemplate from "./templates/minimalist-pro";
 import { ResumeData } from "@/types/resume";
 
 export type TemplateComponentProps = {
@@ -25,6 +26,11 @@ const templates: TemplateDefinition[] = [
     id: 8,
     name: "Modern Split",
     component: ModernSplitTemplate
+  },
+  {
+    id: 10,
+    name: "Minimalist Pro",
+    component: MinimalistProTemplate
   },
   // Add more templates here
 ];

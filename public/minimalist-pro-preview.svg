@@ -1,0 +1,143 @@
+<svg width="400" height="500" viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="500" fill="#E5E7EB"/>
+  
+  <!-- Left Column (Olive/Stone) -->
+  <rect width="160" height="500" fill="#6B7280"/>
+  
+  <!-- Contact Section -->
+  <rect x="20" y="30" width="60" height="8" rx="2" fill="white"/>
+  <rect x="20" y="40" width="120" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <!-- Contact Items with Icons -->
+  <circle cx="25" cy="60" r="2" fill="white"/>
+  <rect x="32" y="57" width="80" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="75" r="2" fill="white"/>
+  <rect x="32" y="72" width="100" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="90" r="2" fill="white"/>
+  <rect x="32" y="87" width="90" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="105" r="2" fill="white"/>
+  <rect x="32" y="102" width="110" height="4" rx="1" fill="white"/>
+  
+  <!-- Education Section -->
+  <rect x="20" y="140" width="70" height="8" rx="2" fill="white"/>
+  <rect x="20" y="150" width="120" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <rect x="20" y="170" width="100" height="6" rx="1" fill="white"/>
+  <rect x="20" y="180" width="60" height="3" rx="1" fill="#D1D5DB"/>
+  <rect x="20" y="187" width="80" height="3" rx="1" fill="#D1D5DB"/>
+  <rect x="20" y="194" width="50" height="3" rx="1" fill="#D1D5DB"/>
+  
+  <rect x="20" y="210" width="95" height="6" rx="1" fill="white"/>
+  <rect x="20" y="220" width="55" height="3" rx="1" fill="#D1D5DB"/>
+  <rect x="20" y="227" width="75" height="3" rx="1" fill="#D1D5DB"/>
+  <rect x="20" y="234" width="45" height="3" rx="1" fill="#D1D5DB"/>
+  
+  <!-- Skills Section -->
+  <rect x="20" y="260" width="50" height="8" rx="2" fill="white"/>
+  <rect x="20" y="270" width="120" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <circle cx="25" cy="295" r="1.5" fill="white"/>
+  <rect x="32" y="292" width="80" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="310" r="1.5" fill="white"/>
+  <rect x="32" y="307" width="70" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="325" r="1.5" fill="white"/>
+  <rect x="32" y="322" width="75" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="340" r="1.5" fill="white"/>
+  <rect x="32" y="337" width="65" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="355" r="1.5" fill="white"/>
+  <rect x="32" y="352" width="85" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="370" r="1.5" fill="white"/>
+  <rect x="32" y="367" width="60" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="385" r="1.5" fill="white"/>
+  <rect x="32" y="382" width="70" height="4" rx="1" fill="white"/>
+  
+  <!-- Languages Section -->
+  <rect x="20" y="410" width="70" height="8" rx="2" fill="white"/>
+  <rect x="20" y="420" width="120" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <circle cx="25" cy="445" r="1.5" fill="white"/>
+  <rect x="32" y="442" width="90" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="460" r="1.5" fill="white"/>
+  <rect x="32" y="457" width="80" height="4" rx="1" fill="white"/>
+  <circle cx="25" cy="475" r="1.5" fill="white"/>
+  <rect x="32" y="472" width="70" height="4" rx="1" fill="white"/>
+  
+  <!-- Right Column (Light Gray) -->
+  <rect x="160" y="0" width="240" height="500" fill="#E5E7EB"/>
+  
+  <!-- Profile Image Circle with Border -->
+  <circle cx="200" cy="80" r="35" fill="#6B7280"/>
+  <circle cx="200" cy="80" r="30" fill="white"/>
+  <circle cx="200" cy="80" r="25" fill="#D1D5DB"/>
+  
+  <!-- Name Section -->
+  <rect x="250" y="50" width="80" height="14" rx="2" fill="#6B7280"/>
+  <rect x="335" y="50" width="50" height="14" rx="2" fill="#9CA3AF"/>
+  <rect x="250" y="70" width="120" height="8" rx="2" fill="#6B7280"/>
+  <rect x="250" y="85" width="80" height="2" rx="1" fill="#6B7280"/>
+  
+  <!-- Profile Section -->
+  <rect x="180" y="130" width="50" height="10" rx="2" fill="#6B7280"/>
+  <rect x="180" y="140" width="200" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <rect x="180" y="160" width="200" height="3" rx="1" fill="#6B7280"/>
+  <rect x="180" y="167" width="180" height="3" rx="1" fill="#6B7280"/>
+  <rect x="180" y="174" width="190" height="3" rx="1" fill="#6B7280"/>
+  <rect x="180" y="181" width="170" height="3" rx="1" fill="#6B7280"/>
+  <rect x="180" y="188" width="160" height="3" rx="1" fill="#6B7280"/>
+  <rect x="180" y="195" width="150" height="3" rx="1" fill="#6B7280"/>
+  
+  <!-- Work Experience Section -->
+  <rect x="180" y="220" width="120" height="10" rx="2" fill="#6B7280"/>
+  <rect x="180" y="230" width="200" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <!-- Experience Item 1 -->
+  <rect x="180" y="250" width="200" height="55" rx="4" fill="white"/>
+  <rect x="190" y="260" width="90" height="6" rx="1" fill="#374151"/>
+  <rect x="190" y="270" width="110" height="4" rx="1" fill="#6B7280"/>
+  <rect x="320" y="260" width="50" height="4" rx="1" fill="#9CA3AF"/>
+  <circle cx="185" cy="285" r="1" fill="#6B7280"/>
+  <rect x="190" y="282" width="170" height="3" rx="1" fill="#6B7280"/>
+  <circle cx="185" cy="292" r="1" fill="#6B7280"/>
+  <rect x="190" y="289" width="160" height="3" rx="1" fill="#6B7280"/>
+  <circle cx="185" cy="299" r="1" fill="#6B7280"/>
+  <rect x="190" y="296" width="150" height="3" rx="1" fill="#6B7280"/>
+  
+  <!-- Experience Item 2 -->
+  <rect x="180" y="315" width="200" height="55" rx="4" fill="white"/>
+  <rect x="190" y="325" width="80" height="6" rx="1" fill="#374151"/>
+  <rect x="190" y="335" width="100" height="4" rx="1" fill="#6B7280"/>
+  <rect x="320" y="325" width="50" height="4" rx="1" fill="#9CA3AF"/>
+  <circle cx="185" cy="350" r="1" fill="#6B7280"/>
+  <rect x="190" y="347" width="165" height="3" rx="1" fill="#6B7280"/>
+  <circle cx="185" cy="357" r="1" fill="#6B7280"/>
+  <rect x="190" y="354" width="155" height="3" rx="1" fill="#6B7280"/>
+  <circle cx="185" cy="364" r="1" fill="#6B7280"/>
+  <rect x="190" y="361" width="145" height="3" rx="1" fill="#6B7280"/>
+  
+  <!-- Experience Item 3 -->
+  <rect x="180" y="380" width="200" height="55" rx="4" fill="white"/>
+  <rect x="190" y="390" width="85" height="6" rx="1" fill="#374151"/>
+  <rect x="190" y="400" width="105" height="4" rx="1" fill="#6B7280"/>
+  <rect x="320" y="390" width="50" height="4" rx="1" fill="#9CA3AF"/>
+  <circle cx="185" cy="415" r="1" fill="#6B7280"/>
+  <rect x="190" y="412" width="160" height="3" rx="1" fill="#6B7280"/>
+  <circle cx="185" cy="422" r="1" fill="#6B7280"/>
+  <rect x="190" y="419" width="150" height="3" rx="1" fill="#6B7280"/>
+  <circle cx="185" cy="429" r="1" fill="#6B7280"/>
+  <rect x="190" y="426" width="140" height="3" rx="1" fill="#6B7280"/>
+  
+  <!-- Reference Section -->
+  <rect x="180" y="450" width="70" height="10" rx="2" fill="#6B7280"/>
+  <rect x="180" y="460" width="200" height="1" rx="0.5" fill="#9CA3AF"/>
+  
+  <!-- Reference Items -->
+  <rect x="180" y="475" width="90" height="20" rx="2" fill="white"/>
+  <rect x="185" y="480" width="60" height="4" rx="1" fill="#374151"/>
+  <rect x="185" y="487" width="70" height="3" rx="1" fill="#6B7280"/>
+  
+  <rect x="290" y="475" width="90" height="20" rx="2" fill="white"/>
+  <rect x="295" y="480" width="65" height="4" rx="1" fill="#374151"/>
+  <rect x="295" y="487" width="75" height="3" rx="1" fill="#6B7280"/>
+</svg>

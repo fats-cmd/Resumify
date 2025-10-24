@@ -34,6 +34,7 @@ const templateCategories = [
     name: "Professional",
     description: "Clean and modern designs for corporate environments",
     templates: [
+      // Free Templates First
       {
         id: 1,
         name: "Classic Professional",
@@ -43,6 +44,24 @@ const templateCategories = [
         isPremium: false,
         isFeatured: true,
       },
+      {
+        id: 8,
+        name: "Modern Split",
+        description:
+          "Bold two-column layout with accent colors and clean organization",
+        previewImage: "/modern-split-preview.svg",
+        isPremium: false,
+        isFeatured: true,
+      },
+      {
+        id: 10,
+        name: "Minimalist Pro",
+        description: "Clean, minimalist design with olive sidebar and professional layout",
+        previewImage: "/minimalist-pro-preview.svg",
+        isPremium: false,
+        isFeatured: false,
+      },
+      // Premium Templates
       {
         id: 2,
         name: "Modern Executive",
@@ -60,16 +79,6 @@ const templateCategories = [
         isFeatured: false,
       },
       {
-        id: 8,
-        name: "Modern Split",
-        description:
-          "Bold two-column layout with accent colors and clean organization",
-        previewImage: "/modern-split-preview.svg",
-        isPremium: false,
-        isFeatured: true,
-      },
-      // Adding more templates to test pagination
-      {
         id: 9,
         name: "Corporate Elite",
         description:
@@ -77,14 +86,6 @@ const templateCategories = [
         previewImage: "/placeholder.svg",
         isPremium: true,
         isFeatured: true,
-      },
-      {
-        id: 10,
-        name: "Minimalist Pro",
-        description: "Clean, uncluttered design that emphasizes your content",
-        previewImage: "/placeholder.svg",
-        isPremium: false,
-        isFeatured: false,
       },
       {
         id: 11,
