@@ -8,6 +8,14 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import ProtectedPage from "@/components/protected-page";
 import { 
@@ -47,7 +55,8 @@ import {
   Check,
   Menu,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronsUpDown
 } from "lucide-react";
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -1547,53 +1556,160 @@ const CreateResumeContent = () => {
                                 />
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor={`degree-${edu.id}`}>Degree</Label>
-                                <Input
-                                  id={`degree-${edu.id}`}
-                                  value={edu.degree}
-                                  onChange={(e) => handleEducationChange(edu.id, "degree", e.target.value)}
-                                  placeholder="Bachelor's, Master's, etc."
-                                />
+                                <Label>Degree</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      className="w-full justify-between font-normal"
+                                    >
+                                      {edu.degree || "Select a degree"}
+                                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[300px] p-0">
+                                    <Command>
+                                      <CommandInput placeholder="Search degrees..." />
+                                      <CommandEmpty>No degree found.</CommandEmpty>
+                                      <CommandGroup>
+                                        <CommandItem
+                                          value="High School"
+                                          onSelect={() => handleEducationChange(edu.id, "degree", "High School")}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${edu.degree === "High School" ? "opacity-100" : "opacity-0"}`}
+                                          />
+                                          High School
+                                        </CommandItem>
+                                        <CommandItem
+                                          value="Associate's Degree"
+                                          onSelect={() => handleEducationChange(edu.id, "degree", "Associate's Degree")}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${edu.degree === "Associate's Degree" ? "opacity-100" : "opacity-0"}`}
+                                          />
+                                          Associate's Degree
+                                        </CommandItem>
+                                        <CommandItem
+                                          value="Bachelor's Degree"
+                                          onSelect={() => handleEducationChange(edu.id, "degree", "Bachelor's Degree")}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${edu.degree === "Bachelor's Degree" ? "opacity-100" : "opacity-0"}`}
+                                          />
+                                          Bachelor's Degree
+                                        </CommandItem>
+                                        <CommandItem
+                                          value="Master's Degree"
+                                          onSelect={() => handleEducationChange(edu.id, "degree", "Master's Degree")}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${edu.degree === "Master's Degree" ? "opacity-100" : "opacity-0"}`}
+                                          />
+                                          Master's Degree
+                                        </CommandItem>
+                                        <CommandItem
+                                          value="Doctorate (Ph.D.)"
+                                          onSelect={() => handleEducationChange(edu.id, "degree", "Doctorate (Ph.D.)")}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${edu.degree === "Doctorate (Ph.D.)" ? "opacity-100" : "opacity-0"}`}
+                                          />
+                                          Doctorate (Ph.D.)
+                                        </CommandItem>
+                                        <CommandItem
+                                          value="Professional Degree"
+                                          onSelect={() => handleEducationChange(edu.id, "degree", "Professional Degree")}
+                                        >
+                                          <Check
+                                            className={`mr-2 h-4 w-4 ${edu.degree === "Professional Degree" ? "opacity-100" : "opacity-0"}`}
+                                          />
+                                          Professional Degree (JD, MD, etc.)
+                                        </CommandItem>
+                                      </CommandGroup>
+                                      <CommandSeparator />
+                                      <CommandGroup>
+                                        <CommandItem
+                                          className="text-muted-foreground"
+                                          onSelect={() => {
+                                            const newDegree = prompt("Enter custom degree:");
+                                            if (newDegree) {
+                                              handleEducationChange(edu.id, "degree", newDegree);
+                                            }
+                                          }}
+                                        >
+                                          <Plus className="mr-2 h-4 w-4" />
+                                          Add custom degree
+                                        </CommandItem>
+                                      </CommandGroup>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                             </div>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
-                                <div className="flex gap-2">
-                                  <Input
-                                    id={`field-${edu.id}`}
-                                    value={edu.field}
-                                    onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
-                                    placeholder="Computer Science, Business, etc."
-                                    className="flex-1"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => generateEducationWithAI(edu.id)}
-                                    disabled={isGeneratingEducation[edu.id]}
-                                    className="rounded-full whitespace-nowrap"
-                                  >
-                                    {isGeneratingEducation[edu.id] ? (
-                                      <>
-                                        <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
-                                        <span className="hidden sm:inline">Generating</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="h-3 w-3 mr-1" />
-                                        <span className="hidden sm:inline">AI Suggest</span>
-                                      </>
-                                    )}
-                                  </Button>
-                                </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  id={`field-${edu.id}`}
+                                  value={edu.field}
+                                  onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
+                                  placeholder="Computer Science, Business, etc."
+                                  className="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => generateEducationWithAI(edu.id)}
+                                  disabled={isGeneratingEducation[edu.id]}
+                                  className="rounded-full whitespace-nowrap"
+                                >
+                                  {isGeneratingEducation[edu.id] ? (
+                                    <>
+                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                      <span className="hidden sm:inline">Generating</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      <span className="hidden sm:inline">AI Suggest</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <Label>Description</Label>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => generateEducationWithAI(edu.id)}
+                                  disabled={isGeneratingEducation[edu.id]}
+                                  className="rounded-full text-xs"
+                                >
+                                  {isGeneratingEducation[edu.id] ? (
+                                    <>
+                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                      Generating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Enhance with AI
+                                    </>
+                                  )}
+                                </Button>
                               </div>
                               <RichTextEditor
                                 value={edu.description}
                                 onChange={(value) => handleEducationChange(edu.id, "description", value)}
-                                placeholder="Additional details about your education..."
+                                placeholder="Describe your education, achievements, and relevant coursework..."
                               />
                             </div>
                           </div>
