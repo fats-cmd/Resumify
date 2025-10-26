@@ -3,6 +3,12 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import ProtectedPage from "@/components/protected-page";
 import { 
   Card,
@@ -11,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -341,12 +346,26 @@ const CreateResumeContent = () => {
   };
 
   // Handle work experience changes
-  const handleWorkExperienceChange = (id: number, field: string, value: string | boolean) => {
+  const handleWorkExperienceChange = (id: number, field: string, value: string | boolean | Date | null | undefined) => {
+    // Don't update if value is undefined (happens when clicking the same date in the calendar)
+    if (value === undefined) return;
+    
     setResumeData({
       ...resumeData,
-      workExperience: resumeData.workExperience.map(exp => 
-        exp.id === id ? { ...exp, [field]: value } : exp
-      )
+      workExperience: resumeData.workExperience.map(exp => {
+        if (exp.id === id) {
+          // Format date to yyyy-MM for storage if it's a Date object
+          const formattedValue = value instanceof Date ? format(value, 'yyyy-MM') : value;
+          
+          return { 
+            ...exp, 
+            [field]: formattedValue,
+            // If setting current to true, clear the end date
+            ...(field === 'current' && value === true ? { endDate: '' } : {})
+          };
+        }
+        return exp;
+      })
     });
   };
 
@@ -1352,23 +1371,68 @@ const CreateResumeContent = () => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                <Label htmlFor={`startDate-${exp.id}`}>Start Date</Label>
-                                <Input
-                                  id={`startDate-${exp.id}`}
-                                  type="month"
-                                  value={exp.startDate}
-                                  onChange={(e) => handleWorkExperienceChange(exp.id, "startDate", e.target.value)}
-                                />
+                                <Label>Start Date</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !exp.startDate && "text-muted-foreground"
+                                      )}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {exp.startDate ? format(new Date(exp.startDate), "MMM yyyy") : <span>Pick a date</span>}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={exp.startDate ? new Date(exp.startDate) : undefined}
+                                      onSelect={(date) => handleWorkExperienceChange(exp.id, "startDate", date)}
+                                      initialFocus
+                                      captionLayout="dropdown"
+                                      fromYear={1900}
+                                      toYear={new Date().getFullYear() + 5}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                               <div className="space-y-2">
-                                <Label htmlFor={`endDate-${exp.id}`}>End Date</Label>
-                                <Input
-                                  id={`endDate-${exp.id}`}
-                                  type="month"
-                                  value={exp.endDate}
-                                  onChange={(e) => handleWorkExperienceChange(exp.id, "endDate", e.target.value)}
-                                  disabled={exp.current}
-                                />
+                                <Label>End Date</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !exp.endDate && !exp.current && "text-muted-foreground",
+                                        exp.current && "opacity-50"
+                                      )}
+                                      disabled={exp.current}
+                                    >
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {exp.current ? (
+                                        <span>Present</span>
+                                      ) : exp.endDate ? (
+                                        format(new Date(exp.endDate), "MMM yyyy")
+                                      ) : (
+                                        <span>Pick a date</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                      mode="single"
+                                      selected={exp.endDate ? new Date(exp.endDate) : undefined}
+                                      onSelect={(date) => handleWorkExperienceChange(exp.id, "endDate", date)}
+                                      initialFocus
+                                      captionLayout="dropdown"
+                                      fromYear={1900}
+                                      toYear={new Date().getFullYear() + 5}
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                               </div>
                             </div>
                             
@@ -1493,60 +1557,38 @@ const CreateResumeContent = () => {
                               </div>
                             </div>
                             
-                            <div className="space-y-2">
-                              <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
-                              <Input
-                                id={`field-${edu.id}`}
-                                value={edu.field}
-                                onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
-                                placeholder="Computer Science, Business, etc."
-                              />
-                            </div>
-                            
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                <Label htmlFor={`eduStartDate-${edu.id}`}>Start Date</Label>
-                                <Input
-                                  id={`eduStartDate-${edu.id}`}
-                                  type="month"
-                                  value={edu.startDate}
-                                  onChange={(e) => handleEducationChange(edu.id, "startDate", e.target.value)}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor={`eduEndDate-${edu.id}`}>End Date</Label>
-                                <Input
-                                  id={`eduEndDate-${edu.id}`}
-                                  type="month"
-                                  value={edu.endDate}
-                                  onChange={(e) => handleEducationChange(edu.id, "endDate", e.target.value)}
-                                />
-                              </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <Label htmlFor={`eduDescription-${edu.id}`}>Description</Label>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => generateEducationWithAI(edu.id)}
-                                  disabled={isGeneratingEducation[edu.id]}
-                                  className="rounded-full text-xs"
-                                >
-                                  {isGeneratingEducation[edu.id] ? (
-                                    <>
-                                      <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
-                                      Generating...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Sparkles className="h-3 w-3 mr-1" />
-                                      Generate with AI
-                                    </>
-                                  )}
-                                </Button>
+                                <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
+                                <div className="flex gap-2">
+                                  <Input
+                                    id={`field-${edu.id}`}
+                                    value={edu.field}
+                                    onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
+                                    placeholder="Computer Science, Business, etc."
+                                    className="flex-1"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => generateEducationWithAI(edu.id)}
+                                    disabled={isGeneratingEducation[edu.id]}
+                                    className="rounded-full whitespace-nowrap"
+                                  >
+                                    {isGeneratingEducation[edu.id] ? (
+                                      <>
+                                        <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                        <span className="hidden sm:inline">Generating</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Sparkles className="h-3 w-3 mr-1" />
+                                        <span className="hidden sm:inline">AI Suggest</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
                               </div>
                               <RichTextEditor
                                 value={edu.description}
