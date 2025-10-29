@@ -259,7 +259,7 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
               <div className="pl-4 mb-5 md:pl-6 md:mb-6 lg:pl-8 lg:mb-8 print:pl-3 print:mb-3">
                 {data.basics?.summary ? (
                   <div 
-                    className="text-gray-700 leading-relaxed text-xs md:text-sm lg:text-base print:text-xs"
+                    className="rich-text-content text-gray-700 leading-relaxed text-xs md:text-sm lg:text-base print:text-xs"
                     dangerouslySetInnerHTML={{ __html: data.basics.summary }}
                   />
                 ) : (
@@ -299,7 +299,7 @@ const ModernSplitTemplate: React.FC<ModernSplitTemplateProps> = ({ data }) => {
                     <div className="mt-1 md:mt-2 print:mt-1">
                       {work.summary ? (
                         <div 
-                          className="text-gray-700 text-xs md:text-sm lg:text-base print:text-xs"
+                          className="rich-text-content text-gray-700 text-xs md:text-sm lg:text-base print:text-xs"
                           dangerouslySetInnerHTML={{ __html: work.summary }}
                         />
                       ) : (

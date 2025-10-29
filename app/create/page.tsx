@@ -1650,15 +1650,153 @@ const CreateResumeContent = () => {
                             </div>
                             
                             <div className="space-y-2">
-                              <Label htmlFor={`field-${edu.id}`}>Field of Study</Label>
+                              <Label>Field of Study</Label>
                               <div className="flex gap-2">
-                                <Input
-                                  id={`field-${edu.id}`}
-                                  value={edu.field}
-                                  onChange={(e) => handleEducationChange(edu.id, "field", e.target.value)}
-                                  placeholder="Computer Science, Business, etc."
-                                  className="flex-1"
-                                />
+                                <div className="flex-1">
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className="w-full justify-between font-normal"
+                                      >
+                                        {edu.field || "Select field of study"}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[350px] p-0">
+                                      <Command>
+                                        <CommandInput placeholder="Search fields of study..." />
+                                        <CommandEmpty>No field of study found.</CommandEmpty>
+                                        <CommandGroup>
+                                          <CommandItem
+                                            value="Computer Science"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Computer Science")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Computer Science" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Computer Science
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Business Administration"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Business Administration")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Business Administration" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Business Administration
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Engineering"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Engineering")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Engineering" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Engineering
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Marketing"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Marketing")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Marketing" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Marketing
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Finance"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Finance")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Finance" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Finance
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Psychology"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Psychology")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Psychology" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Psychology
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Biology"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Biology")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Biology" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Biology
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Mathematics"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Mathematics")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Mathematics" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Mathematics
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="English"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "English")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "English" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            English
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="History"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "History")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "History" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            History
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Art"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Art")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Art" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Art
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Design"
+                                            onSelect={() => handleEducationChange(edu.id, "field", "Design")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.field === "Design" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Design
+                                          </CommandItem>
+                                        </CommandGroup>
+                                        <CommandSeparator />
+                                        <CommandGroup>
+                                          <CommandItem
+                                            className="text-muted-foreground"
+                                            onSelect={() => {
+                                              const newField = prompt("Enter custom field of study:");
+                                              if (newField) {
+                                                handleEducationChange(edu.id, "field", newField);
+                                              }
+                                            }}
+                                          >
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Add custom field
+                                          </CommandItem>
+                                        </CommandGroup>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
+                                </div>
                                 <Button
                                   type="button"
                                   variant="outline"

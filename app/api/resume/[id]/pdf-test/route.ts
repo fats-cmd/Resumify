@@ -61,12 +61,12 @@ export async function GET(
         supabaseUrl,
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
-      
+
       const { data, error } = await serviceSupabase
         .from("resumes")
         .select("id, title, user_id, data")
         .eq("id", resumeId);
-        
+
       resumeList = data;
       resumeError = error;
       console.log("Service role query result:", { count: data?.length || 0, error: error?.message });
@@ -91,7 +91,7 @@ export async function GET(
         .select("id, title, user_id, data")
         .eq("id", resumeId)
         .eq("user_id", userId);
-        
+
       resumeList = data;
       resumeError = error;
       console.log("Authenticated query result:", { count: data?.length || 0, error: error?.message });
@@ -103,7 +103,7 @@ export async function GET(
         .from("resumes")
         .select("id, title, user_id, data")
         .eq("id", resumeId);
-        
+
       resumeList = data;
       resumeError = error;
       console.log("Basic query result:", { count: data?.length || 0, error: error?.message });
@@ -119,7 +119,7 @@ export async function GET(
     });
 
     let resume;
-    
+
     if (resumeError || !resumeList || resumeList.length === 0) {
       console.log("Resume not found, using sample data for testing");
       // Use sample data for testing when resume can't be found
@@ -168,7 +168,7 @@ export async function GET(
 
     // Get the template ID from resume data
     const templateId = resume.data?.templateId || 1; // Default to Classic Professional
-    
+
     // Return a page that renders the actual template and generates PDF
     const html = `
     <!DOCTYPE html>
@@ -181,19 +181,19 @@ export async function GET(
       <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 800px; margin: 0 auto; }
-        .resume-content { 
-          background: white; 
-          padding: 40px; 
-          border: 1px solid #ddd; 
+        .resume-content {
+          background: white;
+          padding: 40px;
+          border: 1px solid #ddd;
           margin: 20px 0;
         }
-        button { 
-          background: #007cba; 
-          color: white; 
-          border: none; 
-          padding: 12px 24px; 
-          border-radius: 4px; 
-          cursor: pointer; 
+        button {
+          background: #007cba;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 4px;
+          cursor: pointer;
           font-size: 16px;
           margin: 10px;
         }
@@ -208,30 +208,30 @@ export async function GET(
         <h1>PDF Test Generator</h1>
         <p>Resume: <strong>${resume.title}</strong></p>
         <p>Resume ID: <strong>${resumeId}</strong></p>
-        
+
         <button onclick="generatePDF()" id="pdf-btn">Generate PDF</button>
         <button onclick="window.close()">Close</button>
-        
+
         <div id="message"></div>
-        
+
         <div class="resume-content" id="resume-content">
           <h1>${resume.data?.personalInfo?.firstName || 'John'} ${resume.data?.personalInfo?.lastName || 'Doe'}</h1>
           <p><strong>Email:</strong> ${resume.data?.personalInfo?.email || 'john@example.com'}</p>
           <p><strong>Phone:</strong> ${resume.data?.personalInfo?.phone || '(555) 123-4567'}</p>
           <p><strong>Location:</strong> ${resume.data?.personalInfo?.location || 'City, State'}</p>
-          
+
           <h2>Professional Summary</h2>
           <p>${resume.data?.personalInfo?.summary || 'Professional summary goes here...'}</p>
-          
+
           <h2>Work Experience</h2>
           ${resume.data?.workExperience?.map((exp: { position?: string; company?: string; startDate?: string; endDate?: string; current?: boolean; description?: string }) => `
             <div style="margin-bottom: 20px;">
               <h3>${exp.position || 'Job Title'}</h3>
               <p><strong>${exp.company || 'Company Name'}</strong> | ${exp.startDate || 'Start'} - ${exp.current ? 'Present' : (exp.endDate || 'End')}</p>
-              <p>${exp.description || 'Job description goes here...'}</p>
+              <div>${exp.description || 'Job description goes here...'}</div>
             </div>
           `).join('') || '<p>No work experience added yet.</p>'}
-          
+
           <h2>Education</h2>
           ${resume.data?.education?.map((edu: { degree?: string; field?: string; institution?: string; startDate?: string; endDate?: string }) => `
             <div style="margin-bottom: 20px;">
@@ -239,43 +239,43 @@ export async function GET(
               <p><strong>${edu.institution || 'Institution'}</strong> | ${edu.startDate || 'Start'} - ${edu.endDate || 'End'}</p>
             </div>
           `).join('') || '<p>No education added yet.</p>'}
-          
+
           <h2>Skills</h2>
           <p>${resume.data?.skills?.filter((s: string) => s.trim()).join(', ') || 'No skills added yet.'}</p>
         </div>
       </div>
-      
+
       <script>
         function showMessage(text, isError = false) {
           const messageDiv = document.getElementById('message');
           messageDiv.innerHTML = '<div class="' + (isError ? 'error' : 'success') + '">' + text + '</div>';
         }
-        
+
         function generatePDF() {
           const btn = document.getElementById('pdf-btn');
           btn.disabled = true;
           btn.textContent = 'Generating PDF...';
           showMessage('Generating PDF, please wait...');
-          
+
           try {
             const element = document.getElementById('resume-content');
             const opt = {
               margin: 0.5,
               filename: '${resume.title?.replace(/[^a-zA-Z0-9]/g, "_") || "resume"}_${resumeId}.pdf',
               image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { 
+              html2canvas: {
                 scale: 2,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff'
               },
-              jsPDF: { 
-                unit: 'in', 
-                format: 'a4', 
-                orientation: 'portrait' 
+              jsPDF: {
+                unit: 'in',
+                format: 'a4',
+                orientation: 'portrait'
               }
             };
-            
+
             html2pdf().set(opt).from(element).save().then(() => {
               btn.disabled = false;
               btn.textContent = 'Generate PDF';
@@ -286,7 +286,7 @@ export async function GET(
               btn.disabled = false;
               btn.textContent = 'Generate PDF';
             });
-            
+
           } catch (error) {
             console.error('PDF generation error:', error);
             showMessage('Error generating PDF: ' + error.message, true);

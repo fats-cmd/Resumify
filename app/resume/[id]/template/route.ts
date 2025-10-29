@@ -83,10 +83,10 @@ export async function GET(
                   req.headers.get("x-supabase-auth") ||
                   req.cookies.get("sb-access-token")?.value;
     let userId = null;
-    
+
     console.log("Attempting to fetch resume ID:", resumeId);
     console.log("Auth token present:", !!authToken);
-    
+
     // Get user ID if auth token is available
     if (authToken) {
       try {
@@ -109,7 +109,7 @@ export async function GET(
         console.log("Could not get user from token");
       }
     }
-    
+
     // If we still don't have a user ID, try to get it from the request cookies
     if (!userId) {
       try {
@@ -126,7 +126,7 @@ export async function GET(
             },
           }
         );
-        
+
         const { data: { user } } = await cookieSupabase.auth.getUser();
         userId = user?.id;
         console.log("User ID from cookies:", userId);
@@ -136,13 +136,13 @@ export async function GET(
     }
 
     let resume = null;
-    
+
     // Try to get resume using the same method as the resume page
     if (userId) {
       try {
         console.log("Fetching resumes for user:", userId);
         const { data: allResumes, error } = await getResumes(userId);
-        
+
         if (!error && allResumes) {
           const foundResume = allResumes.find((r) => r.id === resumeId);
           if (foundResume) {
@@ -158,7 +158,7 @@ export async function GET(
               .select("id")
               .eq("id", resumeId)
               .single();
-              
+
             if (!existsError && resumeExists) {
               console.log("Resume exists but doesn't belong to this user. Showing access denied.");
               return NextResponse.json(
@@ -174,11 +174,11 @@ export async function GET(
         console.log("Error using getResumes:", error);
       }
     }
-    
+
     // If still no resume found, try direct database queries as fallback
     if (!resume) {
       console.log("Trying direct database queries as fallback");
-      
+
       // Try service role first
       if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
         const serviceSupabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -186,14 +186,14 @@ export async function GET(
           .from("resumes")
           .select("id, title, user_id, data")
           .eq("id", resumeId);
-          
+
         // If we have a user ID, also check that the resume belongs to this user
         if (userId) {
           query = query.eq("user_id", userId);
         }
-          
+
         const { data, error } = await query;
-          
+
         if (!error && data && data.length > 0) {
           resume = data[0];
           console.log("Found resume using service role:", resume.title);
@@ -201,21 +201,21 @@ export async function GET(
           console.log("Service role query failed:", error?.message);
         }
       }
-      
+
       // Try with anon key as last resort
       if (!resume) {
         let query = supabase
           .from("resumes")
           .select("id, title, user_id, data")
           .eq("id", resumeId);
-          
+
         // If we have a user ID, also check that the resume belongs to this user
         if (userId) {
           query = query.eq("user_id", userId);
         }
-          
+
         const { data, error } = await query;
-          
+
         if (!error && data && data.length > 0) {
           resume = data[0];
           console.log("Found resume using anon key:", resume.title);
@@ -224,7 +224,7 @@ export async function GET(
         }
       }
     }
-    
+
     if (!resume) {
       console.log("No resume found, using sample data");
       // Use sample data for testing
@@ -272,15 +272,15 @@ export async function GET(
 
     const templateId = resume.data?.templateId || 1;
     console.log("Using template ID:", templateId);
-    
+
     // Transform data to template format - handle multiple possible data structures
     const resumeData = resume.data || {};
-    
+
     // Try to get name from multiple possible locations
     const firstName = resumeData.personalInfo?.firstName || resumeData.basics?.name?.split(' ')[0] || 'John';
     const lastName = resumeData.personalInfo?.lastName || resumeData.basics?.name?.split(' ').slice(1).join(' ') || 'Doe';
     const fullName = resumeData.basics?.name || `${firstName} ${lastName}`;
-    
+
     const templateData = {
       basics: {
         name: fullName,
@@ -406,36 +406,36 @@ export async function GET(
           Check DB
         </a>
       </div>
-      
+
       <div id="debug-info" class="no-print p-4 bg-gray-100 text-black text-xs" style="display: none;">
         <h3 class="font-bold mb-2">Debug Information:</h3>
         <pre>${JSON.stringify(templateData, null, 2)}</pre>
       </div>
-      
+
       <div id="resume-content" class="template-container">
         ${getTemplateHTML(templateId, templateData)}
       </div>
-      
+
       <script>
         function toggleDebug() {
           const debugInfo = document.getElementById('debug-info');
           debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
         }
-        
+
         function printResume() {
           // Hide the control buttons and debug info for printing
           const controlElements = document.querySelectorAll('.no-print');
           controlElements.forEach(el => el.style.display = 'none');
-          
+
           // Print the page
           window.print();
-          
+
           // Show the control buttons again after printing
           setTimeout(() => {
             controlElements.forEach(el => el.style.display = '');
           }, 1000);
         }
-        
+
         function generatePDF() {
           // Check if html2pdf is loaded
           if (typeof html2pdf === 'undefined') {
@@ -539,13 +539,22 @@ export async function GET(
 // Helper function to safely render HTML content
 function renderHTMLContent(content: string | undefined | null): string {
   if (!content || typeof content !== 'string') return '';
-  
+
+  // Decode HTML entities first
+  let decodedContent = content
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/');
+
   // If content contains HTML tags, return as-is for proper rendering
   // Otherwise, convert line breaks to <br> tags
-  if (content.includes('<') && content.includes('>')) {
-    return content;
+  if (decodedContent.includes('<') && decodedContent.includes('>')) {
+    return decodedContent;
   } else {
-    return content.replace(/\n/g, '<br>');
+    return decodedContent.replace(/\n/g, '<br>');
   }
 }
 
@@ -570,14 +579,14 @@ function generateClassicProfessionalHTML(data: TemplateData): string {
       <div class="col-span-1 bg-blue-800 text-white p-8">
         <!-- Profile Image -->
         <div class="w-32 h-32 rounded-full bg-white p-2 mx-auto mb-6 overflow-hidden">
-          ${data.basics?.image ? 
+          ${data.basics?.image ?
             `<img src="${data.basics.image}" alt="Profile" class="w-full h-full rounded-full object-cover">` :
             `<div class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-bold">
               ${data.basics?.name ? data.basics.name.charAt(0) : 'R'}
             </div>`
           }
         </div>
-        
+
         <!-- Contact -->
         <h2 class="text-lg font-bold uppercase tracking-wider mb-4 border-b border-blue-600 pb-2">Contact</h2>
         <div class="space-y-3 mb-8">
@@ -585,7 +594,7 @@ function generateClassicProfessionalHTML(data: TemplateData): string {
           ${data.basics?.email ? `<div class="flex items-center"><span class="mr-2 text-blue-600 font-bold">Email:</span><span class="text-sm">${data.basics.email}</span></div>` : ''}
           ${data.basics?.location?.address ? `<div class="flex items-center"><span class="mr-2 text-blue-600 font-bold">Address:</span><span class="text-sm">${data.basics.location.address}</span></div>` : ''}
         </div>
-        
+
         <!-- Skills -->
         <h2 class="text-lg font-bold uppercase tracking-wider mb-4 border-b border-blue-600 pb-2">Skills</h2>
         <div class="space-y-2 mb-8">
@@ -596,7 +605,7 @@ function generateClassicProfessionalHTML(data: TemplateData): string {
             </div>
           `).join('') || '<p class="text-sm">No skills listed</p>'}
         </div>
-        
+
         <!-- Education -->
         <h2 class="text-lg font-bold uppercase tracking-wider mb-4 border-b border-blue-600 pb-2">Education</h2>
         <div class="space-y-4">
@@ -609,7 +618,7 @@ function generateClassicProfessionalHTML(data: TemplateData): string {
           `).join('') || '<p class="text-sm">No education listed</p>'}
         </div>
       </div>
-      
+
       <!-- Right Column - Light Gray -->
       <div class="col-span-2 bg-gray-50 p-8">
         <!-- Header -->
@@ -620,13 +629,13 @@ function generateClassicProfessionalHTML(data: TemplateData): string {
           <p class="text-xl text-gray-600 uppercase tracking-wide">${data.basics?.label || 'Professional Title'}</p>
           <div class="w-16 h-1 bg-blue-800 mt-2"></div>
         </div>
-        
+
         <!-- Profile -->
         <div class="mb-8">
           <h2 class="text-xl font-bold uppercase tracking-wider mb-4 text-blue-800 border-b-2 border-blue-800 pb-2">Profile</h2>
           <div class="text-gray-700 leading-relaxed">${renderHTMLContent(data.basics?.summary || 'Professional summary goes here...')}</div>
         </div>
-        
+
         <!-- Work Experience -->
         <div class="mb-8">
           <h2 class="text-xl font-bold uppercase tracking-wider mb-4 text-blue-800 border-b-2 border-blue-800 pb-2">Work Experience</h2>
@@ -659,17 +668,17 @@ function generateModernSplitHTML(data: TemplateData): string {
       <div class="col-span-1 bg-gray-800 text-white p-8 relative">
         <!-- Yellow corner -->
         <div class="absolute top-0 right-0 w-0 h-0 border-t-[100px] border-t-yellow-500 border-l-[100px] border-l-transparent transform -scale-x-100"></div>
-        
+
         <!-- Profile Image -->
         <div class="w-32 h-32 rounded-full bg-white p-2 mx-auto mb-6 overflow-hidden relative z-10">
-          ${data.basics?.image ? 
+          ${data.basics?.image ?
             `<img src="${data.basics.image}" alt="Profile" class="w-full h-full rounded-full object-cover">` :
             `<div class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-2xl font-bold">
               ${data.basics?.name ? data.basics.name.charAt(0) : 'R'}
             </div>`
           }
         </div>
-        
+
         <!-- Contact Me -->
         <div class="mb-8">
           <div class="flex items-center mb-4">
@@ -682,7 +691,7 @@ function generateModernSplitHTML(data: TemplateData): string {
             ${data.basics?.location?.address ? `<div class="flex items-center"><div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div><span class="text-sm">${data.basics.location.address}</span></div>` : ''}
           </div>
         </div>
-        
+
         <!-- Education -->
         <div class="mb-8">
           <div class="flex items-center mb-4">
@@ -704,11 +713,11 @@ function generateModernSplitHTML(data: TemplateData): string {
             `).join('') || '<p class="text-sm">No education listed</p>'}
           </div>
         </div>
-        
+
         <!-- Bottom yellow corner -->
         <div class="absolute bottom-0 right-0 w-0 h-0 border-b-[100px] border-b-yellow-500 border-l-[100px] border-l-transparent"></div>
       </div>
-      
+
       <!-- Right Column -->
       <div class="col-span-2 bg-gray-100 relative">
         <!-- Header -->
@@ -721,7 +730,7 @@ function generateModernSplitHTML(data: TemplateData): string {
             <p class="text-lg tracking-wide uppercase text-gray-600">${data.basics?.label || 'Professional Title'}</p>
           </div>
         </div>
-        
+
         <!-- Content -->
         <div class="p-8">
           <!-- About Me -->
@@ -734,7 +743,7 @@ function generateModernSplitHTML(data: TemplateData): string {
               <div class="text-gray-700 leading-relaxed">${renderHTMLContent(data.basics?.summary || 'Professional summary goes here...')}</div>
             </div>
           </div>
-          
+
           <!-- Job Experience -->
           <div class="mb-8">
             <div class="flex items-center mb-4">
@@ -754,12 +763,12 @@ function generateModernSplitHTML(data: TemplateData): string {
                       ${(work as Record<string, unknown>).startDate ? new Date((work as Record<string, unknown>).startDate as string).getFullYear() : ''} - ${(work as Record<string, unknown>).endDate ? new Date((work as Record<string, unknown>).endDate as string).getFullYear() : 'Present'}
                     </p>
                   </div>
-                  <div class="text-gray-700">${renderHTMLContent((work as Record<string, unknown>).summary as string || 'Job description goes here...')}</div>v>
+                  <div class="text-gray-700">${renderHTMLContent((work as Record<string, unknown>).summary as string || 'Job description goes here...')}</div>
                 </div>
               `).join('') || '<p class="text-gray-700">No work experience listed</p>'}
             </div>
           </div>
-          
+
           <!-- Skills -->
           <div>
             <div class="flex items-center mb-4">
@@ -797,7 +806,7 @@ function generateMinimalistProHTML(data: TemplateData): string {
           ${data.basics?.email ? `<div class="flex items-start"><span class="mr-3 text-amber-500 font-bold">Email:</span><span class="text-sm break-all">${data.basics.email}</span></div>` : ''}
           ${data.basics?.location?.address ? `<div class="flex items-start"><span class="mr-3 text-amber-500 font-bold">Address:</span><span class="text-sm">${data.basics.location.address}</span></div>` : ''}
         </div>
-        
+
         <!-- Education -->
         <h2 class="text-lg font-bold uppercase tracking-wider mb-4 border-b border-stone-400 pb-2">Education</h2>
         <div class="space-y-6 mb-8">
@@ -809,7 +818,7 @@ function generateMinimalistProHTML(data: TemplateData): string {
             </div>
           `).join('') || '<p class="text-sm">No education listed</p>'}
         </div>
-        
+
         <!-- Skills -->
         <h2 class="text-lg font-bold uppercase tracking-wider mb-4 border-b border-stone-400 pb-2">Skills</h2>
         <div class="space-y-2">
@@ -821,7 +830,7 @@ function generateMinimalistProHTML(data: TemplateData): string {
           `).join('') || '<p class="text-sm">No skills listed</p>'}
         </div>
       </div>
-      
+
       <!-- Right Column -->
       <div class="col-span-2 bg-gray-50 relative">
         <!-- Header with Profile -->
@@ -830,7 +839,7 @@ function generateMinimalistProHTML(data: TemplateData): string {
             <!-- Profile Image -->
             <div class="mr-6">
               <div class="w-32 h-32 rounded-full bg-white p-1 overflow-hidden border-4 border-stone-600">
-                ${data.basics?.image ? 
+                ${data.basics?.image ?
                   `<img src="${data.basics.image}" alt="Profile" class="w-full h-full rounded-full object-cover">` :
                   `<div class="w-full h-full rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xl font-bold">
                     ${data.basics?.name ? data.basics.name.charAt(0) : 'R'}
@@ -838,11 +847,11 @@ function generateMinimalistProHTML(data: TemplateData): string {
                 }
               </div>
             </div>
-            
+
             <!-- Name and Title -->
             <div>
               <h1 class="text-4xl font-bold mb-2 text-stone-600 uppercase tracking-wider">
-                ${data.basics?.name ? 
+                ${data.basics?.name ?
                   `<span>${data.basics.name.split(' ').slice(0, -1).join(' ')}</span> <span class="text-gray-500">${data.basics.name.split(' ').slice(-1).join(' ')}</span>` :
                   '<span>Richard</span> <span class="text-gray-500">Sanchez</span>'
                 }
@@ -852,7 +861,7 @@ function generateMinimalistProHTML(data: TemplateData): string {
             </div>
           </div>
         </div>
-        
+
         <!-- Content -->
         <div class="px-8">
           <!-- Profile -->
@@ -860,7 +869,7 @@ function generateMinimalistProHTML(data: TemplateData): string {
             <h2 class="text-xl font-bold uppercase tracking-wider mb-4 text-stone-600 border-b border-gray-300 pb-2">Profile</h2>
             <div class="text-gray-700 leading-relaxed mt-4">${renderHTMLContent(data.basics?.summary || 'Professional summary goes here...')}</div>
           </div>
-          
+
           <!-- Work Experience -->
           <div class="mb-8">
             <h2 class="text-xl font-bold uppercase tracking-wider mb-6 text-stone-600 border-b border-gray-300 pb-2">Work Experience</h2>

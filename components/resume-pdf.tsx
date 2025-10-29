@@ -2,6 +2,33 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Svg, Path, Circle } from '@react-pdf/renderer';
 import { ResumeData } from '@/types/resume';
 
+// Helper function to decode HTML entities and strip HTML tags for PDF
+function decodeAndStripHTML(content: string | undefined | null): string {
+  if (!content || typeof content !== 'string') return '';
+
+  // First decode HTML entities
+  let decoded = content
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/');
+
+  // Then strip HTML tags and convert to plain text with bullet points
+  return decoded
+    .replace(/<ul[^>]*>/gi, '')
+    .replace(/<\/ul>/gi, '')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, '') // Remove any remaining HTML tags
+    .replace(/\n\s*\n/g, '\n') // Remove extra line breaks
+    .trim();
+}
+
 // Create styles for the PDF - Classic Professional design
 const styles = StyleSheet.create({
   page: {
@@ -327,9 +354,9 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ data, templateId }) => {
       position: exp.position,
       startDate: exp.startDate,
       endDate: exp.current ? undefined : exp.endDate,
-      summary: exp.description,
+      summary: decodeAndStripHTML(exp.description),
       location: "",
-      highlights: exp.description ? [exp.description] : [],
+      highlights: exp.description ? [decodeAndStripHTML(exp.description)] : [],
     })) || [];
 
     const educationItems = resumeData.education?.map((edu) => ({
@@ -518,7 +545,7 @@ export const ResumePDF: React.FC<ResumePDFProps> = ({ data, templateId }) => {
                 <View style={styles.jobContent}>
                   <Text style={styles.description}>
                     {work.summary ?
-                      String(work.summary).replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') :
+                      decodeAndStripHTML(work.summary) :
                       'Job description goes here...'
                     }
                   </Text>

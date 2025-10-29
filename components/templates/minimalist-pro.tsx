@@ -236,7 +236,7 @@ const MinimalistProTemplate: React.FC<MinimalistProTemplateProps> = ({ data }) =
                 <div className="mt-4 md:mt-6 print:mt-2">
                   {data.basics?.summary ? (
                     <div 
-                      className="text-gray-700 leading-relaxed text-sm md:text-base print:text-xs"
+                      className="rich-text-content text-gray-700 leading-relaxed text-sm md:text-base print:text-xs"
                       dangerouslySetInnerHTML={{ __html: data.basics.summary }}
                     />
                   ) : (
@@ -269,7 +269,7 @@ const MinimalistProTemplate: React.FC<MinimalistProTemplateProps> = ({ data }) =
                       <div className="mt-3 md:mt-4 print:mt-2">
                         {work.summary ? (
                           <div 
-                            className="text-gray-700 text-sm md:text-base print:text-xs"
+                            className="rich-text-content text-gray-700 text-sm md:text-base print:text-xs"
                             dangerouslySetInnerHTML={{ __html: work.summary }}
                           />
                         ) : (

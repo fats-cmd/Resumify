@@ -10,7 +10,7 @@ interface ClassicProfessionalTemplateProps {
 
 const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = ({ data }) => {
   console.log("ClassicProfessionalTemplate received data:", data);
-  
+
   // Check if required data is present
   if (!data) {
     return (
@@ -20,7 +20,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
       </div>
     );
   }
-  
+
   // Check if basics data is present
   if (!data.basics) {
     return (
@@ -46,14 +46,14 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
         <div className="grid grid-cols-3 min-h-[1414px] print:min-h-0 print:h-auto">
           {/* Left Column - Blue Background */}
           <div className="col-span-1 bg-blue-800 text-white relative print:bg-blue-900 print:text-white">
-            
+
             {/* Profile Image */}
             <div className="relative z-10 mx-auto mt-8 mb-6 md:mt-10 md:mb-8 print:mt-6 print:mb-4">
               <div className="w-32 h-32 rounded-full bg-white p-2 mx-auto overflow-hidden md:w-40 md:h-40 md:p-3 print:w-24 print:h-24 print:p-1">
                 {data.basics?.image ? (
-                  <Image 
-                    src={data.basics.image} 
-                    alt={data.basics?.name || "Profile"} 
+                  <Image
+                    src={data.basics.image}
+                    alt={data.basics?.name || "Profile"}
                     width={160}
                     height={160}
                     className="w-full h-full rounded-full object-cover"
@@ -65,13 +65,13 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                 )}
               </div>
             </div>
-            
+
             {/* Contact Information */}
             <div className="px-6 py-4 md:px-8 md:py-6 print:px-4 print:py-3">
               <h2 className="text-lg font-bold uppercase tracking-wider mb-4 md:text-xl print:text-base">
                 Contacts
               </h2>
-              
+
               {/* Contact Details */}
               <div className="space-y-4 md:space-y-5 print:space-y-2">
                 {/* Phone */}
@@ -85,7 +85,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                     </div>
                   </div>
                 )}
-                
+
                 {/* Email */}
                 {data.basics?.email && (
                   <div className="flex items-center">
@@ -98,7 +98,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                     </div>
                   </div>
                 )}
-                
+
                 {/* Location */}
                 {data.basics?.location && (
                   <div className="flex items-center">
@@ -118,7 +118,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                     </div>
                   </div>
                 )}
-                
+
                 {/* Website */}
                 {data.basics?.website && (
                   <div className="flex items-center">
@@ -132,16 +132,16 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                 )}
               </div>
             </div>
-            
+
             {/* Divider */}
             <div className="border-t border-blue-600 w-4/5 mx-auto my-6 md:my-8 print:my-3"></div>
-            
+
             {/* Skills Section */}
             <div className="px-6 py-4 md:px-8 md:py-6 print:px-4 print:py-3">
               <h2 className="text-lg font-bold uppercase tracking-wider mb-4 md:text-xl print:text-base">
                 Skills
               </h2>
-              
+
               <div className="space-y-3 md:space-y-4 print:space-y-2">
                 {skillItems.map((skill, index) => (
                   <div key={index} className="flex items-center">
@@ -151,7 +151,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                 ))}
               </div>
             </div>
-            
+
             {/* Projects Section */}
             {projects.length > 0 && (
               <>
@@ -160,7 +160,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-4 md:text-xl print:text-base">
                     Projects
                   </h2>
-                  
+
                   <div className="space-y-4 md:space-y-6 print:space-y-2">
                     {projects.map((project, index) => (
                       <div key={index}>
@@ -182,7 +182,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                 </div>
               </>
             )}
-            
+
             {/* Languages Section */}
             {languages.length > 0 && (
               <>
@@ -191,7 +191,7 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                   <h2 className="text-lg font-bold uppercase tracking-wider mb-4 md:text-xl print:text-base">
                     Language
                   </h2>
-                  
+
                   <div className="space-y-4 md:space-y-6 print:space-y-2">
                     {languages.map((language, index) => (
                       <div key={index}>
@@ -199,8 +199,8 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                           <span className="text-sm font-medium md:text-base print:text-xs">{language.language}</span>
                         </div>
                         <div className="w-full bg-blue-600 rounded-full h-1 md:h-1.5 print:h-0.5">
-                          <div 
-                            className="bg-white h-1 rounded-full md:h-1.5 print:h-0.5" 
+                          <div
+                            className="bg-white h-1 rounded-full md:h-1.5 print:h-0.5"
                             style={{ width: `${language.fluency === 'Native' ? 100 : language.fluency === 'Fluent' ? 90 : language.fluency === 'Intermediate' ? 70 : 50}%` }}
                           ></div>
                         </div>
@@ -211,10 +211,10 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
               </>
             )}
           </div>
-          
+
           {/* Right Column - Light Gray Background */}
           <div className="col-span-2 bg-gray-100 text-gray-800 relative print:bg-gray-50">
-            
+
             {/* Header with Name and Title */}
             <div className="p-8 bg-white md:p-10 lg:p-12 print:p-6">
               <div className="mb-4 md:mb-6 print:mb-3">
@@ -235,18 +235,18 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                 </p>
               </div>
             </div>
-            
+
             {/* About Me Section */}
             <div className="px-8 py-6 md:px-10 md:py-8 lg:px-12 lg:py-10 print:px-6 print:py-4">
               <div className="mb-6 md:mb-8 print:mb-4">
                 <h2 className="text-xl font-bold uppercase tracking-wider mb-4 text-blue-800 border-b-2 border-blue-800 pb-2 md:text-2xl print:text-lg print:mb-2">
                   About Me
                 </h2>
-                
+
                 <div className="mt-4 md:mt-6 print:mt-2">
                   {data.basics?.summary ? (
-                    <div 
-                      className="text-gray-700 leading-relaxed text-sm md:text-base print:text-xs"
+                    <div
+                      className="rich-text-content text-gray-700 leading-relaxed text-sm md:text-base print:text-xs"
                       dangerouslySetInnerHTML={{ __html: data.basics.summary }}
                     />
                   ) : (
@@ -256,19 +256,19 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                   )}
                 </div>
               </div>
-              
+
               {/* Education Section */}
               <div className="mb-6 md:mb-8 print:mb-4">
                 <h2 className="text-xl font-bold uppercase tracking-wider mb-4 text-blue-800 border-b-2 border-blue-800 pb-2 md:text-2xl print:text-lg print:mb-2">
                   Education
                 </h2>
-                
+
                 <div className="space-y-6 md:space-y-8 print:space-y-3">
                   {educationItems.map((education, index) => (
                     <div key={index} className="relative pl-6 md:pl-8 print:pl-4">
                       {/* Timeline dot */}
                       <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-blue-800 md:w-4 md:h-4 print:w-2 print:h-2"></div>
-                      
+
                       <div>
                         <h3 className="text-lg font-bold md:text-xl print:text-base">{education.institution || 'ABC University'}</h3>
                         <p className="text-gray-600 text-sm md:text-base print:text-xs mt-1">
@@ -284,29 +284,39 @@ const ClassicProfessionalTemplate: React.FC<ClassicProfessionalTemplateProps> = 
                   ))}
                 </div>
               </div>
-              
+
               {/* Experience Section */}
               <div className="mb-6 md:mb-8 print:mb-4">
                 <h2 className="text-xl font-bold uppercase tracking-wider mb-4 text-blue-800 border-b-2 border-blue-800 pb-2 md:text-2xl print:text-lg print:mb-2">
                   Experience
                 </h2>
-                
+
                 <div className="space-y-6 md:space-y-8 print:space-y-3">
                   {workItems.map((work, index) => (
                     <div key={index} className="relative pl-6 md:pl-8 print:pl-4">
                       {/* Timeline dot */}
                       <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-blue-800 md:w-4 md:h-4 print:w-2 print:h-2"></div>
-                      
+
                       <div>
-                        <h3 className="text-lg font-bold md:text-xl print:text-base">{work.name || 'ABC Company'}</h3>
-                        <p className="text-gray-600 text-sm md:text-base print:text-xs mt-1">
-                          {work.summary || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor'}
-                        </p>
+                        <h3 className="text-lg font-bold md:text-xl print:text-base">{work.position || 'Job Title'}</h3>
+                        <p className="text-gray-600 font-medium text-sm md:text-base print:text-xs">{work.name || 'Company Name'}</p>
                         {(work.startDate || work.endDate) && (
                           <p className="text-gray-500 text-sm mt-1 md:text-base print:text-xs">
                             {work.startDate && new Date(work.startDate).getFullYear()} - {work.endDate ? new Date(work.endDate).getFullYear() : 'Present'}
                           </p>
                         )}
+                        <div className="mt-3 md:mt-4 print:mt-2">
+                          {work.summary ? (
+                            <div
+                              className="rich-text-content text-gray-700 text-sm md:text-base print:text-xs"
+                              dangerouslySetInnerHTML={{ __html: work.summary }}
+                            />
+                          ) : (
+                            <p className="text-gray-700 text-sm md:text-base print:text-xs">
+                              Add your job responsibilities and achievements here...
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}

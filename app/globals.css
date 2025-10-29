@@ -408,6 +408,69 @@
     white-space: pre-wrap;
   }
   
+  /* Styles for rendered rich text content in previews */
+  .rich-text-content ul,
+  .rich-text-content ol {
+    padding: 0 1rem;
+    margin: 0.5em 0;
+  }
+
+  .rich-text-content li > p {
+    margin-bottom: 0.25em;
+  }
+
+  .rich-text-content li > ul,
+  .rich-text-content li > ol {
+    margin: 0;
+  }
+
+  .rich-text-content ul {
+    list-style: disc;
+  }
+
+  .rich-text-content ol {
+    list-style: decimal;
+  }
+
+  .rich-text-content blockquote {
+    border-left: 3px solid #ccc;
+    margin: 0;
+    padding-left: 1rem;
+  }
+
+  .rich-text-content code {
+    background-color: #eee;
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+    font-family: monospace;
+  }
+
+  .dark .rich-text-content code {
+    background-color: #333;
+    color: #fff;
+  }
+
+  .rich-text-content p {
+    margin: 0;
+    margin-bottom: 0.5em;
+  }
+
+  .rich-text-content strong {
+    font-weight: 600;
+  }
+
+  .rich-text-content em {
+    font-style: italic;
+  }
+
+  .rich-text-content u {
+    text-decoration: underline;
+  }
+
+  .rich-text-content s {
+    text-decoration: line-through;
+  }
+  
   /* Hide scrollbar for tab navigation */
   .scrollbar-hide {
     -ms-overflow-style: none;  /* IE and Edge */
