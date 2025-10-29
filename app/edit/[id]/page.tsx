@@ -39,6 +39,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Calendar as CalendarIcon,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import {
@@ -51,6 +53,18 @@ import {
 
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import TemplatePreview from "@/components/template-preview";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandSeparator,
+} from "@/components/ui/command";
 
 interface FormResumeData {
   personalInfo: {
@@ -348,12 +362,15 @@ export default function EditResumePage() {
   const handleWorkExperienceChange = (
     id: number,
     field: string,
-    value: string | boolean,
+    value: string | boolean | Date | null | undefined,
   ) => {
     setResumeData({
       ...resumeData,
       workExperience: (resumeData.workExperience || []).map((exp) =>
-        exp.id === id ? { ...exp, [field]: value } : exp,
+        exp.id === id ? {
+          ...exp,
+          [field]: value instanceof Date ? format(value, 'yyyy-MM') : value
+        } : exp,
       ),
     });
   };
@@ -389,11 +406,14 @@ export default function EditResumePage() {
   };
 
   // Handle education changes
-  const handleEducationChange = (id: number, field: string, value: string) => {
+  const handleEducationChange = (id: number, field: string, value: string | Date | null | undefined) => {
     setResumeData({
       ...resumeData,
       education: (resumeData.education || []).map((edu) =>
-        edu.id === id ? { ...edu, [field]: value } : edu,
+        edu.id === id ? {
+          ...edu,
+          [field]: value instanceof Date ? format(value, 'yyyy-MM') : value
+        } : edu,
       ),
     });
   };
@@ -1672,39 +1692,68 @@ export default function EditResumePage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-2">
-                                    <Label htmlFor={`startDate-${exp.id}`}>
-                                      Start Date
-                                    </Label>
-                                    <Input
-                                      id={`startDate-${exp.id}`}
-                                      type="month"
-                                      value={exp.startDate}
-                                      onChange={(e) =>
-                                        handleWorkExperienceChange(
-                                          exp.id,
-                                          "startDate",
-                                          e.target.value,
-                                        )
-                                      }
-                                    />
+                                    <Label>Start Date</Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !exp.startDate && "text-muted-foreground"
+                                          )}
+                                        >
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {exp.startDate ? format(new Date(exp.startDate), "MMM yyyy") : <span>Pick a date</span>}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                          mode="single"
+                                          selected={exp.startDate ? new Date(exp.startDate) : undefined}
+                                          onSelect={(date) => handleWorkExperienceChange(exp.id, "startDate", date)}
+                                          initialFocus
+                                          captionLayout="dropdown"
+                                          fromYear={1900}
+                                          toYear={new Date().getFullYear() + 5}
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
                                   </div>
                                   <div className="space-y-2">
-                                    <Label htmlFor={`endDate-${exp.id}`}>
-                                      End Date
-                                    </Label>
-                                    <Input
-                                      id={`endDate-${exp.id}`}
-                                      type="month"
-                                      value={exp.endDate}
-                                      onChange={(e) =>
-                                        handleWorkExperienceChange(
-                                          exp.id,
-                                          "endDate",
-                                          e.target.value,
-                                        )
-                                      }
-                                      disabled={exp.current}
-                                    />
+                                    <Label>End Date</Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !exp.endDate && !exp.current && "text-muted-foreground",
+                                            exp.current && "opacity-50"
+                                          )}
+                                          disabled={exp.current}
+                                        >
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {exp.current ? (
+                                            <span>Present</span>
+                                          ) : exp.endDate ? (
+                                            format(new Date(exp.endDate), "MMM yyyy")
+                                          ) : (
+                                            <span>Pick a date</span>
+                                          )}
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                          mode="single"
+                                          selected={exp.endDate ? new Date(exp.endDate) : undefined}
+                                          onSelect={(date) => handleWorkExperienceChange(exp.id, "endDate", date)}
+                                          initialFocus
+                                          captionLayout="dropdown"
+                                          fromYear={1900}
+                                          toYear={new Date().getFullYear() + 5}
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
                                   </div>
                                 </div>
 
@@ -1848,76 +1897,326 @@ export default function EditResumePage() {
                                   />
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor={`degree-${edu.id}`}>
-                                    Degree
-                                  </Label>
-                                  <Input
-                                    id={`degree-${edu.id}`}
-                                    value={edu.degree}
-                                    onChange={(e) =>
-                                      handleEducationChange(
-                                        edu.id,
-                                        "degree",
-                                        e.target.value,
-                                      )
-                                    }
-                                    placeholder="Bachelor's, Master's, etc."
-                                  />
+                                  <Label>Degree</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className="w-full justify-between font-normal"
+                                      >
+                                        {edu.degree || "Select a degree"}
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[300px] p-0">
+                                      <Command>
+                                        <CommandInput placeholder="Search degrees..." />
+                                        <CommandEmpty>No degree found.</CommandEmpty>
+                                        <CommandGroup>
+                                          <CommandItem
+                                            value="High School"
+                                            onSelect={() => handleEducationChange(edu.id, "degree", "High School")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.degree === "High School" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            High School
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Associate's Degree"
+                                            onSelect={() => handleEducationChange(edu.id, "degree", "Associate's Degree")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.degree === "Associate's Degree" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Associate's Degree
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Bachelor's Degree"
+                                            onSelect={() => handleEducationChange(edu.id, "degree", "Bachelor's Degree")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.degree === "Bachelor's Degree" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Bachelor's Degree
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Master's Degree"
+                                            onSelect={() => handleEducationChange(edu.id, "degree", "Master's Degree")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.degree === "Master's Degree" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Master's Degree
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Doctorate (Ph.D.)"
+                                            onSelect={() => handleEducationChange(edu.id, "degree", "Doctorate (Ph.D.)")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.degree === "Doctorate (Ph.D.)" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Doctorate (Ph.D.)
+                                          </CommandItem>
+                                          <CommandItem
+                                            value="Professional Degree"
+                                            onSelect={() => handleEducationChange(edu.id, "degree", "Professional Degree")}
+                                          >
+                                            <Check
+                                              className={`mr-2 h-4 w-4 ${edu.degree === "Professional Degree" ? "opacity-100" : "opacity-0"}`}
+                                            />
+                                            Professional Degree (JD, MD, etc.)
+                                          </CommandItem>
+                                        </CommandGroup>
+                                        <CommandSeparator />
+                                        <CommandGroup>
+                                          <CommandItem
+                                            className="text-muted-foreground"
+                                            onSelect={() => {
+                                              const newDegree = prompt("Enter custom degree:");
+                                              if (newDegree) {
+                                                handleEducationChange(edu.id, "degree", newDegree);
+                                              }
+                                            }}
+                                          >
+                                            <Plus className="mr-2 h-4 w-4" />
+                                            Add custom degree
+                                          </CommandItem>
+                                        </CommandGroup>
+                                      </Command>
+                                    </PopoverContent>
+                                  </Popover>
                                 </div>
                               </div>
 
                               <div className="space-y-2">
-                                <Label htmlFor={`field-${edu.id}`}>
-                                  Field of Study
-                                </Label>
-                                <Input
-                                  id={`field-${edu.id}`}
-                                  value={edu.field}
-                                  onChange={(e) =>
-                                    handleEducationChange(
-                                      edu.id,
-                                      "field",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="Computer Science, Business, etc."
-                                />
+                                <Label>Field of Study</Label>
+                                <div className="flex gap-2">
+                                  <div className="flex-1">
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          role="combobox"
+                                          className="w-full justify-between font-normal"
+                                        >
+                                          {edu.field || "Select field of study"}
+                                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-[350px] p-0">
+                                        <Command>
+                                          <CommandInput placeholder="Search fields of study..." />
+                                          <CommandEmpty>No field of study found.</CommandEmpty>
+                                          <CommandGroup>
+                                            <CommandItem
+                                              value="Computer Science"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Computer Science")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Computer Science" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Computer Science
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Business Administration"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Business Administration")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Business Administration" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Business Administration
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Engineering"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Engineering")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Engineering" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Engineering
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Marketing"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Marketing")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Marketing" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Marketing
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Finance"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Finance")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Finance" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Finance
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Psychology"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Psychology")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Psychology" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Psychology
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Biology"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Biology")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Biology" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Biology
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Mathematics"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Mathematics")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Mathematics" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Mathematics
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="English"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "English")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "English" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              English
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="History"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "History")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "History" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              History
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Art"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Art")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Art" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Art
+                                            </CommandItem>
+                                            <CommandItem
+                                              value="Design"
+                                              onSelect={() => handleEducationChange(edu.id, "field", "Design")}
+                                            >
+                                              <Check
+                                                className={`mr-2 h-4 w-4 ${edu.field === "Design" ? "opacity-100" : "opacity-0"}`}
+                                              />
+                                              Design
+                                            </CommandItem>
+                                          </CommandGroup>
+                                          <CommandSeparator />
+                                          <CommandGroup>
+                                            <CommandItem
+                                              className="text-muted-foreground"
+                                              onSelect={() => {
+                                                const newField = prompt("Enter custom field of study:");
+                                                if (newField) {
+                                                  handleEducationChange(edu.id, "field", newField);
+                                                }
+                                              }}
+                                            >
+                                              <Plus className="mr-2 h-4 w-4" />
+                                              Add custom field
+                                            </CommandItem>
+                                          </CommandGroup>
+                                        </Command>
+                                      </PopoverContent>
+                                    </Popover>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => generateEducationWithAI(edu.id)}
+                                    disabled={isGeneratingEducation[edu.id]}
+                                    className="rounded-full whitespace-nowrap"
+                                  >
+                                    {isGeneratingEducation[edu.id] ? (
+                                      <>
+                                        <div className="h-3 w-3 rounded-full border-2 border-current border-t-transparent animate-spin mr-1" />
+                                        <span className="hidden sm:inline">Generating</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Sparkles className="h-3 w-3 mr-1" />
+                                        <span className="hidden sm:inline">AI Suggest</span>
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                  <Label htmlFor={`eduStartDate-${edu.id}`}>
-                                    Start Date
-                                  </Label>
-                                  <Input
-                                    id={`eduStartDate-${edu.id}`}
-                                    type="month"
-                                    value={edu.startDate}
-                                    onChange={(e) =>
-                                      handleEducationChange(
-                                        edu.id,
-                                        "startDate",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
+                                  <Label>Start Date</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !edu.startDate && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {edu.startDate ? format(new Date(edu.startDate), "MMM yyyy") : <span>Pick a date</span>}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={edu.startDate ? new Date(edu.startDate) : undefined}
+                                        onSelect={(date) => handleEducationChange(edu.id, "startDate", date)}
+                                        initialFocus
+                                        captionLayout="dropdown"
+                                        fromYear={1900}
+                                        toYear={new Date().getFullYear() + 5}
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
                                 </div>
                                 <div className="space-y-2">
-                                  <Label htmlFor={`eduEndDate-${edu.id}`}>
-                                    End Date
-                                  </Label>
-                                  <Input
-                                    id={`eduEndDate-${edu.id}`}
-                                    type="month"
-                                    value={edu.endDate}
-                                    onChange={(e) =>
-                                      handleEducationChange(
-                                        edu.id,
-                                        "endDate",
-                                        e.target.value,
-                                      )
-                                    }
-                                  />
+                                  <Label>End Date</Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        className={cn(
+                                          "w-full justify-start text-left font-normal",
+                                          !edu.endDate && "text-muted-foreground"
+                                        )}
+                                      >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {edu.endDate ? format(new Date(edu.endDate), "MMM yyyy") : <span>Pick a date</span>}
+                                      </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                      <Calendar
+                                        mode="single"
+                                        selected={edu.endDate ? new Date(edu.endDate) : undefined}
+                                        onSelect={(date) => handleEducationChange(edu.id, "endDate", date)}
+                                        initialFocus
+                                        captionLayout="dropdown"
+                                        fromYear={1900}
+                                        toYear={new Date().getFullYear() + 5}
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
                                 </div>
                               </div>
 

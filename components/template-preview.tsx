@@ -5,6 +5,19 @@ import Image from "next/image";
 import { getTemplateComponent } from "@/components/template-registry";
 import { ResumeData } from "@/types/resume";
 
+// Helper function to decode HTML entities
+function decodeHTMLEntities(content: string | undefined | null): string {
+  if (!content || typeof content !== 'string') return '';
+
+  return content
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/');
+}
+
 interface FormResumeData {
   personalInfo: {
     firstName: string;
@@ -44,22 +57,22 @@ interface TemplatePreviewProps {
 
 const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeData, imagePreview }) => {
   console.log("TemplatePreview props:", { templateId, resumeData, imagePreview });
-  
+
   // Ensure templateId is a valid number
   const validTemplateId = templateId && typeof templateId === 'number' && templateId > 0 ? templateId : null;
   console.log("TemplatePreview validTemplateId:", validTemplateId);
-  
+
   // Convert the resume data to the format expected by the template
   const transformResumeData = (data: FormResumeData): ResumeData => {
     console.log("Transforming resume data:", data);
-    
+
     // Transform from form data to template-compatible format
     const basics = {
       name: `${data.personalInfo.firstName} ${data.personalInfo.lastName}`.trim(),
       label: data.personalInfo.headline,
       email: data.personalInfo.email,
       phone: data.personalInfo.phone,
-      summary: data.personalInfo.summary,
+      summary: decodeHTMLEntities(data.personalInfo.summary),
       location: data.personalInfo.location ? {
         address: data.personalInfo.location,
       } : undefined,
@@ -71,9 +84,9 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
       position: exp.position,
       startDate: exp.startDate,
       endDate: exp.current ? undefined : exp.endDate,
-      summary: exp.description,
+      summary: decodeHTMLEntities(exp.description),
       location: "",
-      highlights: exp.description ? [exp.description] : [],
+      highlights: exp.description ? [decodeHTMLEntities(exp.description)] : [],
     }));
 
     const educationItems = data.education.map((edu) => ({
@@ -103,14 +116,14 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
       // Include templateId in the result for debugging
       templateId: validTemplateId || undefined
     };
-    
+
     console.log("Transformed resume data:", result);
     return result;
   };
 
   const transformedData = transformResumeData(resumeData);
   console.log("Transformed data:", transformedData);
-  
+
   // If no template is selected (null or undefined), show a message but still allow preview with default styling
   if (!validTemplateId) {
     console.log("No valid templateId, showing default preview");
@@ -124,9 +137,9 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
           <div className="text-center mb-6">
             {transformedData?.basics?.image ? (
               <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4">
-                <Image 
-                  src={transformedData.basics.image} 
-                  alt={transformedData.basics.name || "Profile"} 
+                <Image
+                  src={transformedData.basics.image}
+                  alt={transformedData.basics.name || "Profile"}
                   width={96}
                   height={96}
                   className="w-full h-full object-cover"
@@ -142,7 +155,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
             <h1 className="text-2xl font-bold">{transformedData?.basics?.name || "Your Name"}</h1>
             <p className="text-gray-600">{transformedData?.basics?.label || "Professional Title"}</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h2 className="text-lg font-bold mb-3 border-b pb-2">Contact Information</h2>
@@ -158,16 +171,16 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
                 )}
               </div>
             </div>
-            
+
             <div>
               <h2 className="text-lg font-bold mb-3 border-b pb-2">Summary</h2>
-              <div 
+              <div
                 className="text-gray-700"
                 dangerouslySetInnerHTML={{ __html: transformedData?.basics?.summary || "Add your professional summary here..." }}
               />
             </div>
           </div>
-          
+
           <div className="mt-8">
             <h2 className="text-lg font-bold mb-3 border-b pb-2">Work Experience</h2>
             <div className="space-y-4">
@@ -175,7 +188,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
                 <div key={index} className="border-b pb-4 last:border-b-0">
                   <h3 className="font-bold">{work.position}</h3>
                   <p className="text-gray-600">{work.name} | {work.startDate} - {work.endDate || "Present"}</p>
-                  <div 
+                  <div
                     className="mt-2 text-gray-700"
                     dangerouslySetInnerHTML={{ __html: work.summary || "Add your job responsibilities and achievements here..." }}
                   />
@@ -183,7 +196,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
               ))}
             </div>
           </div>
-          
+
           <div className="mt-8">
             <h2 className="text-lg font-bold mb-3 border-b pb-2">Education</h2>
             <div className="space-y-4">
@@ -196,7 +209,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
               ))}
             </div>
           </div>
-          
+
           <div className="mt-8">
             <h2 className="text-lg font-bold mb-3 border-b pb-2">Skills</h2>
             <div className="flex flex-wrap gap-2">
@@ -214,7 +227,7 @@ const TemplatePreview: React.FC<TemplatePreviewProps> = ({ templateId, resumeDat
 
   const TemplateComponent = getTemplateComponent(validTemplateId);
   console.log("Template component:", TemplateComponent);
-  
+
   if (!TemplateComponent) {
     console.log("Template component not found for ID:", validTemplateId);
     return (
