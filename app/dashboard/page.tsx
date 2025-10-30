@@ -320,7 +320,7 @@ export default function DashboardPage() {
         names[0].charAt(0) +
         (names.length > 1 ? names[names.length - 1].charAt(0) : "");
     } else if (email) {
-      const emailParts = email.split("@");e
+      const emailParts = email.split("@");
       initials = emailParts[0].charAt(0);
     }
 
