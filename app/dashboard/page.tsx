@@ -167,15 +167,15 @@ export default function DashboardPage() {
           const newStats = {
             totalResumes: resumeData.length,
             publishedResumes: resumeData.filter(
-              (resume: Resume) => resume.status === "Published",
+              (resume: Resume) => resume.status === "Published"
             ).length,
             totalViews: resumeData.reduce(
               (sum: number, resume: Resume) => sum + (resume.views || 0),
-              0,
+              0
             ),
             totalDownloads: resumeData.reduce(
               (sum: number, resume: Resume) => sum + (resume.downloads || 0),
-              0,
+              0
             ),
           };
 
@@ -284,18 +284,21 @@ export default function DashboardPage() {
     const avatarUrl = user.user_metadata?.avatar_url;
     const customAvatar = user.user_metadata?.custom_image_avatar;
 
-    // Add cache-busting parameter to avatar URL
+    // Add cache-busting parameter to avatar URL - use only a stable version (only when avatar is updated)
+    const avatarUpdatedAt =
+      user.user_metadata?.avatar_updated_at || user.updated_at || null;
     const cacheBustedAvatarUrl = avatarUrl
-      ? `${avatarUrl}?t=${Date.now()}`
+      ? avatarUpdatedAt
+        ? `${avatarUrl}?v=${new Date(avatarUpdatedAt).getTime()}`
+        : avatarUrl
       : null;
     const displayAvatar = cacheBustedAvatarUrl || customAvatar;
 
     if (displayAvatar && !avatarError) {
-      // Extract the base URL without cache-busting parameter for the Image component
-      const [baseUrl] = displayAvatar.split("?t=");
+      // pass the full URL (with ?v=) to the Image component so cache busting works only when needed
       return (
         <Image
-          src={baseUrl}
+          src={displayAvatar}
           alt="Profile"
           width={32}
           height={32}
@@ -317,12 +320,12 @@ export default function DashboardPage() {
         names[0].charAt(0) +
         (names.length > 1 ? names[names.length - 1].charAt(0) : "");
     } else if (email) {
-      const emailParts = email.split("@");
+      const emailParts = email.split("@");e
       initials = emailParts[0].charAt(0);
     }
 
     return (
-      <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white text-sm font-medium">
+      <div className="w-8 h-8 rounded-full text-black bg-white/50 border-2 border-white/30 flex items-center justify-center dark:text-black text-sm font-medium">
         {initials.toUpperCase()}
       </div>
     );
@@ -334,7 +337,9 @@ export default function DashboardPage() {
         <TourGuide />
         {/* Sidebar - Full Height */}
         <div
-          className={`fixed inset-y-0 left-0 z-50 bg-background transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
+          className={`fixed inset-y-0 left-0 z-50 bg-background transform ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:flex-shrink-0 lg:h-screen ${
             sidebarCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-80"
           }`}
         >
@@ -465,7 +470,7 @@ export default function DashboardPage() {
                       <ThemeToggle className="bg-gray-200 border-gray-300 hover:bg-gray-300" />
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button className="focus:outline-none focus:ring-2 focus:ring-gray-500/50 rounded-full p-1">
+                          <button className="focus:outline-none border-2 border-gray-400 dark:border-gray-700 dark:bg-white text-gray-700  focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-gray-500/50 rounded-full p-1">
                             {getUserAvatar()}
                           </button>
                         </DropdownMenuTrigger>
@@ -721,7 +726,7 @@ export default function DashboardPage() {
                               <CardDescription className="text-muted-foreground mt-1">
                                 Last updated:{" "}
                                 {new Date(
-                                  resume.updated_at,
+                                  resume.updated_at
                                 ).toLocaleDateString()}
                               </CardDescription>
                             </div>
